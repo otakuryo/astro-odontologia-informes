@@ -38,7 +38,7 @@ const formats = [
 <html lang="es-ES">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="generator" content={Astro.generator} />
     <title>Formatos odontológicos imprimibles</title>
   </head>
@@ -165,6 +165,16 @@ const formats = [
   @media (max-width: 720px) {
     .catalog__list {
       grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 40rem) {
+    .catalog {
+      padding: 24px;
+    }
+
+    .catalog__title {
+      font-size: 28px;
     }
   }
 

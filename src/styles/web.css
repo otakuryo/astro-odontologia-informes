@@ -62,3 +62,112 @@ body.is-print-document .web-chrome {
 .web-chrome .btn.is-exporting {
   pointer-events: none;
 }
+
+/* iOS no hace zoom al enfocar si el control tiene 16 px. El pellizco sigue activo. */
+.web-chrome :is(input, select, textarea) {
+  font-size: 16px;
+}
+
+/*
+  daisyUI navbar-start/end son 50 % + centro: solapan Descargar/Imprimir/Opciones.
+  Barra propia: dos líneas centradas en estrecho; en ancho, título a un lado y controles al otro.
+*/
+.web-chrome .print-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  height: auto;
+  min-height: 0;
+}
+
+.web-chrome .print-toolbar__home {
+  max-width: 100%;
+  white-space: normal;
+  height: auto;
+  min-height: var(--size, 2rem);
+}
+
+.web-chrome .print-toolbar__controls,
+.web-chrome .print-toolbar__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  max-width: 100%;
+}
+
+/* En 390 px: iconos Lucide a la vista; el texto sigue en el nombre accesible. */
+@media (max-width: 40rem) {
+  .web-chrome .print-toolbar__actions .btn {
+    width: var(--size);
+    padding-inline: 0;
+  }
+
+  .web-chrome .print-toolbar__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+}
+
+@media (min-width: 64rem) {
+  .web-chrome .print-toolbar {
+    justify-content: space-between;
+  }
+
+  .web-chrome .print-toolbar__controls {
+    justify-content: flex-end;
+  }
+}
+
+.web-chrome .modal-box {
+  min-width: 0;
+  max-width: min(32rem, calc(100vw - 1.5rem));
+}
+
+.web-chrome .modal-box .fieldset,
+.web-chrome .modal-box p {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Carta/A4/A5/A6: el join de daisyUI no parte línea; aquí sí, centrado. */
+.web-chrome .modal-box .join {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  width: 100%;
+  max-width: 100%;
+}
+
+.web-chrome .modal-box .fieldset-label {
+  white-space: normal;
+  max-width: 100%;
+}
+
+.web-chrome .modal-action {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+@media (max-width: 40rem) {
+  .web-chrome .modal-action {
+    flex-direction: column-reverse;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+
+  .web-chrome .modal-action form,
+  .web-chrome .modal-action .btn {
+    width: 100%;
+  }
+}

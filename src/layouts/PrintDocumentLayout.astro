@@ -41,7 +41,7 @@ const { title, documentTitle, code, revision = 'REV. 01', page = '1/1' } = Astro
       })();
     </script>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
   </head>
@@ -49,13 +49,17 @@ const { title, documentTitle, code, revision = 'REV. 01', page = '1/1' } = Astro
     <div class="web-chrome" data-theme="odo" data-print-hide>
       <PrintToolbar />
     </div>
-    <div class="sheet" data-testid="sheet">
-      <div class="sheet__inner">
-        <ClinicalHeader title={documentTitle} />
-        <main class="sheet__body">
-          <slot />
-        </main>
-        <DocumentFooter code={code} revision={revision} page={page} />
+    <div class="sheet-preview">
+      <div class="sheet-preview__scaler">
+        <div class="sheet" data-testid="sheet">
+          <div class="sheet__inner">
+            <ClinicalHeader title={documentTitle} />
+            <main class="sheet__body">
+              <slot />
+            </main>
+            <DocumentFooter code={code} revision={revision} page={page} />
+          </div>
+        </div>
       </div>
     </div>
     <script is:inline>

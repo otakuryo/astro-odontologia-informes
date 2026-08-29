@@ -7,16 +7,13 @@ const { homeLabel = 'Formatos odontológicos' } = Astro.props;
 ---
 
 <div class="navbar bg-base-100 print-toolbar" data-testid="print-toolbar">
-  <div class="navbar-start">
-    <a class="btn btn-ghost" href="/">{homeLabel}</a>
-    <a class="btn btn-ghost" href="/">Home</a>
-  </div>
-  <div class="navbar-center">
+  <a class="btn btn-ghost btn-sm print-toolbar__home" href="/">{homeLabel}</a>
+  <div class="print-toolbar__controls">
     <slot name="paper" />
-  </div>
-  <div class="navbar-end gap-2">
-    <slot name="download" />
-    <slot name="print" />
-    <slot name="options" />
+    <div class="print-toolbar__actions">
+      <slot name="download" />
+      <slot name="print" />
+      <slot name="options" />
+    </div>
   </div>
 </div>

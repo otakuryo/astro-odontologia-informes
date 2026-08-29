@@ -1,5 +1,6 @@
 ---
 import ExportPanel from './ExportPanel.astro';
+import ChromeIcon from '../web/ChromeIcon.astro';
 import SiteNavbar from '../web/SiteNavbar.astro';
 
 interface Props {
@@ -41,14 +42,17 @@ const paperOptions = [
       ))
     }
   </div>
-  <button slot="download" class="btn btn-primary" type="button" data-testid="download-pdf">
-    <span data-download-label>Descargar PDF</span>
+  <button slot="download" class="btn btn-primary btn-sm" type="button" data-testid="download-pdf">
+    <ChromeIcon name="download" />
+    <span class="print-toolbar__label" data-download-label>Descargar PDF</span>
   </button>
-  <button slot="print" class="btn btn-ghost" type="button" onclick="window.print()">
-    {label}
+  <button slot="print" class="btn btn-ghost btn-sm" type="button" onclick="window.print()">
+    <ChromeIcon name="printer" />
+    <span class="print-toolbar__label">{label}</span>
   </button>
-  <button slot="options" class="btn" type="button" data-testid="export-options">
-    Opciones
+  <button slot="options" class="btn btn-sm" type="button" data-testid="export-options">
+    <ChromeIcon name="settings" />
+    <span class="print-toolbar__label">Opciones</span>
   </button>
 </SiteNavbar>
 <ExportPanel />

@@ -15,11 +15,11 @@ Referencia de tokens, lienzo e impresión, y responsabilidades de los componente
 | Pie documental | 9 mm | 7 mm | 5,5 mm |
 | Cuerpo | El resto del área útil (`minmax(0, 1fr)`), sin saltos internos | Igual | Igual |
 
-El tamaño de **diseño** se elige en `PrintToolbar` (Carta / A5 / A6). Se guarda en `localStorage` (`odo-paper-size`) y puede forzarse con `?papel=a5`, `?papel=a6` o `?papel=carta`. La previsualización en pantalla usa las mismas dimensiones que `@page`. **A4 no es un diseño**: no hay hoja A4 en pantalla. A4 sí es un **papel de salida** del PDF (A5 sobre A4 duplicado o en cuadernillo) desde el panel de exportación.
+El tamaño de **diseño** se elige en `PrintToolbar` (Carta / A5 / A6). Se guarda en `localStorage` (`odo-paper-size`) y puede forzarse con `?papel=a5`, `?papel=a6` o `?papel=carta`. `.sheet` usa las mismas dimensiones en milímetros que `@page`. En pantalla, `.sheet-preview` / `.sheet-preview__scaler` pueden **escalar visualmente** la hoja (`--preview-scale` y `transform: scale`, origen `top left`) para que quepa a lo ancho; en escritorio ancho (≥ hoja) la escala es 1. **La impresión y el PDF no escalan**: `@media print` y `captureSheet` fuerzan `transform: none` (y `zoom: 1` en el clon de html-to-image) para salir al 100 %. **A4 no es un diseño**: no hay hoja A4 en pantalla. A4 sí es un **papel de salida** del PDF (A5 sobre A4 duplicado o en cuadernillo) desde el panel de exportación.
 
 Cada ruta de formato genera **una sola hoja**. No hay paginación clínica: el pie lleva `1/1`.
 
-En pantalla la hoja blanca se centra sobre un fondo neutro (`.is-print-document`). Al imprimir desaparecen el catálogo, la barra (selector de diseño, Descargar PDF, Imprimir hoja, Opciones) y las sombras. El catálogo (`/`) no es un documento de hoja: está marcado como `.is-catalog` y se oculta con `@media print`. `window.print()` imprime solo la hoja en pantalla, no el pliego impuesto del PDF.
+En pantalla la hoja blanca se centra sobre un fondo neutro (`.is-print-document`). El cromo (catálogo, barra, sombras de preview) desaparece al imprimir; la hoja sale al tamaño de papel, sin el `scale` de la preview. El catálogo (`/`) no es un documento de hoja: está marcado como `.is-catalog` y se oculta con `@media print`. `window.print()` imprime solo la hoja en pantalla, no el pliego impuesto del PDF.
 
 `box-sizing: border-box` es global. Los paneles usan `break-inside: avoid`. `print-color-adjust: exact` es una mejora; el significado no depende de que el navegador conserve el color.
 
@@ -61,11 +61,21 @@ El carácter más llamativo se limita a títulos en versales, numeración del ca
 | Fichero | Responsabilidad |
 | --- | --- |
 | `src/styles/tokens.css` | Paleta, tipografía, escala, grosores y dimensiones del lienzo (Carta, A5 y A6) |
-| `src/styles/base.css` | Caja, tipografía base y vista de pantalla (hoja centrada) |
-| `src/styles/print.css` | `@page` de respaldo, ocultación de cromo de pantalla y ajuste de color |
+| `src/styles/base.css` | Caja, tipografía base (raíz 16 px, `text-size-adjust`), `overflow-x` de pantalla, vista de hoja centrada y preview a escala (`--preview-scale` solo en `@media screen`) |
+| `src/styles/print.css` | `@page` de respaldo, ocultación de cromo de pantalla, reset del envoltorio de preview (tamaño auto, sin transform ni overflow recortado) y ajuste de color |
 | `src/styles/web.css` | Cromo de botones y panel de exportación en pantalla (Tailwind + daisyUI, tema `odo`: `button`, `join`, `navbar`, `modal`, `fieldset`, `label`, `radio`, `checkbox`, `alert`). No es el sistema de las hojas. Variables acotadas a `.web-chrome`. |
 
 Las hojas imprimibles no usan framework CSS: la composición es Grid y Flexbox sobre `tokens.css`. daisyUI no entra en `.sheet` ni en los formatos clínicos.
+
+## Viewport y cromo de pantalla
+
+Meta viewport idéntico en el catálogo (`/`) y en los formatos: `width=device-width, initial-scale=1`. No se usa `maximum-scale=1`, `user-scalable=no` ni `viewport-fit=cover` (el pellizco de Safari sigue activo).
+
+La raíz `html` mantiene `font-size: 16px` (no cambia al elegir Carta / A5 / A6) y `text-size-adjust: 100%` (`-webkit-text-size-adjust` incluido). En `.web-chrome`, `input` / `select` / `textarea` quedan a `16px` para que iOS no haga zoom al enfocar radios o casillas. En `@media screen`, `html` y `body` usan `overflow-x: clip` y `overflow-y: auto` (la hoja en milímetros no define el ancho de página) y `min-height: 100dvh` con respaldo `100vh`.
+
+Bajo `40rem` (640 px) la barra `.print-toolbar` se apila en columna: `.navbar-start` / `center` / `end` pasan a `width: 100%`, `flex: none` y `height: auto`. Queda un solo enlace al catálogo (`homeLabel`); no hay segundo «Home» ni menú hamburguesa. El catálogo pasa a una columna a `720px` y, en viewport estrecho, reduce el padding a 24 px y el título a ~28 px. El panel de exportación (`modal-box`) usa `w-11/12 max-w-lg max-h-[90vh]`; los `join` de diseño y papel pueden partir línea para que Carta / A4 / A5 / A6 no recorten.
+
+Los formatos clínicos y `.sheet` siguen en milímetros: no se remaquetan para móvil. Lo responsivo es el cromo de pantalla y una preview a escala. `--preview-scale: min(1, (100vw - 2 * var(--space-screen)) / var(--page-width))`. El scaler ocupa `calc(var(--page-*) * var(--preview-scale))` para que el `transform` no deje hueco. Impresión y captura PDF siguen al 100 %.
 
 ## Variante C (encabezado y pie)
 
@@ -77,15 +87,15 @@ Los campos clínicos son **líneas vacías** para pluma. Están prohibidos `<inp
 
 | Componente | Responsabilidad |
 | --- | --- |
-| `PrintDocumentLayout` | Documento HTML completo: fuentes, estilos, barra de impresión, hoja, encabezado, `slot` clínico y pie. El atributo `data-paper-size` del `html` elige Carta, A5 o A6. Props: `title` (pestaña), `documentTitle`, `code`, `revision` y `page` opcionales. |
+| `PrintDocumentLayout` | Documento HTML completo: fuentes, estilos, barra de impresión, envoltorio de preview (`.sheet-preview` / `.sheet-preview__scaler`), hoja, encabezado, `slot` clínico y pie. El atributo `data-paper-size` del `html` elige Carta, A5 o A6. Props: `title` (pestaña), `documentTitle`, `code`, `revision` y `page` opcionales. |
 | `ClinicalHeader` | Banda de cabecera. En Carta, cuatro campos en una fila; en A5 y A6, retícula 2 × 2. Prop `title`; etiquetas de los cuatro campos opcionales, resueltas con `ManualField`. |
 | `DocumentFooter` | Pie documental. Prop `code`; `revision` por defecto `REV. 01`; `page` por defecto `1/1`. |
 | `ManualField` | Etiqueta + renglón(es) de escritura. `wide` ensancha el campo; `multiline` dibuja tres renglones. |
 | `OutlinedPanel` | Recuadro de borde exterior grueso. `title` opcional; el contenido va en el `slot`. `break-inside: avoid`. |
 | `LegendMarker` | Marcador de leyenda con patrón y sigla: `rojo` = `R` sólido, `azul` = `A` rayado diagonal, `verde` = `V` con puntos, `otro` = `O` vacío. Incluye etiqueta y línea de equivalencia clínica vacía. |
-| `SiteNavbar` | Barra de botones daisyUI (`navbar` + `btn` / `join`): enlace al catálogo, selector de diseño, Descargar PDF, Imprimir hoja y Opciones. Solo cromo de pantalla; no entra en `.sheet`. |
+| `SiteNavbar` | Barra de botones daisyUI (`navbar` + `btn` / `join`): un enlace al catálogo, selector de diseño, Descargar PDF, Imprimir hoja y Opciones. En estrecho se apila. Solo cromo de pantalla; no entra en `.sheet`. |
 | `PrintToolbar` | Compone `SiteNavbar` con el join Carta / A5 / A6 (diseño, no A4), Descargar PDF (`btn-primary`), Imprimir hoja (`btn-ghost`, `window.print()`) y Opciones. Monta `ExportPanel`. Visible solo en pantalla. No se usa en el catálogo. |
-| `ExportPanel` | Diálogo daisyUI (`modal`) de exportación: diseño sincronizado con el radiogroup, papel de salida, disposición, orientación y lista ordenable de formatos. El PDF se genera en el cliente; no redibuja `.sheet`. |
+| `ExportPanel` | Diálogo daisyUI (`modal`) de exportación: `modal-box` `w-11/12 max-w-lg`; joins de diseño/papel con wrap. Diseño sincronizado con el radiogroup, papel de salida, disposición, orientación y lista ordenable de formatos. El PDF se genera en el cliente; no redibuja `.sheet`. |
 | `Odontogram` | Diagrama dental vectorial FDI (52 dientes, glifo de círculo + equis) de ODO-F04, con cuadrado NOTAS al pie del panel. SVG estático, sin estado por superficie. |
 
 El catálogo (`src/pages/index.astro`) enlaza las cuatro rutas con `btn` daisyUI y no monta `PrintDocumentLayout` ni `PrintToolbar`. Los formatos clínicos y la hoja (`.sheet`) no usan daisyUI.

@@ -1,5 +1,6 @@
 ---
 import { FORMATS } from '../../lib/print-export/formats';
+import ChromeIcon from '../web/ChromeIcon.astro';
 
 const designOptions = [
   { id: 'letter', label: 'Carta' },
@@ -22,9 +23,9 @@ const layoutOptions = [
 ---
 
 <dialog id="export-panel" class="modal" data-testid="export-panel" aria-labelledby="export-panel-title">
-  <div class="modal-box max-h-[90vh] overflow-y-auto">
+  <div class="modal-box w-11/12 max-w-lg max-h-[90vh] overflow-y-auto overflow-x-hidden">
     <h2 id="export-panel-title" class="text-lg font-bold">Exportar PDF</h2>
-    <p class="py-2">
+    <p class="py-2 text-sm leading-snug">
       El diseño es la hoja en pantalla. El papel es el tamaño de cada página del PDF. No se escala.
     </p>
 
@@ -34,7 +35,7 @@ const layoutOptions = [
 
     <fieldset class="fieldset">
       <legend class="fieldset-legend">Diseño</legend>
-      <div class="join" data-testid="export-design">
+      <div class="join justify-center" data-testid="export-design">
         {
           designOptions.map((option) => (
             <button
@@ -48,12 +49,14 @@ const layoutOptions = [
           ))
         }
       </div>
-      <p class="label">El mismo que Carta / A5 / A6 de la barra. A4 no es un diseño.</p>
+      <p class="fieldset-label whitespace-normal">
+        El mismo que Carta / A5 / A6 de la barra. A4 no es un diseño.
+      </p>
     </fieldset>
 
     <fieldset class="fieldset" data-testid="export-paper">
       <legend class="fieldset-legend">Papel de salida</legend>
-      <div class="join">
+      <div class="join justify-center">
         {
           paperOptions.map((option) => (
             <button
@@ -73,15 +76,15 @@ const layoutOptions = [
       <legend class="fieldset-legend">Disposición</legend>
       {
         layoutOptions.map((option) => (
-          <label class="label cursor-pointer justify-start gap-2">
+          <label class="fieldset-label cursor-pointer justify-start gap-2 whitespace-normal">
             <input
-              class="radio"
+              class="radio radio-sm radio-primary"
               type="radio"
               name="export-layout"
               data-export-layout={option.id}
             />
             <span>{option.label}</span>
-            <span class="label hidden" data-layout-unavailable={option.id}>
+            <span class="fieldset-label hidden" data-layout-unavailable={option.id}>
               No aplica
             </span>
           </label>
@@ -91,48 +94,50 @@ const layoutOptions = [
 
     <fieldset class="fieldset" data-testid="export-orientation">
       <legend class="fieldset-legend">Orientación</legend>
-      <label class="label cursor-pointer justify-start gap-2">
-        <input class="radio" type="radio" name="export-orientation" value="portrait" />
+      <label class="fieldset-label cursor-pointer justify-start gap-2 whitespace-normal">
+        <input class="radio radio-sm radio-primary" type="radio" name="export-orientation" value="portrait" />
         <span>Vertical</span>
       </label>
-      <label class="label cursor-pointer justify-start gap-2">
-        <input class="radio" type="radio" name="export-orientation" value="landscape" />
+      <label class="fieldset-label cursor-pointer justify-start gap-2 whitespace-normal">
+        <input class="radio radio-sm radio-primary" type="radio" name="export-orientation" value="landscape" />
         <span>Apaisado</span>
       </label>
-      <p class="label hidden" data-orientation-auto>Automática (apaisado)</p>
+      <p class="fieldset-label hidden" data-orientation-auto>Automática (apaisado)</p>
     </fieldset>
 
     <fieldset class="fieldset">
       <legend class="fieldset-legend">Formatos</legend>
-      <p class="label">El formato de esta página parte marcado. No se puede dejar la lista vacía.</p>
-      <ul class="flex flex-col gap-2" data-export-format-list>
+      <p class="fieldset-label whitespace-normal">
+        El formato de esta página parte marcado. No se puede dejar la lista vacía.
+      </p>
+      <ul class="flex min-w-0 flex-col gap-2" data-export-format-list>
         {
           FORMATS.map((format) => (
-            <li class="flex items-center gap-2" data-format-id={format.id}>
-              <label class="label flex-1 cursor-pointer justify-start gap-2">
+            <li class="flex min-w-0 items-center gap-1" data-format-id={format.id}>
+              <label class="fieldset-label min-w-0 flex-1 cursor-pointer justify-start gap-2 whitespace-normal">
                 <input
-                  class="checkbox"
+                  class="checkbox checkbox-sm checkbox-primary"
                   type="checkbox"
                   data-testid="export-format"
                   data-format-id={format.id}
                 />
-                <span>{format.title}</span>
+                <span class="min-w-0">{format.title}</span>
               </label>
               <button
-                class="btn btn-square btn-xs"
+                class="btn btn-square btn-sm shrink-0"
                 type="button"
                 data-testid="export-format-up"
                 aria-label={`Subir ${format.code}`}
               >
-                ↑
+                <ChromeIcon name="chevron-up" />
               </button>
               <button
-                class="btn btn-square btn-xs"
+                class="btn btn-square btn-sm shrink-0"
                 type="button"
                 data-testid="export-format-down"
                 aria-label={`Bajar ${format.code}`}
               >
-                ↓
+                <ChromeIcon name="chevron-down" />
               </button>
             </li>
           ))
@@ -140,11 +145,12 @@ const layoutOptions = [
       </ul>
     </fieldset>
 
-    <div class="modal-action">
+    <div class="modal-action flex-wrap">
       <form method="dialog">
-        <button class="btn" type="submit">Cerrar</button>
+        <button class="btn btn-sm" type="submit">Cerrar</button>
       </form>
-      <button class="btn btn-primary" type="button" data-testid="download-pdf-panel">
+      <button class="btn btn-primary btn-sm" type="button" data-testid="download-pdf-panel">
+        <ChromeIcon name="download" />
         <span data-download-label>Descargar PDF</span>
       </button>
     </div>

@@ -210,6 +210,9 @@ export async function captureSheet(el: HTMLElement): Promise<Uint8Array> {
       style: {
         boxShadow: 'none',
         margin: '0',
+        /* La preview de pantalla puede llevar scale; el PDF debe salir al 100 %. */
+        transform: 'none',
+        zoom: '1',
       },
       filter: (node) => !isHiddenFromPrint(node as Node),
     });

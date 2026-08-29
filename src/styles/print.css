@@ -33,6 +33,22 @@ html {
     background: var(--paper) !important;
   }
 
+  /* El envoltorio de preview no altera @page ni el tamaño de .sheet. */
+  .sheet-preview,
+  .sheet-preview__scaler {
+    display: block;
+    width: auto;
+    height: auto;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    transform: none;
+    zoom: 1;
+    box-shadow: none;
+  }
+
   body.is-catalog,
   .catalog,
   .print-toolbar,

@@ -12,6 +12,8 @@ html {
   font-weight: var(--fw-regular);
   line-height: var(--lh-body);
   -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
@@ -44,8 +46,18 @@ img {
 
 /* Vista de pantalla: hoja blanca centrada sobre fondo neutro. */
 @media screen {
+  /* Safari no debe tomar el ancho en mm de .sheet como ancho de página.
+     overflow-y: auto evita que clip en X congele el scroll vertical. */
+  html,
+  body {
+    overflow-x: clip;
+    overflow-y: auto;
+    max-width: 100%;
+  }
+
   body.is-print-document {
     min-height: 100vh;
+    min-height: 100dvh;
     background: var(--screen-bg);
     padding: var(--space-screen);
     display: flex;
@@ -53,15 +65,36 @@ img {
     align-items: center;
   }
 
+  /* Preview a escala: .sheet sigue en mm; el flex no debe tomar esos mm como min-content. */
+  body.is-print-document .sheet-preview {
+    --preview-scale: min(1, (100vw - 2 * var(--space-screen)) / var(--page-width));
+    min-width: 0;
+    width: 100%;
+    flex-shrink: 0;
+    align-self: stretch;
+  }
+
+  /* Hueco de layout = tamaño visual. El transform de .sheet no deja 816 px de vacío. */
+  body.is-print-document .sheet-preview__scaler {
+    width: calc(var(--page-width) * var(--preview-scale));
+    height: calc(var(--page-height) * var(--preview-scale));
+    overflow: hidden;
+    margin-inline: auto;
+    transform-origin: top left;
+    box-shadow: 0 10px 36px color-mix(in srgb, var(--ink) 14%, transparent);
+  }
+
   body.is-print-document .sheet {
     width: var(--page-width);
     height: var(--page-height);
     background: var(--paper);
-    box-shadow: 0 10px 36px color-mix(in srgb, var(--ink) 14%, transparent);
+    transform: scale(var(--preview-scale));
+    transform-origin: top left;
   }
 
   body.is-catalog {
     min-height: 100vh;
+    min-height: 100dvh;
     background: var(--screen-bg);
     color: var(--ink);
   }

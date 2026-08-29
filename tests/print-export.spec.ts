@@ -265,11 +265,28 @@ test.describe('Exportación PDF', () => {
           }
           return { ...best, x, y };
         };
+        /* El centro del swatch es la sigla R en --paper; hay que salir del glifo. */
+        const reddestNear = (el: Element, fx: number, fy: number, radius: number) => {
+          const { x, y } = at(el, fx, fy);
+          let best = pixel(x, y);
+          let bestDelta = best.r - best.g;
+          for (let dy = -radius; dy <= radius; dy += 1) {
+            for (let dx = -radius; dx <= radius; dx += 1) {
+              const sample = pixel(x + dx, y + dy);
+              const delta = sample.r - sample.g;
+              if (delta > bestDelta) {
+                best = sample;
+                bestDelta = delta;
+              }
+            }
+          }
+          return { ...best, x, y };
+        };
 
         return {
           toothStroke: darkestNear(outer, 0.5, 0, 4),
           toothFill: pixel(at(outer, 0.5, 0.5).x, at(outer, 0.5, 0.5).y),
-          legendFill: pixel(at(swatch, 0.5, 0.5).x, at(swatch, 0.5, 0.5).y),
+          legendFill: reddestNear(swatch, 0.5, 0.5, 32),
         };
       } finally {
         bitmap.close();
