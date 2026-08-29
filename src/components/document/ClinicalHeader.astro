@@ -34,18 +34,18 @@ const {
   .clinical-header {
     display: grid;
     grid-template-rows: auto 1fr;
-    gap: 2mm;
+    gap: var(--header-gap);
     height: 100%;
     min-height: 0;
     border-bottom: var(--stroke-rule) solid var(--ink);
-    padding-bottom: 1.5mm;
+    padding-bottom: var(--header-pad-bottom);
   }
 
   .clinical-header__title-row {
     display: flex;
     align-items: flex-end;
     gap: var(--space-3);
-    min-height: 8mm;
+    min-height: var(--header-title-min);
   }
 
   .clinical-header__title {
@@ -56,7 +56,7 @@ const {
     text-transform: uppercase;
     color: var(--ink);
     line-height: var(--lh-tight);
-    padding-bottom: 1mm;
+    padding-bottom: var(--header-title-pad);
     border-bottom: var(--stroke-accent) solid var(--accent-coral);
   }
 
@@ -68,7 +68,13 @@ const {
     min-height: 0;
   }
 
+  :global(html[data-paper-size='a5']) .clinical-header__fields,
+  :global(html[data-paper-size='a6']) .clinical-header__fields {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-2) var(--space-3);
+  }
+
   .clinical-header :global(.manual-field__line) {
-    height: 6.5mm;
+    height: var(--header-write-line);
   }
 </style>

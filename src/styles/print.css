@@ -1,3 +1,4 @@
+/* El tamaño lo fija #print-page-size (Carta, A5 o A6). Esto es el respaldo sin JS. */
 @page {
   size: letter portrait;
   margin: 0;
@@ -9,7 +10,7 @@ html {
   color-adjust: exact;
 }
 
-/* Impresión: una sola hoja Carta al 100 %. Sin cromo de pantalla, sin sombras, sin recortes de borde. */
+/* Impresión: una sola hoja al 100 % (Carta, A5 o A6). Sin cromo de pantalla, sin sombras, sin recortes de borde. */
 @media print {
   html,
   body {
@@ -122,9 +123,9 @@ html {
     background-image: repeating-linear-gradient(
       -45deg,
       var(--ink) 0,
-      var(--ink) 0.55mm,
-      var(--paper) 0.55mm,
-      var(--paper) 1.35mm
+      var(--ink) var(--hatch-ink),
+      var(--paper) var(--hatch-ink),
+      var(--paper) var(--hatch-gap)
     ) !important;
     border-color: var(--ink) !important;
   }
@@ -132,9 +133,9 @@ html {
   /* V puntos */
   .legend-marker__swatch.is-verde {
     background-color: var(--paper) !important;
-    background-image: radial-gradient(var(--ink) 0.45mm, transparent 0.5mm) !important;
-    background-size: 1.7mm 1.7mm !important;
-    background-position: 0.4mm 0.4mm !important;
+    background-image: radial-gradient(var(--ink) var(--dot-ink), transparent var(--dot-clear)) !important;
+    background-size: var(--dot-cell) var(--dot-cell) !important;
+    background-position: var(--dot-pos) var(--dot-pos) !important;
     border-color: var(--ink) !important;
   }
 

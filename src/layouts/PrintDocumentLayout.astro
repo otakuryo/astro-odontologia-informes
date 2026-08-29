@@ -20,8 +20,25 @@ const { title, documentTitle, code, revision = 'REV. 01', page = '1/1' } = Astro
 ---
 
 <!doctype html>
-<html lang="es-ES">
+<html lang="es-ES" data-paper-size="letter">
   <head>
+    <script is:inline>
+      (function () {
+        var allowed = { letter: true, a5: true, a6: true };
+        var param = new URLSearchParams(location.search).get('papel');
+        var raw = param ? String(param).toLowerCase() : '';
+        if (raw === 'carta') raw = 'letter';
+        var size = allowed[raw] ? raw : '';
+        if (!size) {
+          try {
+            var stored = localStorage.getItem('odo-paper-size');
+            if (stored === 'carta') stored = 'letter';
+            if (stored && allowed[stored]) size = stored;
+          } catch (e) {}
+        }
+        document.documentElement.setAttribute('data-paper-size', size || 'letter');
+      })();
+    </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
     <meta name="generator" content={Astro.generator} />
@@ -38,5 +55,19 @@ const { title, documentTitle, code, revision = 'REV. 01', page = '1/1' } = Astro
         <DocumentFooter code={code} revision={revision} page={page} />
       </div>
     </div>
+    <script is:inline>
+      (function () {
+        var sizes = { letter: 'letter portrait', a5: 'A5 portrait', a6: 'A6 portrait' };
+        var size = document.documentElement.getAttribute('data-paper-size') || 'letter';
+        var rule = sizes[size] || sizes.letter;
+        var style = document.getElementById('print-page-size');
+        if (!style) {
+          style = document.createElement('style');
+          style.id = 'print-page-size';
+        }
+        style.textContent = '@page { size: ' + rule + '; margin: 0; }';
+        document.head.appendChild(style);
+      })();
+    </script>
   </body>
 </html>

@@ -28,7 +28,7 @@ const code = codes[variant];
 <style>
   .legend-marker {
     display: grid;
-    grid-template-columns: var(--marker-size) auto minmax(18mm, 1fr);
+    grid-template-columns: var(--marker-size) auto minmax(var(--legend-grid-mid), 1fr);
     align-items: center;
     gap: var(--space-3);
     min-width: 0;
@@ -48,7 +48,7 @@ const code = codes[variant];
 
   .legend-marker__code {
     font-family: var(--font-display);
-    font-size: 2.4mm;
+    font-size: var(--legend-code-size);
     font-weight: var(--fw-bold);
     line-height: 1;
     letter-spacing: 0;
@@ -63,8 +63,8 @@ const code = codes[variant];
 
   .legend-marker__equiv {
     display: block;
-    min-width: 16mm;
-    height: 6mm;
+    min-width: var(--legend-equiv-min);
+    height: var(--legend-equiv-height);
     border-bottom: var(--stroke-write) solid var(--ink);
   }
 
@@ -83,25 +83,25 @@ const code = codes[variant];
     background: repeating-linear-gradient(
       -45deg,
       var(--ink) 0,
-      var(--ink) 0.55mm,
-      var(--paper) 0.55mm,
-      var(--paper) 1.35mm
+      var(--ink) var(--hatch-ink),
+      var(--paper) var(--hatch-ink),
+      var(--paper) var(--hatch-gap)
     );
   }
 
   .is-azul .legend-marker__code {
     color: var(--paper);
     text-shadow:
-      0 0 1.2mm var(--ink),
-      0 0 1.2mm var(--ink);
+      0 0 var(--legend-code-shadow) var(--ink),
+      0 0 var(--legend-code-shadow) var(--ink);
   }
 
   /* Verde = V con puntos */
   .is-verde {
     background-color: var(--fill-teal-faint);
-    background-image: radial-gradient(var(--accent-teal) 0.45mm, transparent 0.5mm);
-    background-size: 1.7mm 1.7mm;
-    background-position: 0.4mm 0.4mm;
+    background-image: radial-gradient(var(--accent-teal) var(--dot-ink), transparent var(--dot-clear));
+    background-size: var(--dot-cell) var(--dot-cell);
+    background-position: var(--dot-pos) var(--dot-pos);
     border-color: var(--accent-teal);
   }
 

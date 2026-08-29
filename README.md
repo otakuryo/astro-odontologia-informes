@@ -1,6 +1,6 @@
 # Formatos odontológicos imprimibles
 
-Sitio estático en [Astro](https://astro.build) para cuatro documentos clínicos independientes, pensados para escritura a mano e impresión en hoja Carta. El índice no forma parte del expediente: cada formato se imprime por separado.
+Sitio estático en [Astro](https://astro.build) para cuatro documentos clínicos independientes, pensados para escritura a mano e impresión. El índice no forma parte del expediente: cada formato se imprime por separado.
 
 ## Requisitos
 
@@ -35,7 +35,7 @@ bun install
 | `/formatos/eventos/` | Eventos | `ODO-F03` |
 | `/formatos/paciente-imagen/` | Paciente · Imagen y leyenda | `ODO-F04` |
 
-Cada ruta de formato imprime **una sola hoja Carta vertical** (215,9 × 279,4 mm) con 12 mm de margen seguro.
+Cada ruta de formato imprime **una sola hoja vertical**. En la barra de cada formato puede elegir **Carta** (215,9 × 279,4 mm, predeterminado), **A5** (148 × 210 mm) o **A6** (105 × 148 mm). El margen seguro se reduce de forma proporcional (12 mm en Carta, 8 mm en A5, 5,5 mm en A6).
 
 ## Documentación editorial
 

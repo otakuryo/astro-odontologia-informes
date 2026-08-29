@@ -4,10 +4,11 @@ Protocolo de control de calidad para los cuatro formatos clínicos (ODO-F01 a OD
 
 ## Antes de imprimir
 
-- Papel **Carta** (215,9 × 279,4 mm), orientación **vertical**.
+- En la barra del formato, elija el papel: **Carta** (215,9 × 279,4 mm), **A5** (148 × 210 mm) o **A6** (105 × 148 mm). La previsualización en pantalla cambia de tamaño. El valor se recuerda entre formatos.
+- En el diálogo del navegador, elija **el mismo tamaño de papel** y orientación **vertical**.
 - Escala **100 %**. No use «ajustar a la página», «encajar» ni ningún zoom del diálogo de impresión.
 - **Desactive** las cabeceras y los pies automáticos del navegador (fecha, título, URL, número de página del sistema). El documento ya lleva pie propio (`ODO-F0n`, `REV. 01`, `1/1`).
-- Margen del diálogo: si el navegador lo ofrece, deje el margen al mínimo o en «ninguno»; el margen seguro de **12 mm** va dibujado en la hoja.
+- Margen del diálogo: si el navegador lo ofrece, deje el margen al mínimo o en «ninguno»; el margen seguro va dibujado en la hoja (12 mm en Carta, 8 mm en A5, 5,5 mm en A6).
 - Una sola hoja por formato. **No imprima el catálogo** (`/`). Esa página es solo un índice en pantalla.
 
 ## Rutas
@@ -19,7 +20,7 @@ Protocolo de control de calidad para los cuatro formatos clínicos (ODO-F01 a OD
 | ODO-F03 | `/formatos/eventos/` | Cuatro paneles de evento |
 | ODO-F04 | `/formatos/paciente-imagen/` | Imagen y leyenda R/A/V/O |
 
-Cada ruta genera exactamente **1/1**. No hay paginación clínica.
+Cada ruta genera exactamente **1/1**. No hay paginación clínica. Puede forzar el papel con `?papel=a5`, `?papel=a6` o `?papel=carta`.
 
 ## Navegadores de QA
 
@@ -34,20 +35,20 @@ En ambos, abra el formato, pulse Imprimir y siga el protocolo de abajo. No suba 
 
 Haga las dos pasadas, en este orden:
 
-1. **PDF** — Imprimir → Guardar como PDF (o «Abrir en Vista Previa» en Safari). Abra el PDF y compruebe que hay **una sola página** Carta.
+1. **PDF** — Imprimir → Guardar como PDF (o «Abrir en Vista Previa» en Safari). Abra el PDF y compruebe que hay **una sola página** del tamaño elegido (Carta, A5 o A6).
 2. **Impresora real** — La misma hoja, primero a **color** y después a **escala de grises** (o fotocopia monocroma del PDF).
 
 ### Lista de comprobación
 
 - [ ] Una hoja exacta; no hay segunda página en blanco ni recorte a media hoja.
-- [ ] Escala 100 %: la hoja coincide con Carta; no está encogida ni ampliada.
+- [ ] Escala 100 %: la hoja coincide con el papel elegido (Carta, A5 o A6); no está encogida ni ampliada.
 - [ ] Cabeceras y pies del navegador ausentes.
-- [ ] Margen seguro de 12 mm respetado en los cuatro lados; nada de trazo ni texto pegado al borde del papel.
+- [ ] Margen seguro respetado en los cuatro lados; nada de trazo ni texto pegado al borde del papel.
 - [ ] Bordes de paneles, casillas y marcadores visibles; no recortados.
-- [ ] Líneas de escritura con espacio de pluma suficiente (campos de cabecera, folios, notas, equivalencias).
+- [ ] Líneas de escritura con espacio de pluma suficiente (campos de cabecera, folios, notas, equivalencias). En A6 el renglón es más corto: compruebe que sigue siendo usable.
 - [ ] Códigos `ODO-F01` … `ODO-F04`, `REV. 01` y `1/1` legibles en el pie.
 - [ ] En ODO-F04, la leyenda se distingue **sin color**: **R** sólido, **A** rayado diagonal, **V** puntos, **O** círculo vacío, más las siglas. El color es un refuerzo, no el único canal.
-- [ ] Sombra de pantalla y botón «Imprimir hoja» no aparecen en el papel ni en el PDF.
+- [ ] Sombra de pantalla, selector de papel y botón «Imprimir hoja» no aparecen en el papel ni en el PDF.
 
 ## Revisión médica
 

@@ -46,7 +46,7 @@
   --stroke-write: 0.16mm;
   --stroke-accent: 1.1mm;
 
-  /* Lienzo Carta */
+  /* Lienzo Carta (predeterminado) */
   --page-width: 215.9mm;
   --page-height: 279.4mm;
   --page-margin: 12mm;
@@ -56,4 +56,159 @@
   --footer-height: 9mm;
   --sheet-gap: 2mm;
   --marker-size: 6mm;
+
+  /* Medidas de componentes (antes fijas en mm) */
+  --header-gap: 2mm;
+  --header-title-min: 8mm;
+  --header-pad-bottom: 1.5mm;
+  --header-title-pad: 1mm;
+  --header-write-line: 6.5mm;
+  --footer-pad-top: 1.5mm;
+  --field-gap: 1mm;
+  --field-wide-basis: 48mm;
+  --field-lines-gap: 2.2mm;
+  --field-multiline-line: 8mm;
+  --panel-title-pad-y: 2mm;
+  --rx-label-col: 14mm;
+  --folio-index-col: 12mm;
+  --notas-line-height: 9mm;
+  --notas-line-gap: 3.4mm;
+  --rx-cell-pad: 0.8mm;
+  --legend-code-size: 2.4mm;
+  --legend-grid-mid: 18mm;
+  --legend-equiv-min: 16mm;
+  --legend-equiv-height: 6mm;
+  --legend-code-shadow: 1.2mm;
+  --hatch-ink: 0.55mm;
+  --hatch-gap: 1.35mm;
+  --dot-ink: 0.45mm;
+  --dot-clear: 0.5mm;
+  --dot-cell: 1.7mm;
+  --dot-pos: 0.4mm;
+}
+
+/* A5: 148 × 210 mm. Tipografía menos comprimida que el espacio; cabecera en 2 × 2. */
+html[data-paper-size="a5"] {
+  --fs-display: 4.4mm;
+  --fs-title: 3.5mm;
+  --fs-section: 2.9mm;
+  --fs-label: 2.15mm;
+  --fs-body: 2.4mm;
+  --fs-meta: 1.9mm;
+
+  --space-1: 0.75mm;
+  --space-2: 1.5mm;
+  --space-3: 2.2mm;
+  --space-4: 2.9mm;
+  --space-6: 4.3mm;
+  --space-8: 5.8mm;
+  --space-12: 8.6mm;
+  --write-line: 5.6mm;
+
+  --stroke-outer: 0.4mm;
+  --stroke-rule: 0.26mm;
+  --stroke-inner: 0.18mm;
+  --stroke-write: 0.14mm;
+  --stroke-accent: 0.85mm;
+
+  --page-width: 148mm;
+  --page-height: 210mm;
+  --page-margin: 8mm;
+  --content-width: 132mm;
+  --content-height: 194mm;
+  --header-height: 34mm;
+  --footer-height: 7mm;
+  --sheet-gap: 1.5mm;
+  --marker-size: 5mm;
+
+  --header-gap: 1.5mm;
+  --header-title-min: 6.5mm;
+  --header-pad-bottom: 1.1mm;
+  --header-title-pad: 0.7mm;
+  --header-write-line: 5.2mm;
+  --footer-pad-top: 1.1mm;
+  --field-gap: 0.7mm;
+  --field-wide-basis: 34mm;
+  --field-lines-gap: 1.6mm;
+  --field-multiline-line: 5.8mm;
+  --panel-title-pad-y: 1.4mm;
+  --rx-label-col: 10mm;
+  --folio-index-col: 9mm;
+  --notas-line-height: 6.4mm;
+  --notas-line-gap: 2.4mm;
+  --rx-cell-pad: 0.6mm;
+  --legend-code-size: 2.1mm;
+  --legend-grid-mid: 13mm;
+  --legend-equiv-min: 12mm;
+  --legend-equiv-height: 4.5mm;
+  --legend-code-shadow: 0.9mm;
+  --hatch-ink: 0.45mm;
+  --hatch-gap: 1.1mm;
+  --dot-ink: 0.38mm;
+  --dot-clear: 0.42mm;
+  --dot-cell: 1.4mm;
+  --dot-pos: 0.32mm;
+}
+
+/* A6: 105 × 148 mm. Compacto; cabecera en 2 × 2 y casillas Rx sin ratio forzado. */
+html[data-paper-size="a6"] {
+  --fs-display: 3.5mm;
+  --fs-title: 2.9mm;
+  --fs-section: 2.4mm;
+  --fs-label: 1.9mm;
+  --fs-body: 2.05mm;
+  --fs-meta: 1.65mm;
+
+  --space-1: 0.55mm;
+  --space-2: 1.1mm;
+  --space-3: 1.6mm;
+  --space-4: 2.2mm;
+  --space-6: 3.3mm;
+  --space-8: 4.4mm;
+  --space-12: 6.5mm;
+  --write-line: 4.4mm;
+
+  --stroke-outer: 0.32mm;
+  --stroke-rule: 0.22mm;
+  --stroke-inner: 0.16mm;
+  --stroke-write: 0.13mm;
+  --stroke-accent: 0.7mm;
+
+  --page-width: 105mm;
+  --page-height: 148mm;
+  --page-margin: 5.5mm;
+  --content-width: 94mm;
+  --content-height: 137mm;
+  --header-height: 28mm;
+  --footer-height: 5.5mm;
+  --sheet-gap: 1mm;
+  --marker-size: 4mm;
+
+  --header-gap: 1.1mm;
+  --header-title-min: 5.5mm;
+  --header-pad-bottom: 0.8mm;
+  --header-title-pad: 0.5mm;
+  --header-write-line: 4.2mm;
+  --footer-pad-top: 0.8mm;
+  --field-gap: 0.5mm;
+  --field-wide-basis: 24mm;
+  --field-lines-gap: 1.2mm;
+  --field-multiline-line: 4.4mm;
+  --panel-title-pad-y: 1mm;
+  --rx-label-col: 7mm;
+  --folio-index-col: 7mm;
+  --notas-line-height: 4.6mm;
+  --notas-line-gap: 1.6mm;
+  --rx-cell-pad: 0.4mm;
+  --legend-code-size: 1.8mm;
+  --legend-grid-mid: 10mm;
+  --legend-equiv-min: 9mm;
+  --legend-equiv-height: 3.6mm;
+  --legend-code-shadow: 0.7mm;
+  --hatch-ink: 0.35mm;
+  --hatch-gap: 0.9mm;
+  --dot-ink: 0.32mm;
+  --dot-clear: 0.38mm;
+  --dot-cell: 1.15mm;
+  --dot-pos: 0.26mm;
 }

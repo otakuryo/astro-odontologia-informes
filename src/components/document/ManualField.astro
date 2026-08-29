@@ -20,12 +20,12 @@ const lines = multiline ? [0, 1, 2] : [0];
   .manual-field {
     display: flex;
     flex-direction: column;
-    gap: 1mm;
+    gap: var(--field-gap);
     min-width: 0;
   }
 
   .manual-field.is-wide {
-    flex: 1 1 48mm;
+    flex: 1 1 var(--field-wide-basis);
   }
 
   .manual-field__label {
@@ -41,7 +41,7 @@ const lines = multiline ? [0, 1, 2] : [0];
   .manual-field__lines {
     display: flex;
     flex-direction: column;
-    gap: 2.2mm;
+    gap: var(--field-lines-gap);
     min-width: 0;
   }
 
@@ -53,6 +53,6 @@ const lines = multiline ? [0, 1, 2] : [0];
   }
 
   .manual-field.is-multiline .manual-field__line {
-    height: 8mm;
+    height: var(--field-multiline-line);
   }
 </style>
