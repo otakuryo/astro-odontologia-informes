@@ -12,6 +12,7 @@ import {
   type FormatId,
   type OrientationId,
 } from '../lib/print-export/types';
+import { yieldForPaint } from './capture-sheet';
 import { applyPaperSize, getPaperSizeFromDocument, normalizePaperSize } from './paper-size';
 
 const COMBO_ALERT =
@@ -172,13 +173,16 @@ function paintMoveButtons(): void {
 }
 
 function paintDownload(settings: ExportSettings): void {
-  const disabled = busy || !canExport(settings);
+  const allowed = canExport(settings);
   for (const button of downloadButtons()) {
-    button.disabled = disabled;
+    // No usar `disabled` durante la generación: daisyUI lo apaga y el texto
+    // «Descargando…» no llega a pintarse antes de bloquear el hilo.
+    button.disabled = !busy && !allowed;
     button.setAttribute('aria-busy', String(busy));
-    const spinner = button.querySelector('.loading');
-    if (spinner instanceof HTMLElement) {
-      spinner.classList.toggle('hidden', !busy);
+    button.classList.toggle('is-exporting', busy);
+    const label = button.querySelector('[data-download-label]');
+    if (label instanceof HTMLElement) {
+      label.textContent = busy ? 'Descargando…' : 'Descargar PDF';
     }
   }
 }
@@ -402,16 +406,19 @@ export function bindExportPanel(download: () => Promise<unknown>): void {
     if (dialog?.open) {
       dialog.close();
     }
-    void download()
-      .catch(() => {
+    void (async () => {
+      await yieldForPaint();
+      try {
+        await download();
+      } catch {
         /* el error ya se mostró en el panel o con alert */
-      })
-      .finally(() => {
+      } finally {
         busy = false;
         if (draft) {
           paint(draft);
         }
-      });
+      }
+    })();
   };
 
   for (const button of downloadButtons()) {

@@ -13,7 +13,7 @@ import {
   type ExportSettings,
   type FormatId,
 } from '../lib/print-export/types';
-import { captureFormatByUrl, captureSheet } from './capture-sheet';
+import { captureFormatByUrl, captureSheet, yieldForPaint } from './capture-sheet';
 import { bindExportPanel, showExportError } from './export-panel';
 
 export type PrintExportHook = {
@@ -153,6 +153,7 @@ async function captureFormats(
       const definition = getFormat(formatId);
       captures.push(await captureFormatByUrl(definition.path, settings.design));
     }
+    await yieldForPaint();
   }
   return captures;
 }

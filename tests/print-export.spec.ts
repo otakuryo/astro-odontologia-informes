@@ -59,7 +59,29 @@ test.describe('Exportación PDF', () => {
     await openExpedientesA5(page);
 
     const downloadPromise = page.waitForEvent('download');
-    await page.getByTestId('download-pdf').click();
+    const button = page.getByTestId('download-pdf');
+    const sawBusy = button.evaluate((el) => {
+      if (el.getAttribute('aria-busy') === 'true') {
+        return true;
+      }
+      return new Promise<boolean>((resolve, reject) => {
+        const timer = window.setTimeout(() => {
+          observer.disconnect();
+          reject(new Error('El botón no pasó a aria-busy durante la generación'));
+        }, 8_000);
+        const observer = new MutationObserver(() => {
+          if (el.getAttribute('aria-busy') === 'true') {
+            window.clearTimeout(timer);
+            observer.disconnect();
+            resolve(true);
+          }
+        });
+        observer.observe(el, { attributes: true, attributeFilter: ['aria-busy', 'class'] });
+      });
+    });
+    await button.click();
+    await sawBusy;
+
     const download = await downloadPromise;
 
     expect(download.suggestedFilename()).toBe('ODO-F01-a5-sobre-a5-1up.pdf');

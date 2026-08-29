@@ -13,6 +13,15 @@ export const CAPTURE_PIXEL_RATIO = PRINT_CAPTURE_DPI / CSS_DPI;
 const IFRAME_WAIT_MS = 20_000;
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
+/** Cede un frame para que el cromo pinte «Descargando…» antes de bloquear con html-to-image. */
+export function yieldForPaint(): Promise<void> {
+  return new Promise((resolve) => {
+    requestAnimationFrame(() => {
+      window.setTimeout(resolve, 0);
+    });
+  });
+}
+
 function isHiddenFromPrint(node: Node): boolean {
   if (node.nodeType !== 1) {
     return false;
@@ -191,6 +200,7 @@ export async function captureSheet(el: HTMLElement): Promise<Uint8Array> {
   await waitForFonts(doc);
   await waitForImages(el);
 
+  await yieldForPaint();
   const restore = prepareSheetForCapture(el);
   try {
     const dataUrl = await toPng(el, {

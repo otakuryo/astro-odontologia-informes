@@ -11,7 +11,7 @@
 @plugin "daisyui" {
   themes: false;
   root: ".web-chrome";
-  include: button, join, navbar, modal, fieldset, label, radio, checkbox, alert, loading;
+  include: button, join, navbar, modal, fieldset, label, radio, checkbox, alert;
   exclude: reset, rootcolor, rootscrollgutter;
 }
 
@@ -56,4 +56,9 @@ body.is-print-document .web-chrome {
 .web-chrome a.btn {
   color: var(--btn-fg);
   text-decoration: none;
+}
+
+/* Carga de PDF: el botón no se apaga; solo cambia el texto. */
+.web-chrome .btn.is-exporting {
+  pointer-events: none;
 }

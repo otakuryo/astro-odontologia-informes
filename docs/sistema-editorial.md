@@ -63,7 +63,7 @@ El carácter más llamativo se limita a títulos en versales, numeración del ca
 | `src/styles/tokens.css` | Paleta, tipografía, escala, grosores y dimensiones del lienzo (Carta, A5 y A6) |
 | `src/styles/base.css` | Caja, tipografía base y vista de pantalla (hoja centrada) |
 | `src/styles/print.css` | `@page` de respaldo, ocultación de cromo de pantalla y ajuste de color |
-| `src/styles/web.css` | Cromo de botones y panel de exportación en pantalla (Tailwind + daisyUI, tema `odo`: `button`, `join`, `navbar`, `modal`, `fieldset`, `label`, `radio`, `checkbox`, `alert`, `loading`). No es el sistema de las hojas. Variables acotadas a `.web-chrome`. |
+| `src/styles/web.css` | Cromo de botones y panel de exportación en pantalla (Tailwind + daisyUI, tema `odo`: `button`, `join`, `navbar`, `modal`, `fieldset`, `label`, `radio`, `checkbox`, `alert`). No es el sistema de las hojas. Variables acotadas a `.web-chrome`. |
 
 Las hojas imprimibles no usan framework CSS: la composición es Grid y Flexbox sobre `tokens.css`. daisyUI no entra en `.sheet` ni en los formatos clínicos.
 
