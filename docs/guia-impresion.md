@@ -18,7 +18,7 @@ Hay dos salidas distintas. No las mezcle:
 - En la barra, elija el **diseño**: **Carta** (215,9 × 279,4 mm), **A5** (148 × 210 mm) o **A6** (105 × 148 mm). La previsualización en pantalla cambia de tamaño. El valor se recuerda entre formatos.
 - En **Opciones**, elija el **papel de salida**, la disposición y los formatos. El formato de la página actual parte marcado. La lista no puede quedar vacía.
 - **Duplicar** y **cuadernillo** van siempre en **apaisado** (la orientación del panel queda bloqueada: «Automática (apaisado)»).
-- Una sola hoja clínica por formato. **No imprima el catálogo** (`/`). Esa página es solo un índice en pantalla.
+- Una sola hoja clínica por formato. **No imprima el catálogo** (`/`): es la portada de Diente Dientitos y sigue sin imprimirse.
 
 ## Rutas
 

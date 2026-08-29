@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { SITE_NAME } from '../src/lib/site';
 
 const FORMAT_PATHS = [
   '/formatos/expedientes/',
@@ -13,6 +14,7 @@ test.describe('Cromo web (daisyUI)', () => {
 
     await expect(page.locator('.catalog')).toBeVisible();
     await expect(page.locator('body.is-catalog')).toBeVisible();
+    await expect(page.locator('.catalog__logo')).toBeVisible();
 
     for (const path of FORMAT_PATHS) {
       await expect(page.locator(`.catalog a[href="${path}"]`)).toBeVisible();
@@ -29,11 +31,9 @@ test.describe('Cromo web (daisyUI)', () => {
     await expect(page.getByTestId('paper-size-selector')).toBeVisible();
     await expect(page.getByRole('radiogroup')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Imprimir hoja' })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Formatos odontológicos' })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Formatos odontológicos' })).toHaveAttribute(
-      'href',
-      '/',
-    );
+    await expect(page.getByRole('link', { name: SITE_NAME })).toBeVisible();
+    await expect(page.getByRole('link', { name: SITE_NAME })).toHaveAttribute('href', '/');
+    await expect(page.locator('.print-toolbar__brand img')).toHaveCSS('height', '24px');
     await expect(page.getByRole('link', { name: 'Home', exact: true })).toHaveCount(0);
   });
 
@@ -157,7 +157,7 @@ test.describe('Cromo web en viewport estrecho (390×844)', () => {
     const toolbar = page.getByTestId('print-toolbar');
     const radiogroup = page.getByRole('radiogroup');
     const printButton = page.getByRole('button', { name: 'Imprimir hoja' });
-    const catalogLink = page.getByRole('link', { name: 'Formatos odontológicos' });
+    const catalogLink = page.getByRole('link', { name: SITE_NAME });
 
     await expect(toolbar).toBeVisible();
     await expect(radiogroup).toBeVisible();

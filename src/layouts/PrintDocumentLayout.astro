@@ -8,16 +8,19 @@ import '../styles/web.css';
 import ClinicalHeader from '../components/document/ClinicalHeader.astro';
 import DocumentFooter from '../components/document/DocumentFooter.astro';
 import PrintToolbar from '../components/document/PrintToolbar.astro';
+import SeoHead from '../components/web/SeoHead.astro';
+import { jsonLdFormat } from '../lib/site';
 
 interface Props {
   title: string;
+  description: string;
   documentTitle: string;
   code: string;
   revision?: string;
   page?: string;
 }
 
-const { title, documentTitle, code, revision = 'REV. 01', page = '1/1' } = Astro.props;
+const { title, description, documentTitle, code, revision = 'REV. 01', page = '1/1' } = Astro.props;
 ---
 
 <!doctype html>
@@ -40,10 +43,12 @@ const { title, documentTitle, code, revision = 'REV. 01', page = '1/1' } = Astro
         document.documentElement.setAttribute('data-paper-size', size || 'letter');
       })();
     </script>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="generator" content={Astro.generator} />
-    <title>{title}</title>
+    <SeoHead
+      title={title}
+      description={description}
+      canonicalPath={Astro.url.pathname}
+      jsonLd={jsonLdFormat()}
+    />
   </head>
   <body class="is-print-document">
     <div class="web-chrome" data-theme="odo" data-print-hide>

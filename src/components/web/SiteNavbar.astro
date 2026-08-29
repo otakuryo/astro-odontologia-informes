@@ -1,13 +1,20 @@
 ---
+import { SITE_NAME } from '../../lib/site';
+
 interface Props {
   homeLabel?: string;
 }
 
-const { homeLabel = 'Formatos odontológicos' } = Astro.props;
+const { homeLabel = SITE_NAME } = Astro.props;
 ---
 
 <div class="navbar bg-base-100 print-toolbar" data-testid="print-toolbar">
-  <a class="btn btn-ghost btn-sm print-toolbar__home" href="/">{homeLabel}</a>
+  <a class="btn btn-ghost btn-sm print-toolbar__home" href="/">
+    <span class="print-toolbar__brand">
+      <img src="/logo.png" alt="" width="36" height="24" />
+    </span>
+    <span class="print-toolbar__label">{homeLabel}</span>
+  </a>
   <div class="print-toolbar__controls">
     <slot name="paper" />
     <div class="print-toolbar__actions">

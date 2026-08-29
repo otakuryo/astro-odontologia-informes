@@ -73,7 +73,9 @@ Meta viewport idéntico en el catálogo (`/`) y en los formatos: `width=device-w
 
 La raíz `html` mantiene `font-size: 16px` (no cambia al elegir Carta / A5 / A6) y `text-size-adjust: 100%` (`-webkit-text-size-adjust` incluido). En `.web-chrome`, `input` / `select` / `textarea` quedan a `16px` para que iOS no haga zoom al enfocar radios o casillas. En `@media screen`, `html` y `body` usan `overflow-x: clip` y `overflow-y: auto` (la hoja en milímetros no define el ancho de página) y `min-height: 100dvh` con respaldo `100vh`.
 
-Bajo `40rem` (640 px) la barra `.print-toolbar` se apila en columna: `.navbar-start` / `center` / `end` pasan a `width: 100%`, `flex: none` y `height: auto`. Queda un solo enlace al catálogo (`homeLabel`); no hay segundo «Home» ni menú hamburguesa. El catálogo pasa a una columna a `720px` y, en viewport estrecho, reduce el padding a 24 px y el título a ~28 px. El panel de exportación (`modal-box`) usa `w-11/12 max-w-lg max-h-[90vh]`; los `join` de diseño y papel pueden partir línea para que Carta / A4 / A5 / A6 no recorten.
+El `<head>` del catálogo y de los formatos lo emite `SeoHead`: viewport `width=device-width, initial-scale=1`, description, canonical, iconos `favicon.ico` + `favicon.png`, `rel="describedby"` hacia `/llms.txt`, Open Graph y JSON-LD (`WebSite` + `FAQPage` en `/`; en formatos, sin `FAQPage`).
+
+La barra es flex propio (`.print-toolbar`, `__home`, `__controls`, `__actions`); no usa `navbar-start` / `center` / `end`. El enlace de inicio (`.print-toolbar__home`) lleva el logo de **Diente Dientitos** a 24 px (`object-fit: contain` en un recuadro oscuro redondeado) y la etiqueta `homeLabel` (por defecto `Diente Dientitos`). Bajo `40rem` (640 px) los botones de acción son solo iconos Lucide y el texto (`.print-toolbar__label`, también el de marca) se recorta con clip; el nombre accesible se conserva para lectores de pantalla. El texto de marca vuelve a verse desde `min-width: 40.01rem`. Queda un solo enlace al catálogo; no hay segundo «Home» ni menú hamburguesa. El catálogo pasa a una columna a `720px` y, en viewport estrecho, reduce el padding a 24 px y el título a ~28 px. El panel de exportación (`modal-box`) usa `w-11/12 max-w-lg max-h-[90vh]`; los `join` de diseño y papel pueden partir línea para que Carta / A4 / A5 / A6 no recorten.
 
 Los formatos clínicos y `.sheet` siguen en milímetros: no se remaquetan para móvil. Lo responsivo es el cromo de pantalla y una preview a escala. `--preview-scale: min(1, (100vw - 2 * var(--space-screen)) / var(--page-width))`. El scaler ocupa `calc(var(--page-*) * var(--preview-scale))` para que el `transform` no deje hueco. Impresión y captura PDF siguen al 100 %.
 
@@ -87,18 +89,19 @@ Los campos clínicos son **líneas vacías** para pluma. Están prohibidos `<inp
 
 | Componente | Responsabilidad |
 | --- | --- |
-| `PrintDocumentLayout` | Documento HTML completo: fuentes, estilos, barra de impresión, envoltorio de preview (`.sheet-preview` / `.sheet-preview__scaler`), hoja, encabezado, `slot` clínico y pie. El atributo `data-paper-size` del `html` elige Carta, A5 o A6. Props: `title` (pestaña), `documentTitle`, `code`, `revision` y `page` opcionales. |
+| `PrintDocumentLayout` | Documento HTML completo: fuentes, estilos, `SeoHead`, barra de impresión, envoltorio de preview (`.sheet-preview` / `.sheet-preview__scaler`), hoja, encabezado, `slot` clínico y pie. El atributo `data-paper-size` del `html` elige Carta, A5 o A6. Props: `title` (pestaña), `description`, `documentTitle`, `code`, `revision` y `page` opcionales. |
+| `SeoHead` | Meta viewport, title, description, canonical, iconos, `describedby`, Open Graph y JSON-LD. Lo usan el catálogo y `PrintDocumentLayout`. |
 | `ClinicalHeader` | Banda de cabecera. En Carta, cuatro campos en una fila; en A5 y A6, retícula 2 × 2. Prop `title`; etiquetas de los cuatro campos opcionales, resueltas con `ManualField`. |
 | `DocumentFooter` | Pie documental. Prop `code`; `revision` por defecto `REV. 01`; `page` por defecto `1/1`. |
 | `ManualField` | Etiqueta + renglón(es) de escritura. `wide` ensancha el campo; `multiline` dibuja tres renglones. |
 | `OutlinedPanel` | Recuadro de borde exterior grueso. `title` opcional; el contenido va en el `slot`. `break-inside: avoid`. |
 | `LegendMarker` | Marcador de leyenda con patrón y sigla: `rojo` = `R` sólido, `azul` = `A` rayado diagonal, `verde` = `V` con puntos, `otro` = `O` vacío. Incluye etiqueta y línea de equivalencia clínica vacía. |
-| `SiteNavbar` | Barra de botones daisyUI (`navbar` + `btn` / `join`): un enlace al catálogo, selector de diseño, Descargar PDF, Imprimir hoja y Opciones. En estrecho se apila. Solo cromo de pantalla; no entra en `.sheet`. |
+| `SiteNavbar` | Barra flex daisyUI (`.print-toolbar`): enlace de marca a `/` (logo 24 px + `homeLabel` = Diente Dientitos), slots de papel y acciones. En estrecho el texto de marca se recorta como `.print-toolbar__label`. Solo cromo de pantalla; no entra en `.sheet`. |
 | `PrintToolbar` | Compone `SiteNavbar` con el join Carta / A5 / A6 (diseño, no A4), Descargar PDF (`btn-primary`), Imprimir hoja (`btn-ghost`, `window.print()`) y Opciones. Monta `ExportPanel`. Visible solo en pantalla. No se usa en el catálogo. |
 | `ExportPanel` | Diálogo daisyUI (`modal`) de exportación: `modal-box` `w-11/12 max-w-lg`; joins de diseño/papel con wrap. Diseño sincronizado con el radiogroup, papel de salida, disposición, orientación y lista ordenable de formatos. El PDF se genera en el cliente; no redibuja `.sheet`. |
 | `Odontogram` | Diagrama dental vectorial FDI (52 dientes, glifo de círculo + equis) de ODO-F04, con cuadrado NOTAS al pie del panel. SVG estático, sin estado por superficie. |
 
-El catálogo (`src/pages/index.astro`) enlaza las cuatro rutas con `btn` daisyUI y no monta `PrintDocumentLayout` ni `PrintToolbar`. Los formatos clínicos y la hoja (`.sheet`) no usan daisyUI.
+El catálogo (`src/pages/index.astro`) es la portada de **Diente Dientitos**: logo, marca, definición, lista desde `CATALOG_FORMATS` y FAQ. Enlaza las cuatro rutas con `btn` daisyUI y no monta `PrintDocumentLayout` ni `PrintToolbar`. Los formatos clínicos y la hoja (`.sheet`) no usan daisyUI.
 
 ## Códigos documentales
 

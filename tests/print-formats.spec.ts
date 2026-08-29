@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { SITE_TITLE } from '../src/lib/site';
 
 const LETTER = { width: 816, height: 1056 };
 
@@ -103,7 +104,7 @@ test.describe('Rutas HTTP y títulos', () => {
   test('el catálogo responde 200', async ({ page }) => {
     const response = await page.goto('/');
     expect(response?.status()).toBe(200);
-    await expect(page).toHaveTitle('Formatos odontológicos imprimibles');
+    await expect(page).toHaveTitle(SITE_TITLE);
   });
 
   for (const format of FORMATS) {

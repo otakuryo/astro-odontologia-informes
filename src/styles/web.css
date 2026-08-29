@@ -89,6 +89,22 @@ body.is-print-document .web-chrome {
   min-height: var(--size, 2rem);
 }
 
+.web-chrome .print-toolbar__brand {
+  display: inline-flex;
+  flex-shrink: 0;
+  height: 24px;
+  border-radius: 0.25rem;
+  background: var(--ink);
+  overflow: hidden;
+}
+
+.web-chrome .print-toolbar__brand img {
+  height: 24px;
+  width: auto;
+  max-width: none;
+  object-fit: contain;
+}
+
 .web-chrome .print-toolbar__controls,
 .web-chrome .print-toolbar__actions {
   display: flex;
@@ -99,7 +115,7 @@ body.is-print-document .web-chrome {
   max-width: 100%;
 }
 
-/* En 390 px: iconos Lucide a la vista; el texto sigue en el nombre accesible. */
+/* En 390 px: iconos Lucide a la vista; el texto (acciones y marca) sigue en el nombre accesible. */
 @media (max-width: 40rem) {
   .web-chrome .print-toolbar__actions .btn {
     width: var(--size);

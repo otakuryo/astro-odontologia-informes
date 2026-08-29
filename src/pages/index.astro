@@ -5,58 +5,42 @@ import '../styles/tokens.css';
 import '../styles/base.css';
 import '../styles/print.css';
 import '../styles/web.css';
-
-const formats = [
-  {
-    href: '/formatos/expedientes/',
-    code: 'ODO-F01',
-    title: 'Expedientes',
-    lead: 'Cinco espacios de folio en un documento independiente.',
-  },
-  {
-    href: '/formatos/paciente-rx-tx/',
-    code: 'ODO-F02',
-    title: 'Paciente · Rx / Tx',
-    lead: 'Secciones Rx, Tx y Notas para registro clínico manuscrito.',
-  },
-  {
-    href: '/formatos/eventos/',
-    code: 'ODO-F03',
-    title: 'Eventos',
-    lead: 'Cuatro recuadros equivalentes en cuadrícula 2 × 2.',
-  },
-  {
-    href: '/formatos/paciente-imagen/',
-    code: 'ODO-F04',
-    title: 'Paciente · Imagen',
-    lead: 'Diagrama dental, leyenda Rojo, Azul, Verde y Otro, y recuadro de notas.',
-  },
-];
+import SeoHead from '../components/web/SeoHead.astro';
+import {
+  CATALOG_FORMATS,
+  FAQ_ITEMS,
+  SITE_DEFINITION,
+  SITE_DESCRIPTION,
+  SITE_H1,
+  SITE_NAME,
+  SITE_TITLE,
+  jsonLdCatalog,
+} from '../lib/site';
 ---
 
 <!doctype html>
 <html lang="es-ES">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="generator" content={Astro.generator} />
-    <title>Formatos odontológicos imprimibles</title>
+    <SeoHead
+      title={SITE_TITLE}
+      description={SITE_DESCRIPTION}
+      canonicalPath={Astro.url.pathname}
+      jsonLd={jsonLdCatalog()}
+    />
   </head>
   <body class="is-catalog">
     <div class="catalog">
       <header class="catalog__intro">
-        <h1 class="catalog__title">Formatos odontológicos imprimibles</h1>
-        <p class="catalog__note">
-          Este índice es solo una previsualización en pantalla. Cada formato se imprime
-          aparte, en una sola hoja vertical. En la barra de cada formato puede elegir
-          Carta, A5 o A6. No imprima esta página: no forma parte del expediente clínico.
-        </p>
+        <img class="catalog__logo" src="/logo.png" alt="" width="108" height="72" />
+        <p class="catalog__kicker">{SITE_NAME}</p>
+        <h1 class="catalog__title">{SITE_H1}</h1>
+        <p class="catalog__note">{SITE_DEFINITION}</p>
       </header>
       <div class="web-chrome" data-theme="odo" data-print-hide>
         <nav class="catalog__nav" aria-label="Formatos clínicos">
           <ul class="catalog__list">
             {
-              formats.map((format, index) => (
+              CATALOG_FORMATS.map((format, index) => (
                 <li>
                   <a class="btn btn-lg btn-block" href={format.href}>
                     <span class="catalog__index">{String(index + 1).padStart(2, '0')}</span>
@@ -72,6 +56,16 @@ const formats = [
           </ul>
         </nav>
       </div>
+      <section class="catalog__faq">
+        {
+          FAQ_ITEMS.map((item) => (
+            <article>
+              <h2>{item.question}</h2>
+              <p class="catalog__note">{item.answer}</p>
+            </article>
+          ))
+        }
+      </section>
     </div>
   </body>
 </html>
@@ -81,6 +75,13 @@ const formats = [
     max-width: 920px;
     margin: 0 auto;
     padding: 48px 24px 72px;
+  }
+
+  .catalog__logo {
+    height: 72px;
+    width: auto;
+    margin-bottom: 16px;
+    border-radius: 12px;
   }
 
   .catalog__kicker {
@@ -100,7 +101,6 @@ const formats = [
   }
 
   .catalog__note {
-    max-width: 58ch;
     color: var(--ink-muted);
     font-size: 16px;
   }
@@ -160,6 +160,19 @@ const formats = [
     font-size: 15px;
     font-weight: var(--fw-regular);
     color: var(--ink-muted);
+  }
+
+  .catalog__faq {
+    margin-top: 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .catalog__faq h2 {
+    font-size: 20px;
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
   }
 
   @media (max-width: 720px) {

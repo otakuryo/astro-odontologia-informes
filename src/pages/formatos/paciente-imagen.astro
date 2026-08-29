@@ -1,10 +1,12 @@
 ---
 import PrintDocumentLayout from '../../layouts/PrintDocumentLayout.astro';
 import PacienteImagenFormat from '../../components/formats/PacienteImagenFormat.astro';
+import { seoForFormat } from '../../lib/site';
 ---
 
 <PrintDocumentLayout
   title="Paciente imagen · ODO-F04"
+  description={seoForFormat('ODO-F04')}
   documentTitle="PACIENTE"
   code="ODO-F04"
 >

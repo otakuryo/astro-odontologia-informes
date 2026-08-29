@@ -1,6 +1,6 @@
-# Formatos odontológicos imprimibles
+# Diente Dientitos
 
-Sitio estático en [Astro](https://astro.build) para cuatro documentos clínicos independientes, pensados para escritura a mano e impresión. El índice no forma parte del expediente: cada formato se imprime por separado. daisyUI solo se usa en la navegación y la configuración en pantalla; no forma parte de las hojas clínicas.
+Diente Dientitos es un sitio estático en [Astro](https://astro.build) de ficheros odontológicos imprimibles (expedientes, Rx/Tx, eventos y diagrama dental) para rellenar a mano o descargar en PDF. El catálogo (`/`) es la portada de marca y no se imprime: cada formato sale en una sola hoja. daisyUI solo se usa en la navegación y la configuración en pantalla; no forma parte de las hojas clínicas.
 
 ## Requisitos
 

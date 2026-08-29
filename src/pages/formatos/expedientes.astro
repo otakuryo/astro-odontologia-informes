@@ -1,8 +1,14 @@
 ---
 import PrintDocumentLayout from '../../layouts/PrintDocumentLayout.astro';
 import ExpedientesFormat from '../../components/formats/ExpedientesFormat.astro';
+import { seoForFormat } from '../../lib/site';
 ---
 
-<PrintDocumentLayout title="Expedientes · ODO-F01" documentTitle="EXPEDIENTES" code="ODO-F01">
+<PrintDocumentLayout
+  title="Expedientes · ODO-F01"
+  description={seoForFormat('ODO-F01')}
+  documentTitle="EXPEDIENTES"
+  code="ODO-F01"
+>
   <ExpedientesFormat />
 </PrintDocumentLayout>

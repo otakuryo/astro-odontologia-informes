@@ -1,8 +1,14 @@
 ---
 import PrintDocumentLayout from '../../layouts/PrintDocumentLayout.astro';
 import EventosFormat from '../../components/formats/EventosFormat.astro';
+import { seoForFormat } from '../../lib/site';
 ---
 
-<PrintDocumentLayout title="Eventos · ODO-F03" documentTitle="EVENTOS" code="ODO-F03">
+<PrintDocumentLayout
+  title="Eventos · ODO-F03"
+  description={seoForFormat('ODO-F03')}
+  documentTitle="EVENTOS"
+  code="ODO-F03"
+>
   <EventosFormat />
 </PrintDocumentLayout>
