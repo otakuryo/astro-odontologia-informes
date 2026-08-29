@@ -241,5 +241,94 @@ test.describe('Documentos de formato', () => {
     await expect(page.getByText('Verde', { exact: true })).toBeVisible();
     await expect(page.getByText('Otro', { exact: true })).toBeVisible();
     await expect(page.locator('[data-testid="legend-marker"]')).toHaveCount(4);
+    await expect(page.locator('svg[data-testid="odontogram"]')).toBeVisible();
+    await expect(page.locator('[data-testid="tooth"]')).toHaveCount(52);
+  });
+
+  test('ODO-F04 dispone el diagrama dental (pasillo, homólogos, labels)', async ({
+    page,
+  }) => {
+    await page.goto('/formatos/paciente-imagen/');
+
+    await expect(page.locator('svg[data-testid="odontogram"]')).toBeVisible();
+    await expect(page.locator('[data-testid="tooth"]')).toHaveCount(52);
+
+    const cornerFdis = [
+      '1.8',
+      '1.1',
+      '2.1',
+      '2.8',
+      '5.5',
+      '5.1',
+      '6.1',
+      '6.5',
+      '8.5',
+      '8.1',
+      '7.1',
+      '7.5',
+      '4.8',
+      '4.1',
+      '3.1',
+      '3.8',
+    ] as const;
+
+    for (const fdi of cornerFdis) {
+      await expect(page.getByText(fdi, { exact: true })).toBeVisible();
+    }
+
+    const layout = await page.locator('svg[data-testid="odontogram"]').evaluate((root) => {
+      const measure = (fdi: string) => {
+        const group = root.querySelector(`[data-testid="tooth"][data-fdi="${fdi}"]`);
+        if (!(group instanceof SVGGElement)) {
+          return null;
+        }
+
+        const circles = [...group.querySelectorAll('circle')];
+        const outer = circles.reduce<SVGCircleElement | null>((best, circle) => {
+          const radius = Number(circle.getAttribute('r') ?? 0);
+          const bestRadius = best ? Number(best.getAttribute('r') ?? 0) : -1;
+          return radius > bestRadius ? circle : best;
+        }, null);
+        const label = group.querySelector('text');
+
+        if (!outer || !label) {
+          return null;
+        }
+
+        const circleRect = outer.getBoundingClientRect();
+        const textRect = label.getBoundingClientRect();
+
+        return {
+          circle: {
+            left: circleRect.left,
+            right: circleRect.right,
+            cx: circleRect.x + circleRect.width / 2,
+            cy: circleRect.y + circleRect.height / 2,
+          },
+          text: {
+            cy: textRect.y + textRect.height / 2,
+          },
+        };
+      };
+
+      return {
+        t11: measure('1.1'),
+        t21: measure('2.1'),
+        t51: measure('5.1'),
+        t18: measure('1.8'),
+        t48: measure('4.8'),
+      };
+    });
+
+    expect(layout.t11).not.toBeNull();
+    expect(layout.t21).not.toBeNull();
+    expect(layout.t51).not.toBeNull();
+    expect(layout.t18).not.toBeNull();
+    expect(layout.t48).not.toBeNull();
+
+    expect(layout.t11!.circle.right).toBeLessThan(layout.t21!.circle.left);
+    expect(Math.abs(layout.t51!.circle.cx - layout.t11!.circle.cx)).toBeLessThanOrEqual(2);
+    expect(layout.t18!.text.cy).toBeLessThan(layout.t18!.circle.cy);
+    expect(layout.t48!.text.cy).toBeGreaterThan(layout.t48!.circle.cy);
   });
 });

@@ -1,6 +1,7 @@
 ---
 import OutlinedPanel from '../document/OutlinedPanel.astro';
 import LegendMarker from '../document/LegendMarker.astro';
+import Odontogram from '../document/Odontogram.astro';
 
 const legend = [
   { variant: 'rojo' as const, label: 'Rojo' },
@@ -15,7 +16,9 @@ const legend = [
     <div class="imagen-doc">
       <div class="imagen">
         <h2 class="imagen__title">IMAGEN</h2>
-        <div class="imagen__area" aria-hidden="true"></div>
+        <div class="imagen__area">
+          <Odontogram />
+        </div>
       </div>
       <ul class="leyenda" data-count="4">
         {
@@ -75,6 +78,9 @@ const legend = [
   .imagen__area {
     flex: 1 1 auto;
     min-height: 0;
+    min-width: 0;
+    display: grid;
+    place-items: center;
   }
 
   .leyenda {

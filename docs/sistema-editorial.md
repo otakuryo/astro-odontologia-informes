@@ -83,6 +83,7 @@ Los campos clínicos son **líneas vacías** para pluma. Están prohibidos `<inp
 | `OutlinedPanel` | Recuadro de borde exterior grueso. `title` opcional; el contenido va en el `slot`. `break-inside: avoid`. |
 | `LegendMarker` | Marcador de leyenda con patrón y sigla: `rojo` = `R` sólido, `azul` = `A` rayado diagonal, `verde` = `V` con puntos, `otro` = `O` vacío. Incluye etiqueta y línea de equivalencia clínica vacía. |
 | `PrintToolbar` | Selector Carta / A5 / A6 y botón `window.print()`, visibles solo en pantalla. No se usa en el catálogo. |
+| `Odontogram` | Diagrama dental vectorial FDI (52 dientes, glifo de círculo + equis) para el recuadro IMAGEN de ODO-F04. SVG estático, sin estado por superficie. |
 
 El catálogo (`src/pages/index.astro`) enlaza las cuatro rutas y no monta `PrintDocumentLayout` ni `PrintToolbar`.
 

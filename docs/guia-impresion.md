@@ -18,7 +18,7 @@ Protocolo de control de calidad para los cuatro formatos clínicos (ODO-F01 a OD
 | ODO-F01 | `/formatos/expedientes/` | Expedientes / folios |
 | ODO-F02 | `/formatos/paciente-rx-tx/` | Paciente, Rx, Tx, notas |
 | ODO-F03 | `/formatos/eventos/` | Cuatro paneles de evento |
-| ODO-F04 | `/formatos/paciente-imagen/` | Imagen y leyenda R/A/V/O |
+| ODO-F04 | `/formatos/paciente-imagen/` | Imagen, diagrama dental vectorial y leyenda R/A/V/O |
 
 Cada ruta genera exactamente **1/1**. No hay paginación clínica. Puede forzar el papel con `?papel=a5`, `?papel=a6` o `?papel=carta`.
 
@@ -48,6 +48,7 @@ Haga las dos pasadas, en este orden:
 - [ ] Líneas de escritura con espacio de pluma suficiente (campos de cabecera, folios, notas, equivalencias). En A6 el renglón es más corto: compruebe que sigue siendo usable.
 - [ ] Códigos `ODO-F01` … `ODO-F04`, `REV. 01` y `1/1` legibles en el pie.
 - [ ] En ODO-F04, la leyenda se distingue **sin color**: **R** sólido, **A** rayado diagonal, **V** puntos, **O** círculo vacío, más las siglas. El color es un refuerzo, no el único canal.
+- [ ] En ODO-F04, los 52 numerales FDI del diagrama dental son legibles en el PDF.
 - [ ] Sombra de pantalla, selector de papel y botón «Imprimir hoja» no aparecen en el papel ni en el PDF.
 
 ## Revisión médica

@@ -44,3 +44,8 @@ playwright/.cache/
 
 # Finder (MacOS) folder config
 .DS_Store
+
+# General
+.cursor/
+graphify-out/
+raw/
