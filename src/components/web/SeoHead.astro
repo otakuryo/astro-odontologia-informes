@@ -19,16 +19,16 @@ const canonical = Astro.site ? new URL(canonicalPath, Astro.site).href : canonic
 <link rel="canonical" href={canonical} />
 <link rel="icon" href="/favicon.ico" sizes="any" />
 <link rel="icon" href="/favicon.png" type="image/png" />
-<link rel="apple-touch-icon" href="/logo.png" />
+<link rel="apple-touch-icon" href="/logo-v2.png" />
 <link rel="describedby" href="/llms.txt" type="text/markdown" />
 <meta property="og:type" content="website" />
 <meta property="og:locale" content="es_ES" />
 <meta property="og:title" content={title} />
 <meta property="og:description" content={description} />
 <meta property="og:url" content={canonical} />
-<meta property="og:image" content="/logo.png" />
+<meta property="og:image" content="/logo-v2.png" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content={title} />
 <meta name="twitter:description" content={description} />
-<meta name="twitter:image" content="/logo.png" />
+<meta name="twitter:image" content="/logo-v2.png" />
 <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
