@@ -19,7 +19,7 @@ El tamaño de **diseño** se elige en `PrintToolbar` (Carta / A5 / A6). Se guard
 
 Cada ruta de formato genera **una sola hoja**. No hay paginación clínica: el pie lleva `1/1`.
 
-En pantalla la hoja blanca se centra sobre un fondo neutro (`.is-print-document`). El cromo (catálogo, barra, sombras de preview) desaparece al imprimir; la hoja sale al tamaño de papel, sin el `scale` de la preview. El catálogo (`/`) no es un documento de hoja: está marcado como `.is-catalog` y se oculta con `@media print`. `window.print()` imprime solo la hoja en pantalla, no el pliego impuesto del PDF.
+En pantalla la hoja blanca se centra sobre un fondo neutro (`.is-print-document`). El cromo (catálogo, barra, sombras de preview, pie legal) desaparece al imprimir; la hoja sale al tamaño de papel, sin el `scale` de la preview. El catálogo (`/`) no es un documento de hoja: está marcado como `.is-catalog` y se oculta con `@media print`. `window.print()` en un formato imprime solo la hoja en pantalla, no el pliego impuesto del PDF.
 
 `box-sizing: border-box` es global. Los paneles usan `break-inside: avoid`. `print-color-adjust: exact` es una mejora; el significado no depende de que el navegador conserve el color.
 
@@ -62,18 +62,19 @@ El carácter más llamativo se limita a títulos en versales, numeración del ca
 | --- | --- |
 | `src/styles/tokens.css` | Paleta, tipografía, escala, grosores y dimensiones del lienzo (Carta, A5 y A6) |
 | `src/styles/base.css` | Caja, tipografía base (raíz 16 px, `text-size-adjust`), `overflow-x` de pantalla, vista de hoja centrada y preview a escala (`--preview-scale` solo en `@media screen`) |
-| `src/styles/print.css` | `@page` de respaldo, ocultación de cromo de pantalla, reset del envoltorio de preview (tamaño auto, sin transform ni overflow recortado) y ajuste de color |
+| `src/styles/print.css` | `@page` de respaldo, ocultación de cromo de pantalla (`[data-print-hide]`, barra, catálogo), reset del envoltorio de preview (tamaño auto, sin transform ni overflow recortado) y ajuste de color |
 | `src/styles/web.css` | Cromo de botones y panel de exportación en pantalla (Tailwind + daisyUI, tema `odo`: `button`, `join`, `navbar`, `modal`, `fieldset`, `label`, `radio`, `checkbox`, `alert`). No es el sistema de las hojas. Variables acotadas a `.web-chrome`. |
+| `src/styles/legal.css` | Cromo y textos web: pie, aviso de uso, páginas legales. No incluye reglas de tamaño de papel. |
 
 Las hojas imprimibles no usan framework CSS: la composición es Grid y Flexbox sobre `tokens.css`. daisyUI no entra en `.sheet` ni en los formatos clínicos.
 
 ## Viewport y cromo de pantalla
 
-Meta viewport idéntico en el catálogo (`/`) y en los formatos: `width=device-width, initial-scale=1`. No se usa `maximum-scale=1`, `user-scalable=no` ni `viewport-fit=cover` (el pellizco de Safari sigue activo).
+Meta viewport idéntico en las páginas web (`WebPageLayout`: catálogo y legales) y en los formatos: `width=device-width, initial-scale=1`. No se usa `maximum-scale=1`, `user-scalable=no` ni `viewport-fit=cover` (el pellizco de Safari sigue activo).
 
 La raíz `html` mantiene `font-size: 16px` (no cambia al elegir Carta / A5 / A6) y `text-size-adjust: 100%` (`-webkit-text-size-adjust` incluido). En `.web-chrome`, `input` / `select` / `textarea` quedan a `16px` para que iOS no haga zoom al enfocar radios o casillas. En `@media screen`, `html` y `body` usan `overflow-x: clip` y `overflow-y: auto` (la hoja en milímetros no define el ancho de página) y `min-height: 100dvh` con respaldo `100vh`.
 
-El `<head>` del catálogo y de los formatos lo emite `SeoHead`: viewport `width=device-width, initial-scale=1`, description, canonical, iconos `favicon.ico` + `favicon.png`, `rel="describedby"` hacia `/llms.txt`, Open Graph y JSON-LD (`WebSite` + `FAQPage` en `/`; en formatos, sin `FAQPage`).
+El `<head>` de las páginas web (`WebPageLayout`: catálogo y legales) y de los formatos lo emite `SeoHead`: viewport `width=device-width, initial-scale=1`, description, canonical, iconos `favicon.ico` + `favicon.png`, `rel="describedby"` hacia `/llms.txt`, Open Graph y JSON-LD (`WebSite` + `FAQPage` en `/`; en formatos, sin `FAQPage`).
 
 La barra es flex propio (`.print-toolbar`, `__home`, `__controls`, `__actions`); no usa `navbar-start` / `center` / `end`. El enlace de inicio (`.print-toolbar__home`) lleva el logo de **Diente Dientitos** a 24 px (`object-fit: contain` en un recuadro oscuro redondeado) y la etiqueta `homeLabel` (por defecto `Diente Dientitos`). Bajo `40rem` (640 px) los botones de acción son solo iconos Lucide y el texto (`.print-toolbar__label`, también el de marca) se recorta con clip; el nombre accesible se conserva para lectores de pantalla. El texto de marca vuelve a verse desde `min-width: 40.01rem`. Queda un solo enlace al catálogo; no hay segundo «Home» ni menú hamburguesa. El catálogo pasa a una columna a `720px` y, en viewport estrecho, reduce el padding a 24 px y el título a ~28 px. El panel de exportación (`modal-box`) usa `w-11/12 max-w-lg max-h-[90vh]`; los `join` de diseño y papel pueden partir línea para que Carta / A4 / A5 / A6 no recorten.
 
@@ -89,8 +90,11 @@ Los campos clínicos son **líneas vacías** para pluma. Están prohibidos `<inp
 
 | Componente | Responsabilidad |
 | --- | --- |
-| `PrintDocumentLayout` | Documento HTML completo: fuentes, estilos, `SeoHead`, barra de impresión, envoltorio de preview (`.sheet-preview` / `.sheet-preview__scaler`), hoja, encabezado, `slot` clínico y pie. El atributo `data-paper-size` del `html` elige Carta, A5 o A6. Props: `title` (pestaña), `description`, `documentTitle`, `code`, `revision` y `page` opcionales. |
-| `SeoHead` | Meta viewport, title, description, canonical, iconos, `describedby`, Open Graph y JSON-LD. Lo usan el catálogo y `PrintDocumentLayout`. |
+| `PrintDocumentLayout` | Documento HTML completo: fuentes, estilos (incluye `print.css` y `legal.css`), `SeoHead`, barra de impresión, envoltorio de preview (`.sheet-preview` / `.sheet-preview__scaler`), hoja, encabezado, `slot` clínico y pie documental. Además de la hoja, monta `SiteFooter` **fuera** de `.sheet` con `data-print-hide`. El atributo `data-paper-size` del `html` elige Carta, A5 o A6. Props: `title` (pestaña), `description`, `documentTitle`, `code`, `revision` y `page` opcionales. |
+| `WebPageLayout` | Páginas web (catálogo y legales): `lang=es-ES`, `SeoHead`, skip-link, cabecera «Volver al catálogo» (no en `/`), `<main id="contenido">` y `SiteFooter`. **No** importa `print.css`. |
+| `SiteFooter` | Enlaces permanentes a `/aviso-legal/`, `/politica-de-privacidad/`, `/cookies/` y `/preguntas-frecuentes/`; autor Agustin; correo; Apache-2.0; GitHub condicional (`PUBLIC_GITHUB_URL`). En catálogo y formatos. Nunca dentro de `.sheet`. Lleva `data-print-hide`. |
+| `UsageNotice` | Aviso breve en el catálogo **antes** de la navegación de formatos. No se inserta en hojas clínicas ni altera PDFs. |
+| `SeoHead` | Meta viewport, title, description, canonical, iconos, `describedby`, Open Graph y JSON-LD. Lo usan `WebPageLayout` y `PrintDocumentLayout`. |
 | `ClinicalHeader` | Banda de cabecera. En Carta, cuatro campos en una fila; en A5 y A6, retícula 2 × 2. Prop `title`; etiquetas de los cuatro campos opcionales, resueltas con `ManualField`. |
 | `DocumentFooter` | Pie documental. Prop `code`; `revision` por defecto `REV. 01`; `page` por defecto `1/1`. |
 | `ManualField` | Etiqueta + renglón(es) de escritura. `wide` ensancha el campo; `multiline` dibuja tres renglones. |
@@ -101,7 +105,11 @@ Los campos clínicos son **líneas vacías** para pluma. Están prohibidos `<inp
 | `ExportPanel` | Diálogo daisyUI (`modal`) de exportación: `modal-box` `w-11/12 max-w-lg`; joins de diseño/papel con wrap. Diseño sincronizado con el radiogroup, papel de salida, disposición, orientación y lista ordenable de formatos. El PDF se genera en el cliente; no redibuja `.sheet`. |
 | `Odontogram` | Diagrama dental vectorial FDI (52 dientes, glifo de círculo + equis) de ODO-F04, con cuadrado NOTAS al pie del panel. SVG estático, sin estado por superficie. |
 
-El catálogo (`src/pages/index.astro`) es la portada de **Diente Dientitos**: logo, marca, definición, lista desde `CATALOG_FORMATS` y FAQ. Enlaza las cuatro rutas con `btn` daisyUI y no monta `PrintDocumentLayout` ni `PrintToolbar`. Los formatos clínicos y la hoja (`.sheet`) no usan daisyUI.
+El catálogo (`src/pages/index.astro`) usa `WebPageLayout` (`isCatalog`): logo, marca, definición, `UsageNotice`, lista desde `CATALOG_FORMATS`, FAQ y `SiteFooter`. Enlaza las cuatro rutas de formato con `btn` daisyUI y no monta `PrintDocumentLayout` ni `PrintToolbar`. Los formatos clínicos y la hoja (`.sheet`) no usan daisyUI.
+
+## Cromo legal y hoja clínica
+
+El cromo legal (enlaces del pie, `.site-footer`, skip-link y `UsageNotice`) y la hoja clínica (`.sheet`) están separados. En `@media print`, `data-print-hide` y `print.css` (y las reglas equivalentes de `legal.css`) se ocultan los enlaces legales, el pie web, el skip-link y el aviso de uso; la hoja clínica no lleva avisos legales. `SiteFooter` nunca se monta dentro de `.sheet`. Las páginas legales **sí** pueden imprimirse como páginas normales: `WebPageLayout` no carga tamaño de papel.
 
 ## Códigos documentales
 

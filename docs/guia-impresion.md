@@ -61,7 +61,7 @@ Haga esta pasada en Chromium. En Safari, si la captura falla, pase al protocolo 
 - [ ] Escala 100 % en el visor: las hojas clínicas coinciden con el diseño (Carta, A5 o A6) y no están encogidas.
 - [ ] Duplicar: la misma hoja a ambos lados, sin escala.
 - [ ] Cuadernillo: dúplex lado corto; al plegar, el orden de lectura es 1-2-3-4.
-- [ ] Sombra de pantalla, barra, selector de diseño, **Opciones** y el panel no aparecen en el PDF.
+- [ ] Sombra de pantalla, barra, selector de diseño, **Opciones**, el panel, el pie legal (`.site-footer`) y el aviso de uso (`UsageNotice`) no aparecen en el PDF.
 
 ## Protocolo Imprimir hoja (cada formato, cada navegador)
 
@@ -83,15 +83,17 @@ En el diálogo del navegador: el **mismo tamaño de papel** que el diseño, orie
 - [ ] Códigos `ODO-F01` … `ODO-F04`, `REV. 01` y `1/1` legibles en el pie.
 - [ ] En ODO-F04, la leyenda se distingue **sin color**: **R** sólido, **A** rayado diagonal, **V** puntos, **O** círculo vacío, más las siglas. El color es un refuerzo, no el único canal.
 - [ ] En ODO-F04, los 52 numerales FDI del diagrama dental son legibles en el PDF.
-- [ ] Sombra de pantalla, selector de diseño, «Descargar PDF», «Imprimir hoja» y «Opciones» no aparecen en el papel ni en el PDF.
+- [ ] Sombra de pantalla, selector de diseño, «Descargar PDF», «Imprimir hoja», «Opciones», el pie legal (`.site-footer`) y el aviso de uso (`UsageNotice`) no aparecen en el papel ni en el PDF.
 
 ## Revisión médica
 
-Antes de usar estos formatos en consulta, un profesional clínico debe revisar textos, recuentos, leyenda y flujo de escritura. Hasta esa validación, las hojas son maquetas de trabajo, no un expediente homologado.
+Las plantillas **no** están homologadas en ningún país. El aval odontológico de partida no es certificación, expediente clínico oficial ni producto sanitario. Pueden usarse en cualquier territorio; quien las use debe revisarlas de forma independiente (textos, recuentos, leyenda y flujo de escritura) y comprobar que el uso es lícito donde ejerza. No las presente como homologadas ni como producto sanitario. El sitio no se hace responsable, en la máxima medida permitida por la ley, del uso inadecuado.
 
 ## Datos de pacientes (demo)
 
-**No introduzca datos reales de pacientes** en esta demostración. No hay autenticación, cifrado, consentimiento informado ni retención controlada. Cualquier anotación en una captura, PDF o impresora compartida se considera dato expuesto.
+El sitio no captura datos clínicos: no hay cuentas ni fichas en servidor. El PDF se genera en el navegador. **No introduzca datos reales de pacientes** en esta demostración. No hay autenticación, cifrado, consentimiento informado ni retención controlada. Cualquier anotación en una captura, PDF o impresora compartida se considera dato expuesto.
+
+El pie legal (`.site-footer`) y el aviso de uso del catálogo (`UsageNotice`) no deben aparecer en la impresión ni en el PDF clínico.
 
 ## Fuera de alcance (backlog)
 

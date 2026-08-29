@@ -1,11 +1,6 @@
 ---
-import '@fontsource-variable/manrope/wght.css';
-import '@fontsource-variable/source-sans-3/wght.css';
-import '../styles/tokens.css';
-import '../styles/base.css';
-import '../styles/print.css';
-import '../styles/web.css';
-import SeoHead from '../components/web/SeoHead.astro';
+import WebPageLayout from '../layouts/WebPageLayout.astro';
+import UsageNotice from '../components/web/UsageNotice.astro';
 import {
   CATALOG_FORMATS,
   FAQ_ITEMS,
@@ -18,57 +13,52 @@ import {
 } from '../lib/site';
 ---
 
-<!doctype html>
-<html lang="es-ES">
-  <head>
-    <SeoHead
-      title={SITE_TITLE}
-      description={SITE_DESCRIPTION}
-      canonicalPath={Astro.url.pathname}
-      jsonLd={jsonLdCatalog()}
-    />
-  </head>
-  <body class="is-catalog">
-    <div class="catalog">
-      <header class="catalog__intro">
-        <img class="catalog__logo" src="/logo-v2.png" alt="Diente Dientitos" width="108" height="72" />
-        <p class="catalog__kicker">{SITE_NAME}</p>
-        <h1 class="catalog__title">{SITE_H1}</h1>
-        <p class="catalog__note">{SITE_DEFINITION}</p>
-      </header>
-      <div class="web-chrome" data-theme="odo" data-print-hide>
-        <nav class="catalog__nav" aria-label="Formatos clínicos">
-          <ul class="catalog__list">
-            {
-              CATALOG_FORMATS.map((format, index) => (
-                <li>
-                  <a class="btn btn-lg btn-block" href={format.href}>
-                    <span class="catalog__index">{String(index + 1).padStart(2, '0')}</span>
-                    <span class="catalog__copy">
-                      <span class="catalog__code">{format.code}</span>
-                      <span class="catalog__name">{format.title}</span>
-                      <span class="catalog__lead">{format.lead}</span>
-                    </span>
-                  </a>
-                </li>
-              ))
-            }
-          </ul>
-        </nav>
-      </div>
-      <section class="catalog__faq">
-        {
-          FAQ_ITEMS.map((item) => (
-            <article>
-              <h2>{item.question}</h2>
-              <p class="catalog__note">{item.answer}</p>
-            </article>
-          ))
-        }
-      </section>
+<WebPageLayout
+  title={SITE_TITLE}
+  description={SITE_DESCRIPTION}
+  jsonLd={jsonLdCatalog()}
+  isCatalog
+>
+  <div class="catalog">
+    <header class="catalog__intro">
+      <img class="catalog__logo" src="/logo-v2.png" alt="Diente Dientitos" width="108" height="72" />
+      <p class="catalog__kicker">{SITE_NAME}</p>
+      <h1 class="catalog__title">{SITE_H1}</h1>
+      <p class="catalog__note">{SITE_DEFINITION}</p>
+    </header>
+    <UsageNotice />
+    <div class="web-chrome" data-theme="odo" data-print-hide>
+      <nav class="catalog__nav" aria-label="Formatos clínicos">
+        <ul class="catalog__list">
+          {
+            CATALOG_FORMATS.map((format, index) => (
+              <li>
+                <a class="btn btn-lg btn-block" href={format.href}>
+                  <span class="catalog__index">{String(index + 1).padStart(2, '0')}</span>
+                  <span class="catalog__copy">
+                    <span class="catalog__code">{format.code}</span>
+                    <span class="catalog__name">{format.title}</span>
+                    <span class="catalog__lead">{format.lead}</span>
+                  </span>
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
     </div>
-  </body>
-</html>
+    <section class="catalog__faq">
+      {
+        FAQ_ITEMS.map((item) => (
+          <article>
+            <h2>{item.question}</h2>
+            <p class="catalog__note">{item.answer}</p>
+          </article>
+        ))
+      }
+    </section>
+  </div>
+</WebPageLayout>
 
 <style>
   .catalog {

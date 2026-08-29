@@ -1,0 +1,41 @@
+---
+import {
+  SITE_AUTHOR,
+  SITE_CONTACT_EMAIL,
+  SITE_GITHUB_URL,
+  SITE_LICENSE,
+  SITE_NAME,
+} from '../../lib/site-config';
+
+const legalLinks = [
+  { href: '/aviso-legal/', label: 'Aviso legal' },
+  { href: '/politica-de-privacidad/', label: 'Política de privacidad' },
+  { href: '/cookies/', label: 'Cookies' },
+  { href: '/preguntas-frecuentes/', label: 'Preguntas frecuentes' },
+] as const;
+---
+
+<footer class="site-footer" data-print-hide>
+  <nav class="site-footer__nav" aria-label="Información legal">
+    <ul class="site-footer__links">
+      {
+        legalLinks.map((link) => (
+          <li>
+            <a href={link.href}>{link.label}</a>
+          </li>
+        ))
+      }
+    </ul>
+  </nav>
+  <p class="site-footer__meta">
+    <span>{SITE_NAME}</span>
+    <span>Licencia {SITE_LICENSE}</span>
+    {
+      SITE_GITHUB_URL ? (
+        <a href={SITE_GITHUB_URL} rel="noopener noreferrer" target="_blank">
+          GitHub
+        </a>
+      ) : null
+    }
+  </p>
+</footer>

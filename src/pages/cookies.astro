@@ -1,0 +1,98 @@
+---
+import WebPageLayout from '../layouts/WebPageLayout.astro';
+import { PAPER_SIZE_STORAGE_KEY, PRINT_EXPORT_STORAGE_KEY } from '../lib/print-export/settings';
+import {
+  SITE_CONTACT_EMAIL,
+  SITE_GITHUB_URL,
+  SITE_LEGAL_UPDATED_AT,
+  SITE_NAME,
+} from '../lib/site-config';
+
+const title = `Cookies | ${SITE_NAME}`;
+const description =
+  'Diente Dientitos no usa cookies. Netlify Web Analytics funciona sin ellas. Qué guardan odo-paper-size y odo-print-export, cómo borrarlas y cuándo haría falta consentimiento.';
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebPage',
+  name: 'Cookies',
+  description,
+  inLanguage: 'es-ES',
+  dateModified: SITE_LEGAL_UPDATED_AT,
+};
+---
+
+<WebPageLayout title={title} description={description} jsonLd={jsonLd}>
+  <article class="legal-page">
+    <h1>Cookies</h1>
+    <p class="legal-page__updated">Última actualización: {SITE_LEGAL_UPDATED_AT}</p>
+
+    <h2>Este sitio no usa cookies</h2>
+    <p>
+      {SITE_NAME} no utiliza cookies. No hay banner de consentimiento porque no se instalan
+      cookies de analítica, publicidad ni perfilado, ni se reutilizan preferencias para fines
+      distintos de los que eliges al imprimir o exportar.
+    </p>
+
+    <h2>Netlify Web Analytics sin cookies</h2>
+    <p>
+      Netlify Web Analytics es la analítica activa y funciona sin cookies y sin JavaScript de
+      cliente: lee registros de la CDN. Umami no está integrado; si un día se planteara, no se
+      activaría sin actualizar antes este aviso y la política de privacidad.
+    </p>
+
+    <h2>Preferencias en el almacenamiento local</h2>
+    <p>
+      El navegador puede guardar dos claves de almacenamiento local (localStorage) que tú
+      solicitas al elegir tamaño de papel u opciones de exportación. La AEPD considera exentas
+      las preferencias elegidas por el usuario cuando no se reutilizan para otras finalidades.
+      Aquí no hay publicidad ni perfilado.
+    </p>
+
+    <h2>Clave {PAPER_SIZE_STORAGE_KEY}</h2>
+    <p>
+      <code>{PAPER_SIZE_STORAGE_KEY}</code> guarda el tamaño de diseño elegido: <code>letter</code>
+      {' '}(Carta), <code>a5</code> o <code>a6</code>. Sirve para recordar esa elección al volver a
+      abrir un formato.
+    </p>
+
+    <h2>Clave {PRINT_EXPORT_STORAGE_KEY}</h2>
+    <p>
+      <code>{PRINT_EXPORT_STORAGE_KEY}</code> guarda un JSON con <code>design</code>,{' '}
+      <code>paper</code>, <code>layout</code>, <code>orientation</code> y <code>formats</code>:
+      preferencias de exportación. El campo de diseño se espeja en{' '}
+      <code>{PAPER_SIZE_STORAGE_KEY}</code>.
+    </p>
+
+    <h2>Cómo borrar estas preferencias</h2>
+    <p>
+      En el navegador, abre los datos del sitio (o «almacenamiento local» / localStorage) para
+      este dominio y elimina las claves, o borra los datos de este sitio. Eso no cierra ninguna
+      cuenta: no hay cuentas. Tras borrarlas, el sitio volverá a sus valores por defecto la
+      próxima vez que elijas papel o exportación.
+    </p>
+
+    <h2>Cuándo haría falta consentimiento</h2>
+    <p>
+      Habría que actualizar este aviso y, si aplica, implantar consentimiento <em>antes</em> de
+      introducir almacenamiento no esencial, cookies, publicidad, perfilado, analítica con
+      JavaScript de cliente u otras herramientas que no se limiten a preferencias que tú eliges.
+      Eso incluye, por ejemplo, activar Umami u otro medidor en el navegador. Umami no está
+      integrado ni activo.
+    </p>
+    <p>
+      Preguntas: <a href={`mailto:${SITE_CONTACT_EMAIL}`}>{SITE_CONTACT_EMAIL}</a>
+      {
+        SITE_GITHUB_URL ? (
+          <>
+            {' '}
+            o{' '}
+            <a href={SITE_GITHUB_URL} rel="noopener noreferrer">
+              GitHub
+            </a>
+          </>
+        ) : null
+      }.
+    </p>
+  </article>
+</WebPageLayout>

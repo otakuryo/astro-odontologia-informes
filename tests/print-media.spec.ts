@@ -91,12 +91,19 @@ test.describe('Modo print', () => {
       await preparePrintSheet(page, format.path);
 
       await expect(page.locator('.print-toolbar')).toBeVisible();
-      await expect(page.locator('[data-print-hide]')).toBeVisible();
+      const printHide = page.locator('[data-print-hide]');
+      const printHideCount = await printHide.count();
+      expect(printHideCount).toBeGreaterThan(0);
+      for (let i = 0; i < printHideCount; i += 1) {
+        await expect(printHide.nth(i)).toBeVisible();
+      }
 
       await page.emulateMedia({ media: 'print' });
 
       await expect(page.locator('.print-toolbar')).toBeHidden();
-      await expect(page.locator('[data-print-hide]')).toBeHidden();
+      for (let i = 0; i < printHideCount; i += 1) {
+        await expect(printHide.nth(i)).toBeHidden();
+      }
       await expect(page.locator('.sheet')).toBeVisible();
       await expect(page.locator('.sheet')).toHaveCount(1);
 

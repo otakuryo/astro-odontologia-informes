@@ -1,0 +1,150 @@
+---
+import WebPageLayout from '../layouts/WebPageLayout.astro';
+import { PAPER_SIZE_STORAGE_KEY, PRINT_EXPORT_STORAGE_KEY } from '../lib/print-export/settings';
+import {
+  SITE_CONTACT_EMAIL,
+  SITE_GITHUB_URL,
+  SITE_LEGAL_UPDATED_AT,
+  SITE_LICENSE,
+  SITE_NAME,
+} from '../lib/site-config';
+
+const title = `Preguntas frecuentes | ${SITE_NAME}`;
+const description =
+  'Gratuidad, Apache-2.0, IA, homologación, datos de pacientes, PDF local, cookies, Netlify Web Analytics y retirada del sitio en Diente Dientitos.';
+
+const githubAnswer = SITE_GITHUB_URL
+  ? 'Cuando hay una URL pública configurada, el código y las contribuciones pueden consultarse en GitHub. Las contribuciones son voluntarias; GitHub trata esos datos según su política. Este sitio no los vende.'
+  : 'Este sitio no publica ahora una URL de repositorio. Para soporte o contribuciones, usa el correo de contacto.';
+
+const LEGAL_FAQ = [
+  {
+    question: '¿Es gratuito?',
+    answer: `${SITE_NAME} es un proyecto personal, gratuito y sin actividad comercial. Puedes usar las plantillas sin pagar. Eso no convierte el sitio en un servicio profesional ni en un producto homologado.`,
+  },
+  {
+    question: '¿Qué licencia usa el proyecto (Apache-2.0)?',
+    answer: `Se publica bajo la licencia ${SITE_LICENSE} (Apache License 2.0). Debes conservar el aviso de licencia y las atribuciones exigidas, incluido el fichero NOTICE cuando corresponda.`,
+  },
+  {
+    question: '¿Puedo modificar y redistribuir las plantillas?',
+    answer:
+      'Sí, en los términos de Apache-2.0: uso, copia, adaptación y redistribución, con o sin modificaciones, siempre que cumplas las condiciones de la licencia.',
+  },
+  {
+    question: '¿Puedo usarlas con fines comerciales?',
+    answer:
+      'La licencia Apache-2.0 permite el uso comercial del trabajo. Eso no implica que las plantillas estén homologadas ni que este proyecto preste un servicio de pago o de consulta.',
+  },
+  {
+    question: '¿Puedo usarlas en cualquier país?',
+    answer:
+      'Sí. Apache-2.0 no limita el territorio: puedes usarlas, copiarlas o adaptarlas donde ejerzas. Eres responsable de que el uso sea lícito y adecuado según la normativa local (expediente clínico, datos de pacientes, colegiación, etc.). En la máxima medida permitida por la ley, este sitio no se hace responsable del uso inadecuado. El aviso de este sitio se rige por la legislación española.',
+  },
+  {
+    question: '¿El contenido se ha elaborado con inteligencia artificial (IA/LLM)?',
+    answer:
+      'Sí. El contenido y la maquetación se elaboraron con asistencia de IA/LLM a partir de parámetros acotados. Esa asistencia no sustituye el criterio del profesional que vaya a usar las hojas.',
+  },
+  {
+    question: '¿Hay revisión odontológica?',
+    answer:
+      'Los parámetros de partida están avalados por una odontóloga. Ese aval está acotado: no se identifica a la profesional y no equivale a homologación, certificación ni expediente clínico oficial.',
+  },
+  {
+    question: '¿Están homologadas las plantillas?',
+    answer:
+      'No. Hay ausencia de homologación sanitaria. No son un expediente clínico oficial ni un consejo médico u odontológico. Quien las use debe revisarlas de forma independiente.',
+  },
+  {
+    question: '¿Qué ocurre con los datos de los pacientes?',
+    answer: `El sitio no captura de forma directa datos clínicos ni historias. No hay cuentas ni formularios de pacientes. Si rellenas una hoja o un PDF, esos datos permanecen contigo. No envíes datos de pacientes al correo ${SITE_CONTACT_EMAIL}.`,
+  },
+  {
+    question: '¿Dónde se genera el PDF?',
+    answer:
+      'La generación del PDF es local: se compone en tu navegador. No se sube a un servidor de este sitio para armar el fichero.',
+  },
+  {
+    question: '¿Usa cookies este sitio?',
+    answer: `No hay cookies. Sí pueden existir dos preferencias en el almacenamiento local del navegador: ${PAPER_SIZE_STORAGE_KEY} (tamaño de diseño: letter/Carta, a5 o a6) y ${PRINT_EXPORT_STORAGE_KEY} (JSON con design, paper, layout, orientation y formats). Se pueden borrar en los datos del sitio del navegador.`,
+  },
+  {
+    question: '¿Qué analítica hay? ¿Netlify o Umami?',
+    answer:
+      'Netlify Web Analytics es la analítica activa de este sitio: logs de la CDN, sin cookies y sin JavaScript de cliente. Umami no está integrado. Si un día se planteara Umami, habría que declararlo antes (nube o autohospedado, destinatario y conservación) y no se presentaría como una herramienta «sin huella».',
+  },
+  {
+    question: '¿Hay un repositorio en GitHub?',
+    answer: githubAnswer,
+  },
+  {
+    question: '¿Ofrecéis soporte?',
+    answer: `No hay un servicio de soporte ni un horario de atención. Puedes escribir a ${SITE_CONTACT_EMAIL} de forma voluntaria; se responderá cuando sea posible, sin garantía de plazo.`,
+  },
+  {
+    question: '¿Hay algún tipo de garantía?',
+    answer:
+      'Las plantillas se ofrecen sin garantía de adecuación clínica, normativa, disponibilidad futura o ausencia de errores, en la máxima medida permitida por la ley. En esa misma medida, el sitio no se hace responsable del uso inadecuado. No se promete una exclusión de responsabilidad que la ley no permita.',
+  },
+  {
+    question: '¿El sitio puede desaparecer?',
+    answer:
+      'Sí. La disponibilidad no está garantizada: el sitio puede modificarse o retirarse. Si dependes de las plantillas, conserva tu propia copia.',
+  },
+] as const;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  name: 'Preguntas frecuentes',
+  description,
+  inLanguage: 'es-ES',
+  dateModified: SITE_LEGAL_UPDATED_AT,
+  mainEntity: LEGAL_FAQ.map((item) => ({
+    '@type': 'Question',
+    name: item.question,
+    acceptedAnswer: {
+      '@type': 'Answer',
+      text: item.answer,
+    },
+  })),
+};
+---
+
+<WebPageLayout title={title} description={description} jsonLd={jsonLd}>
+  <article class="legal-page">
+    <h1>Preguntas frecuentes</h1>
+    <p class="legal-page__updated">Última actualización: {SITE_LEGAL_UPDATED_AT}</p>
+    <p>
+      Respuestas breves sobre uso, licencia, privacidad y límites de {SITE_NAME}. El detalle está
+      en el aviso legal, la política de privacidad y la página de cookies.
+    </p>
+
+    {
+      LEGAL_FAQ.map((item) => (
+        <details>
+          <summary>{item.question}</summary>
+          <p>
+            {item.answer}
+            {item.question === '¿Hay un repositorio en GitHub?' && SITE_GITHUB_URL ? (
+              <>
+                {' '}
+                <a href={SITE_GITHUB_URL} rel="noopener noreferrer">
+                  GitHub
+                </a>
+                .
+              </>
+            ) : null}
+            {item.question === '¿Hay un repositorio en GitHub?' && !SITE_GITHUB_URL ? (
+              <>
+                {' '}
+                <a href={`mailto:${SITE_CONTACT_EMAIL}`}>{SITE_CONTACT_EMAIL}</a>.
+              </>
+            ) : null}
+          </p>
+        </details>
+      ))
+    }
+  </article>
+</WebPageLayout>

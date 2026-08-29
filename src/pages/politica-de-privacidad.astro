@@ -1,0 +1,170 @@
+---
+import WebPageLayout from '../layouts/WebPageLayout.astro';
+import {
+  SITE_AUTHOR,
+  SITE_CONTACT_EMAIL,
+  SITE_GITHUB_URL,
+  SITE_LEGAL_UPDATED_AT,
+  SITE_NAME,
+} from '../lib/site-config';
+
+const title = `Política de privacidad | ${SITE_NAME}`;
+const description =
+  'Responsable, ausencia de captura clínica, PDF local, Netlify Web Analytics, derechos RGPD y AEPD en Diente Dientitos. Umami no está integrado.';
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebPage',
+  name: 'Política de privacidad',
+  description,
+  inLanguage: 'es-ES',
+  dateModified: SITE_LEGAL_UPDATED_AT,
+};
+---
+
+<WebPageLayout title={title} description={description} jsonLd={jsonLd}>
+  <article class="legal-page">
+    <h1>Política de privacidad</h1>
+    <p class="legal-page__updated">Última actualización: {SITE_LEGAL_UPDATED_AT}</p>
+
+    <h2>Responsable del tratamiento</h2>
+    <p>
+      Responsable: {SITE_AUTHOR}. Contacto:{' '}
+      <a href={`mailto:${SITE_CONTACT_EMAIL}`}>{SITE_CONTACT_EMAIL}</a>. {SITE_NAME} es un
+      proyecto personal, gratuito y sin actividad comercial. No se publica domicilio ni NIF.
+    </p>
+
+    <h2>Ausencia de captura directa de datos clínicos</h2>
+    <p>
+      Este sitio no abre cuentas, no muestra formularios clínicos, no usa reCAPTCHA ni Google
+      Analytics, no tiene backend propio de fichas y no admite la subida de PDF. No captura de
+      forma directa datos de pacientes ni de historias clínicas. Si un profesional escribe datos
+      en papel o en un fichero que conserve en su equipo, ese tratamiento es suyo, no de este
+      sitio, y se rige por las normas del país en que ejerza, aunque visite la web desde fuera de
+      España o de la Unión Europea.
+    </p>
+
+    <h2>Tratamiento local del PDF</h2>
+    <p>
+      La exportación a PDF se genera en el navegador de quien visita el formato. El fichero no se
+      envía a un servidor de {SITE_NAME} para su composición ni se almacena aquí.
+    </p>
+
+    <h2>Correos y contribuciones voluntarias</h2>
+    <p>
+      Si escribes al correo de contacto o, cuando exista, abres una incidencia o una
+      contribución en GitHub, tratarás datos en esos terceros (tu proveedor de correo y, en su
+      caso, GitHub). El uso exclusivo de lo que envíes es responder a la solicitud, corregir el
+      proyecto o gestionar la contribución. No hay venta ni cesión comercial.
+    </p>
+    {
+      SITE_GITHUB_URL ? (
+        <p>
+          Repositorio:{' '}
+          <a href={SITE_GITHUB_URL} rel="noopener noreferrer">
+            GitHub
+          </a>
+          .
+        </p>
+      ) : (
+        <p>
+          En este momento no se publica una URL de repositorio; el cauce voluntario es el correo
+          de contacto.
+        </p>
+      )
+    }
+
+    <h2>Metadatos técnicos y Netlify Web Analytics</h2>
+    <p>
+      El hospedaje entrega páginas a través de una red de distribución de contenidos. Cada
+      petición genera metadatos técnicos habituales de servidor (por ejemplo dirección IP, fecha
+      y hora, URL solicitada, cabecera Referer, user-agent y código de respuesta). Esa
+      infraestructura trata datos; no se afirma que «no trata ningún dato».
+    </p>
+    <p>
+      Netlify Web Analytics es la analítica activa de este sitio. Los datos proceden de los
+      registros (logs) de la CDN de Netlify: no añade JavaScript al sitio ni cookies. Muestra de
+      forma agregada páginas, ubicaciones y visitantes, y usa la dirección IP para el recuento de
+      visitantes. La finalidad es estadística y de seguridad del servicio (conocer el uso
+      agregado y detectar abusos), no publicidad ni perfilado comercial.
+    </p>
+    <p>
+      Netlify es destinatario de esos registros. Pueden existir transferencias internacionales
+      ligadas a su prestación. Netlify publica información sobre RGPD, CCPA y el acuerdo de
+      tratamiento (DPA) en{' '}
+      <a href="https://www.netlify.com/gdpr-ccpa/" rel="noopener noreferrer">
+        netlify.com/gdpr-ccpa
+      </a>
+      . El funcionamiento de esta analítica se describe en la{' '}
+      <a
+        href="https://docs.netlify.com/manage/monitoring/web-analytics/how-web-analytics-works/"
+        rel="noopener noreferrer"
+      >
+        documentación de Netlify Web Analytics
+      </a>
+      .
+    </p>
+
+    <h2>Base jurídica y finalidad</h2>
+    <p>
+      La entrega de las páginas y los registros técnicos necesarios para la comunicación
+      electrónica se amparan en el interés legítimo de mantener un sitio accesible y seguro (art.
+      6.1.f del RGPD). La analítica agregada a partir de esos logs comparte esa base y la
+      finalidad estadística/seguridad descrita, sin fines publicitarios.
+    </p>
+    <p>
+      Los datos que envíes por correo o por una contribución voluntaria se tratan para atender
+      esa solicitud (art. 6.1.a y, en su caso, 6.1.f del RGPD).
+    </p>
+
+    <h2>Destinatarios y transferencias</h2>
+    <p>
+      Destinatarios: Netlify (hospedaje y Web Analytics); el proveedor de correo cuando escribes;
+      GitHub si usas ese cauce. No hay cesión comercial a terceros. Las transferencias que
+      realicen esos encargados o destinatarios se rigen por sus mecanismos contractuales y, en el
+      caso de Netlify, por el DPA y la información de{' '}
+      <a href="https://www.netlify.com/gdpr-ccpa/" rel="noopener noreferrer">
+        RGPD/CCPA
+      </a>
+      .
+    </p>
+
+    <h2>Criterio de conservación</h2>
+    <p>
+      Los registros y la analítica de Netlify se conservan según la configuración vigente de ese
+      servicio; este sitio no fija un plazo propio distinto del del proveedor. Los mensajes de
+      correo o contribuciones se conservan el tiempo necesario para responder, corregir el
+      proyecto o gestionar la conversación, y después se eliminan o archivan solo si una
+      obligación legal lo exige. Las preferencias de impresión viven en tu navegador hasta que
+      las borres (véase la página de cookies).
+    </p>
+
+    <h2>Derechos en el RGPD</h2>
+    <p>
+      Puedes solicitar acceso, rectificación, supresión, limitación, oposición y, cuando
+      proceda, portabilidad (arts. 15 a 22 del RGPD), escribiendo a{' '}
+      <a href={`mailto:${SITE_CONTACT_EMAIL}`}>{SITE_CONTACT_EMAIL}</a>. En el caso de logs de
+      CDN, la identificación cierta de una persona a partir de una IP u otros metadatos puede
+      ser limitada; se atenderá la solicitud en la medida en que sea posible.
+    </p>
+
+    <h2>Reclamación ante la AEPD</h2>
+    <p>
+      Si consideras que el tratamiento no se ajusta a la normativa, puedes reclamar ante la
+      Agencia Española de Protección de Datos (AEPD):{' '}
+      <a href="https://www.aepd.es/" rel="noopener noreferrer">www.aepd.es</a>.
+    </p>
+
+    <h2>Umami como opción futura (no activo)</h2>
+    <p>
+      Umami no está integrado. No está activo en este sitio. Si en el futuro se incorporase, solo
+      sería admisible una modalidad sin cookies, sin seguimiento entre sitios, sin session replay
+      y sin eventos, URL o propiedades identificables. Umami, en su funcionamiento habitual,
+      registra páginas, referrer, navegador, sistema, dispositivo y país, y usa la dirección IP
+      para inferir la ubicación aunque no la almacene. Umami Cloud puede tratar registros
+      operativos. Antes de activarlo habría que indicar en esta política si la modalidad es en la
+      nube o autohospedada, el destinatario y el criterio de conservación. Hasta entonces no debe
+      entenderse que Umami está en uso.
+    </p>
+  </article>
+</WebPageLayout>

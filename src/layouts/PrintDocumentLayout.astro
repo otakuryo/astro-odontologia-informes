@@ -5,10 +5,12 @@ import '../styles/tokens.css';
 import '../styles/base.css';
 import '../styles/print.css';
 import '../styles/web.css';
+import '../styles/legal.css';
 import ClinicalHeader from '../components/document/ClinicalHeader.astro';
 import DocumentFooter from '../components/document/DocumentFooter.astro';
 import PrintToolbar from '../components/document/PrintToolbar.astro';
 import SeoHead from '../components/web/SeoHead.astro';
+import SiteFooter from '../components/web/SiteFooter.astro';
 import { jsonLdFormat } from '../lib/site';
 
 interface Props {
@@ -67,6 +69,7 @@ const { title, description, documentTitle, code, revision = 'REV. 01', page = '1
         </div>
       </div>
     </div>
+    <SiteFooter />
     <script is:inline>
       (function () {
         var sizes = { letter: 'letter portrait', a5: 'A5 portrait', a6: 'A6 portrait' };

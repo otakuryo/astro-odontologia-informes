@@ -1,5 +1,17 @@
 import { expect, test, type Page } from '@playwright/test';
+import {
+  SITE_AUTHOR,
+  SITE_CONTACT_EMAIL,
+  SITE_LICENSE,
+} from '../src/lib/site-config';
 import { SITE_NAME } from '../src/lib/site';
+
+const LEGAL_HREFS = [
+  '/aviso-legal/',
+  '/politica-de-privacidad/',
+  '/cookies/',
+  '/preguntas-frecuentes/',
+] as const;
 
 const FORMAT_PATHS = [
   '/formatos/expedientes/',
@@ -21,6 +33,7 @@ test.describe('Cromo web (daisyUI)', () => {
     }
 
     await expect(page.locator('.catalog a[href^="/formatos/"]')).toHaveCount(4);
+    await expect(page.locator('a[href^="/formatos/"]')).toHaveCount(4);
   });
 
   test('en un formato: radiogroup, imprimir y enlace a inicio visibles', async ({ page }) => {
@@ -51,6 +64,14 @@ test.describe('Cromo web (daisyUI)', () => {
     await expect(page.locator('.print-toolbar')).toBeHidden();
     await expect(page.locator('.sheet')).toBeVisible();
     await expect(page.locator('.sheet')).toHaveCount(1);
+
+    const printHide = page.locator('[data-print-hide]');
+    const printHideCount = await printHide.count();
+    expect(printHideCount).toBeGreaterThan(0);
+    for (let i = 0; i < printHideCount; i += 1) {
+      await expect(printHide.nth(i)).toBeHidden();
+    }
+    await expect(page.locator('.site-footer')).toBeHidden();
   });
 
   test('cambiar el papel no altera el tamaño del cromo de configuración', async ({ page }) => {
@@ -86,6 +107,48 @@ test.describe('Cromo web (daisyUI)', () => {
     expect(Math.abs(a6.printButton!.height - letter.printButton!.height)).toBeLessThan(delta);
     expect(Math.abs(a6.carta!.width - letter.carta!.width)).toBeLessThan(delta);
     expect(Math.abs(a6.carta!.height - letter.carta!.height)).toBeLessThan(delta);
+  });
+});
+
+test.describe('Pie legal permanente', () => {
+  test('el pie está en / y en un formato, con autor, correo, licencia y rutas legales', async ({
+    page,
+  }) => {
+    for (const path of ['/', '/formatos/expedientes/'] as const) {
+      await page.goto(path);
+      if (path !== '/') {
+        await page.locator('.sheet').waitFor();
+      }
+
+      const footer = page.locator('.site-footer');
+      await expect(footer).toBeVisible();
+      await expect(footer.getByText(`Responsable: ${SITE_AUTHOR}`, { exact: true })).toBeVisible();
+      await expect(footer.getByRole('link', { name: SITE_CONTACT_EMAIL })).toBeVisible();
+      await expect(footer.getByRole('link', { name: SITE_CONTACT_EMAIL })).toHaveAttribute(
+        'href',
+        `mailto:${SITE_CONTACT_EMAIL}`,
+      );
+      await expect(footer.getByText(SITE_LICENSE)).toBeVisible();
+
+      for (const href of LEGAL_HREFS) {
+        await expect(footer.locator(`a[href="${href}"]`)).toBeVisible();
+      }
+    }
+  });
+
+  test('al imprimir el catálogo el pie queda oculto', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('.site-footer')).toBeVisible();
+
+    await page.emulateMedia({ media: 'print' });
+
+    await expect(page.locator('.site-footer')).toBeHidden();
+    const printHide = page.locator('[data-print-hide]');
+    const count = await printHide.count();
+    expect(count).toBeGreaterThan(0);
+    for (let i = 0; i < count; i += 1) {
+      await expect(printHide.nth(i)).toBeHidden();
+    }
   });
 });
 
@@ -192,6 +255,21 @@ test.describe('Cromo web en viewport estrecho (390×844)', () => {
         const overlapY = a!.y < b!.y + b!.height - 1 && a!.y + a!.height > b!.y + 1;
         expect(overlapX && overlapY, `solape ${i} vs ${j}`).toBe(false);
       }
+    }
+  });
+
+  test('el pie legal no desborda en horizontal en / ni en un formato', async ({ page }) => {
+    await page.setViewportSize(NARROW);
+
+    for (const path of ['/', '/formatos/expedientes/'] as const) {
+      await page.goto(path);
+      if (path !== '/') {
+        await page.locator('.sheet').waitFor();
+      }
+
+      const footer = page.locator('.site-footer');
+      await expect(footer).toBeVisible();
+      await assertNoHorizontalClip(page, await footer.boundingBox());
     }
   });
 

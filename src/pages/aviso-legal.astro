@@ -1,0 +1,161 @@
+---
+import WebPageLayout from '../layouts/WebPageLayout.astro';
+import {
+  SITE_AUTHOR,
+  SITE_CONTACT_EMAIL,
+  SITE_GITHUB_URL,
+  SITE_LEGAL_UPDATED_AT,
+  SITE_LICENSE,
+  SITE_NAME,
+} from '../lib/site-config';
+
+const title = `Aviso legal | ${SITE_NAME}`;
+const description =
+  'Uso mundial de plantillas odontológicas no homologadas, Apache-2.0, IA/LLM, límites de responsabilidad y legislación española de Diente Dientitos.';
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebPage',
+  name: 'Aviso legal',
+  description,
+  inLanguage: 'es-ES',
+  dateModified: SITE_LEGAL_UPDATED_AT,
+};
+---
+
+<WebPageLayout title={title} description={description} jsonLd={jsonLd}>
+  <article class="legal-page">
+    <h1>Aviso legal</h1>
+    <p class="legal-page__updated">Última actualización: {SITE_LEGAL_UPDATED_AT}</p>
+
+    <h2>Identificación y contacto</h2>
+    <p>
+      {SITE_NAME} es un proyecto personal, gratuito y sin actividad comercial. Responsable: {SITE_AUTHOR}. Correo de contacto:{' '}
+      <a href={`mailto:${SITE_CONTACT_EMAIL}`}>{SITE_CONTACT_EMAIL}</a>.
+    </p>
+    <p>
+      No se publica domicilio, NIF, número de colegiación ni datos empresariales porque no hay
+      actividad económica ni prestación profesional a través de este sitio. Si en el futuro
+      hubiera monetización, publicidad o prestación de servicios, este aviso debería completarse
+      antes del despliegue, conforme al artículo 10 de la LSSI. Esa mención es una limitación, no
+      un dato ficticio.
+    </p>
+    <p>
+      {
+        SITE_GITHUB_URL ? (
+          <>
+            El código puede consultarse en{' '}
+            <a href={SITE_GITHUB_URL} rel="noopener noreferrer">
+              GitHub
+            </a>
+            .
+          </>
+        ) : (
+          <>
+            En este momento el sitio no publica una URL de repositorio. Para identificar el
+            proyecto o plantear una cuestión, usa el correo de contacto.
+          </>
+        )
+      }
+    </p>
+
+    <h2>Finalidad del sitio</h2>
+    <p>
+      El sitio ofrece plantillas o ficheros odontológicos imprimibles (expedientes, Rx/Tx,
+      eventos y diagrama dental) para rellenar a mano o descargar en PDF. Pueden usarse desde
+      cualquier país. No es un historial clínico digital, no abre cuentas ni recoge datos de
+      pacientes, y no sustituye el software ni los procedimientos de una consulta. Que las
+      hojas estén disponibles en internet no implica que cumplan la normativa sanitaria,
+      colegial o de protección de datos de cada territorio.
+    </p>
+
+    <h2>Licencia Apache-2.0 y condiciones de reutilización</h2>
+    <p>
+      El proyecto se publica bajo la licencia {SITE_LICENSE} (Apache License 2.0). En los términos
+      de esa licencia puedes usar, copiar, adaptar y redistribuir el trabajo, con o sin
+      modificaciones, incluso con fines comerciales permitidos por Apache-2.0, siempre que
+      conserves el aviso de licencia y las atribuciones exigidas (incluido el fichero NOTICE
+      cuando corresponda).
+    </p>
+    <p>
+      Las plantillas se ofrecen sin garantía de adecuación clínica, normativa, disponibilidad
+      futura o ausencia de errores, en la máxima medida permitida por la ley. No se pretende una
+      exclusión de responsabilidad que el ordenamiento no permita.
+    </p>
+
+    <h2>Asistencia de IA/LLM y aval odontológico</h2>
+    <p>
+      El contenido y la maquetación se han elaborado con asistencia de sistemas de inteligencia
+      artificial (IA/LLM) a partir de parámetros acotados avalados por una odontóloga. Ese aval
+      no es homologación sanitaria, certificación, expediente clínico oficial ni sustituto de la
+      revisión independiente por el profesional que vaya a utilizar las hojas. No se identifica a
+      la odontóloga.
+    </p>
+
+    <h2>Ausencia de homologación o consejo sanitario</h2>
+    <p>
+      Nada de lo publicado constituye homologación, autorización administrativa, producto
+      sanitario, receta, diagnóstico ni consejo médico o odontológico. Las hojas son plantillas
+      en blanco. La decisión de usarlas, adaptarlas o descartarlas corresponde al profesional.
+    </p>
+
+    <h2>Responsabilidad del profesional y uso inadecuado</h2>
+    <p>
+      Quien imprima, rellene, archive, adapte o redistribuya estas plantillas es responsable de
+      comprobar que el uso es lícito y adecuado donde ejerza: práctica clínica, normativa local
+      (incluido expediente o historia clínica), colegiación, consentimientos y protección de
+      datos de los pacientes. Este sitio no supervisa ese uso ni recibe los datos que se
+      escriban en papel o en un PDF generado en el propio navegador.
+    </p>
+    <p>
+      En la máxima medida permitida por la ley, {SITE_NAME} y {SITE_AUTHOR} no se hacen
+      responsables del uso inadecuado, ilícito, negligente o contrario a la normativa del lugar
+      en que se empleen las plantillas, ni de presentarlas como expediente oficial, producto
+      sanitario, diagnóstico, receta o consejo médico u odontológico, ni de los daños derivados
+      de esos usos, ni de los datos de pacientes que anotes fuera de este sitio. Esta limitación
+      no excluye las responsabilidades que el ordenamiento no permita limitar o excluir.
+    </p>
+
+    <h2>Enlaces externos</h2>
+    <p>
+      Los enlaces a sitios de terceros (por ejemplo, documentación de Netlify o, si existe,
+      GitHub) se ofrecen para facilitar la consulta. {SITE_NAME} no controla esos sitios ni
+      responde de su contenido, disponibilidad o políticas.
+    </p>
+
+    <h2>Cambios de este aviso</h2>
+    <p>
+      Las actualizaciones se publican en esta misma página, con una fecha de actualización. Si
+      hay un repositorio público, los cambios también podrán verse allí; si no, puedes escribir
+      al correo de contacto.
+      {
+        SITE_GITHUB_URL ? (
+          <>
+            {' '}
+            Repositorio:{' '}
+            <a href={SITE_GITHUB_URL} rel="noopener noreferrer">
+              GitHub
+            </a>
+            .
+          </>
+        ) : null
+      }
+    </p>
+
+    <h2>Disponibilidad no garantizada</h2>
+    <p>
+      El sitio puede interrumpirse, modificarse o retirarse en cualquier momento, sin aviso
+      previo y sin garantía de archivo permanente. Quien necesite las plantillas debe conservar
+      su propia copia.
+    </p>
+
+    <h2>Ley aplicable</h2>
+    <p>
+      Este aviso se rige por la legislación española y, en lo que proceda, por el derecho de la
+      Unión Europea. Para cualquier controversia relativa a este sitio o a este aviso, en la
+      máxima medida permitida por la ley, serán competentes los tribunales de España. Que las
+      plantillas se usen en otro país no desplaza esa ley aplicable respecto del sitio ni obliga
+      a {SITE_NAME} a cumplir los requisitos sanitarios o registrales de cada territorio.
+    </p>
+  </article>
+</WebPageLayout>
