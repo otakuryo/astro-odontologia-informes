@@ -4,6 +4,7 @@ import '@fontsource-variable/source-sans-3/wght.css';
 import '../styles/tokens.css';
 import '../styles/base.css';
 import '../styles/print.css';
+import '../styles/web.css';
 import ClinicalHeader from '../components/document/ClinicalHeader.astro';
 import DocumentFooter from '../components/document/DocumentFooter.astro';
 import PrintToolbar from '../components/document/PrintToolbar.astro';
@@ -45,7 +46,9 @@ const { title, documentTitle, code, revision = 'REV. 01', page = '1/1' } = Astro
     <title>{title}</title>
   </head>
   <body class="is-print-document">
-    <PrintToolbar />
+    <div class="web-chrome" data-theme="odo" data-print-hide>
+      <PrintToolbar />
+    </div>
     <div class="sheet" data-testid="sheet">
       <div class="sheet__inner">
         <ClinicalHeader title={documentTitle} />

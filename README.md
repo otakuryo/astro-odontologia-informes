@@ -1,6 +1,6 @@
 # Formatos odontológicos imprimibles
 
-Sitio estático en [Astro](https://astro.build) para cuatro documentos clínicos independientes, pensados para escritura a mano e impresión. El índice no forma parte del expediente: cada formato se imprime por separado.
+Sitio estático en [Astro](https://astro.build) para cuatro documentos clínicos independientes, pensados para escritura a mano e impresión. El índice no forma parte del expediente: cada formato se imprime por separado. daisyUI solo se usa en la navegación y la configuración en pantalla; no forma parte de las hojas clínicas.
 
 ## Requisitos
 
@@ -23,7 +23,7 @@ bun install
 | `bun run build` | Genera el sitio estático en `dist/` |
 | `bun run preview` | Previsualiza la salida de `dist/` |
 | `bun run check` | Comprueba TypeScript y las props de los componentes Astro |
-| `bun run test:e2e` | Reservado para las pruebas Playwright de impresión (aún no configuradas) |
+| `bun run test:e2e` | Pruebas Playwright de impresión y exportación PDF |
 
 ## Rutas
 
@@ -35,7 +35,7 @@ bun install
 | `/formatos/eventos/` | Eventos | `ODO-F03` |
 | `/formatos/paciente-imagen/` | Paciente · Imagen y leyenda | `ODO-F04` |
 
-Cada ruta de formato imprime **una sola hoja vertical**. En la barra de cada formato puede elegir **Carta** (215,9 × 279,4 mm, predeterminado), **A5** (148 × 210 mm) o **A6** (105 × 148 mm). El margen seguro se reduce de forma proporcional (12 mm en Carta, 8 mm en A5, 5,5 mm en A6).
+Cada ruta de formato es **una sola hoja vertical**. En la barra elige el **diseño**: **Carta** (215,9 × 279,4 mm, predeterminado), **A5** (148 × 210 mm) o **A6** (105 × 148 mm). El margen seguro se reduce de forma proporcional (12 mm en Carta, 8 mm en A5, 5,5 mm en A6). A4 no es un diseño en pantalla: es un **papel de salida** del PDF (Opciones → duplicar o cuadernillo, p. ej. A5 sobre A4). **Descargar PDF** usa esos ajustes; **Imprimir hoja** sigue imprimiendo solo la hoja en pantalla.
 
 ## Documentación editorial
 

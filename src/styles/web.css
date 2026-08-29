@@ -1,0 +1,59 @@
+/*
+  Cromo de pantalla (botones / navegación / configuración).
+  No es el sistema visual de las hojas: tokens.css y base.css mandan en .sheet.
+  Sin Preflight ni reset global de daisyUI.
+*/
+
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+
+@plugin "daisyui" {
+  themes: false;
+  root: ".web-chrome";
+  include: button, join, navbar, modal, fieldset, label, radio, checkbox, alert, loading;
+  exclude: reset, rootcolor, rootscrollgutter;
+}
+
+@plugin "daisyui/theme" {
+  name: "odo";
+  default: true;
+  prefersdark: false;
+  color-scheme: light;
+  root: ".web-chrome";
+
+  --color-primary: #1f7a7a;
+  --color-primary-content: #ffffff;
+  --color-secondary: #e56b6f;
+  --color-secondary-content: #ffffff;
+  --color-base-100: #ffffff;
+  --color-base-200: #eceef1;
+  --color-base-content: #17233b;
+
+  --radius-field: 0.25rem;
+  --depth: 0;
+}
+
+/*
+  El cromo no sigue el lienzo: ancho de viewport, no --page-width.
+  align-self: stretch evita que el flex centrado de la hoja comprima la barra.
+*/
+.web-chrome {
+  width: 100%;
+  max-width: 100%;
+  flex-shrink: 0;
+  align-self: stretch;
+}
+
+body.is-print-document .web-chrome {
+  margin-bottom: var(--space-screen);
+}
+
+/*
+  `a { color }` en base.css está fuera de @layer y pisa el color de daisyUI.
+  Restaura el color del botón y quita el subrayado de enlace.
+*/
+.web-chrome a.btn {
+  color: var(--btn-fg);
+  text-decoration: none;
+}

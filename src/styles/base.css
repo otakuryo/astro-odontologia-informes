@@ -7,7 +7,8 @@
 html {
   color: var(--ink);
   font-family: var(--font-body);
-  font-size: var(--fs-body);
+  /* rem de pantalla (daisyUI). La escala en mm del papel vive en .sheet, no aquí. */
+  font-size: 16px;
   font-weight: var(--fw-regular);
   line-height: var(--lh-body);
   -webkit-font-smoothing: antialiased;
@@ -71,6 +72,7 @@ img {
   height: var(--page-height);
   background: var(--paper);
   color: var(--ink);
+  font-size: var(--fs-body);
 }
 
 .sheet__inner {

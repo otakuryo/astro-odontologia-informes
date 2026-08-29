@@ -50,7 +50,8 @@ function syncToolbar(size: PaperSizeId) {
   for (const button of buttons) {
     const active = button.dataset.paperSizeOption === size;
     button.setAttribute('aria-checked', String(active));
-    button.classList.toggle('is-active', active);
+    button.classList.toggle('btn-active', active);
+    button.classList.toggle('btn-primary', active);
   }
 }
 

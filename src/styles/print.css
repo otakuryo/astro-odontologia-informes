@@ -36,6 +36,8 @@ html {
   body.is-catalog,
   .catalog,
   .print-toolbar,
+  .web-chrome,
+  .navbar,
   [data-print-hide] {
     display: none !important;
   }

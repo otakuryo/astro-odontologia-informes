@@ -1,4 +1,7 @@
 ---
+import ExportPanel from './ExportPanel.astro';
+import SiteNavbar from '../web/SiteNavbar.astro';
+
 interface Props {
   label?: string;
 }
@@ -12,134 +15,49 @@ const paperOptions = [
 ] as const;
 ---
 
-<div class="print-toolbar" data-print-hide data-testid="print-toolbar">
-  <div class="print-toolbar__paper">
-    <span class="print-toolbar__label" id="paper-size-label">Papel</span>
-    <div
-      class="print-toolbar__options"
-      role="radiogroup"
-      aria-labelledby="paper-size-label"
-      data-testid="paper-size-selector"
-    >
-      {
-        paperOptions.map((option) => (
-          <button
-            class="print-toolbar__option"
-            type="button"
-            role="radio"
-            aria-checked={option.id === 'letter' ? 'true' : 'false'}
-            data-paper-size-option={option.id}
-          >
-            {option.label}
-          </button>
-        ))
-      }
-    </div>
+<SiteNavbar>
+  <div
+    slot="paper"
+    class="join"
+    role="radiogroup"
+    aria-label="Papel"
+    data-testid="paper-size-selector"
+  >
+    {
+      paperOptions.map((option) => (
+        <button
+          class={
+            option.id === 'letter'
+              ? 'join-item btn btn-sm btn-active btn-primary'
+              : 'join-item btn btn-sm'
+          }
+          type="button"
+          role="radio"
+          aria-checked={option.id === 'letter' ? 'true' : 'false'}
+          data-paper-size-option={option.id}
+        >
+          {option.label}
+        </button>
+      ))
+    }
   </div>
-  <button class="print-toolbar__button" type="button" onclick="window.print()">
+  <button slot="download" class="btn btn-primary" type="button" data-testid="download-pdf">
+    <span class="loading loading-spinner hidden"></span>
+    Descargar PDF
+  </button>
+  <button slot="print" class="btn btn-ghost" type="button" onclick="window.print()">
     {label}
   </button>
-</div>
+  <button slot="options" class="btn" type="button" data-testid="export-options">
+    Opciones
+  </button>
+</SiteNavbar>
+<ExportPanel />
 
 <script>
   import { bindPaperToolbar } from '../../scripts/paper-size';
+  import { bindPdfExport } from '../../scripts/export-pdf';
 
   bindPaperToolbar();
+  bindPdfExport();
 </script>
-
-<style>
-  .print-toolbar {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-    gap: 12px 20px;
-    width: 100%;
-    margin-bottom: var(--space-screen);
-  }
-
-  .print-toolbar__paper {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: center;
-    gap: 8px 12px;
-  }
-
-  .print-toolbar__label {
-    font-family: var(--font-display);
-    font-size: 11px;
-    font-weight: var(--fw-semibold);
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--ink-muted);
-  }
-
-  .print-toolbar__options {
-    display: flex;
-    border: 1.5px solid var(--accent-teal);
-    border-radius: 2px;
-    overflow: hidden;
-    background: var(--paper);
-  }
-
-  .print-toolbar__option {
-    appearance: none;
-    cursor: pointer;
-    font-family: var(--font-display);
-    font-size: 13px;
-    font-weight: var(--fw-semibold);
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: var(--ink);
-    background: transparent;
-    border: 0;
-    border-right: 1.5px solid var(--accent-teal);
-    padding: 8px 14px;
-    min-width: 4.5em;
-  }
-
-  .print-toolbar__option:last-child {
-    border-right: 0;
-  }
-
-  .print-toolbar__option:hover,
-  .print-toolbar__option:focus-visible {
-    background: var(--fill-teal-faint);
-    outline: none;
-  }
-
-  :global(html[data-paper-size='letter']) .print-toolbar__option[data-paper-size-option='letter'],
-  :global(html[data-paper-size='a5']) .print-toolbar__option[data-paper-size-option='a5'],
-  :global(html[data-paper-size='a6']) .print-toolbar__option[data-paper-size-option='a6'] {
-    background: var(--fill-teal-faint);
-    color: var(--accent-teal);
-  }
-
-  .print-toolbar__button {
-    appearance: none;
-    cursor: pointer;
-    font-family: var(--font-display);
-    font-size: 14px;
-    font-weight: var(--fw-semibold);
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: var(--ink);
-    background: var(--paper);
-    border: 1.5px solid var(--accent-teal);
-    padding: 10px 22px;
-    border-radius: 2px;
-  }
-
-  .print-toolbar__button:hover,
-  .print-toolbar__button:focus-visible {
-    background: var(--fill-teal-faint);
-    outline: none;
-  }
-
-  @media print {
-    .print-toolbar {
-      display: none !important;
-    }
-  }
-</style>

@@ -1,0 +1,21 @@
+---
+interface Props {
+  homeLabel?: string;
+}
+
+const { homeLabel = 'Formatos odontológicos' } = Astro.props;
+---
+
+<div class="navbar bg-base-100 print-toolbar" data-testid="print-toolbar">
+  <div class="navbar-start">
+    <a class="btn btn-ghost" href="/">{homeLabel}</a>
+  </div>
+  <div class="navbar-center">
+    <slot name="paper" />
+  </div>
+  <div class="navbar-end gap-2">
+    <slot name="download" />
+    <slot name="print" />
+    <slot name="options" />
+  </div>
+</div>
