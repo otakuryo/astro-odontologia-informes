@@ -1,0 +1,42 @@
+---
+import '@fontsource-variable/manrope/wght.css';
+import '@fontsource-variable/source-sans-3/wght.css';
+import '../styles/tokens.css';
+import '../styles/base.css';
+import '../styles/print.css';
+import ClinicalHeader from '../components/document/ClinicalHeader.astro';
+import DocumentFooter from '../components/document/DocumentFooter.astro';
+import PrintToolbar from '../components/document/PrintToolbar.astro';
+
+interface Props {
+  title: string;
+  documentTitle: string;
+  code: string;
+  revision?: string;
+  page?: string;
+}
+
+const { title, documentTitle, code, revision = 'REV. 01', page = '1/1' } = Astro.props;
+---
+
+<!doctype html>
+<html lang="es-ES">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+  </head>
+  <body class="is-print-document">
+    <PrintToolbar />
+    <div class="sheet" data-testid="sheet">
+      <div class="sheet__inner">
+        <ClinicalHeader title={documentTitle} />
+        <main class="sheet__body">
+          <slot />
+        </main>
+        <DocumentFooter code={code} revision={revision} page={page} />
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,64 @@
+---
+import OutlinedPanel from '../document/OutlinedPanel.astro';
+
+const events = ['01', '02', '03', '04'];
+---
+
+<div class="format" data-format="ODO-F03">
+  <div class="eventos" data-count="4">
+    {
+      events.map((id) => (
+        <article class="eventos__cell" data-testid="evento-panel">
+          <OutlinedPanel>
+            <div class="eventos__surface">
+              <span class="eventos__index">{id}</span>
+            </div>
+          </OutlinedPanel>
+        </article>
+      ))
+    }
+  </div>
+</div>
+
+<style>
+  .format {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    height: 100%;
+  }
+
+  .eventos {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: var(--space-3);
+    min-height: 0;
+    height: 100%;
+  }
+
+  .eventos__cell {
+    min-width: 0;
+    min-height: 0;
+    height: 100%;
+  }
+
+  .eventos__surface {
+    position: relative;
+    height: 100%;
+    min-height: 0;
+  }
+
+  .eventos__index {
+    position: absolute;
+    top: 0;
+    left: 0;
+    font-family: var(--font-display);
+    font-size: var(--fs-meta);
+    font-weight: var(--fw-semibold);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.1em;
+    color: var(--ink-muted);
+    line-height: 1;
+  }
+</style>

@@ -1,0 +1,199 @@
+---
+import OutlinedPanel from '../document/OutlinedPanel.astro';
+
+const rxCells = [
+  { id: '01', slot: 'superior' },
+  { id: '02', slot: 'lat-izq-1' },
+  { id: '03', slot: 'lat-izq-2' },
+  { id: '04', slot: 'lat-der-1' },
+  { id: '05', slot: 'lat-der-2' },
+  { id: '06', slot: 'inferior' },
+];
+const notaLines = [1, 2, 3];
+---
+
+<div class="format" data-format="ODO-F02">
+  <OutlinedPanel>
+    <div class="rx-tx">
+      <div class="rx-tx__rx">
+        <h2 class="rx-tx__label">Rx</h2>
+        <div
+          class="rx-grid"
+          data-count="6"
+          aria-label="Casillas para pegar radiografías: superior, laterales e inferior"
+        >
+          {
+            rxCells.map((cell) => (
+              <div class="rx-cell" data-testid="rx-cell" data-slot={cell.slot}>
+                <span class="rx-cell__index">{cell.id}</span>
+              </div>
+            ))
+          }
+        </div>
+      </div>
+
+      <div class="rx-tx__tx">
+        <h2 class="rx-tx__label">Tx</h2>
+        <div class="tx-area" aria-hidden="true"></div>
+      </div>
+
+      <div class="rx-tx__notas">
+        <h2 class="rx-tx__notas-title">NOTAS</h2>
+        <div class="notas-lines" data-count="3">
+          {
+            notaLines.map((n) => (
+              <span class="notas-line" data-testid="nota-line" data-line={n}></span>
+            ))
+          }
+        </div>
+      </div>
+    </div>
+  </OutlinedPanel>
+</div>
+
+<style>
+  .format {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    height: 100%;
+  }
+
+  .format :global(.outlined-panel__body) {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .rx-tx {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    gap: var(--space-4);
+    min-height: 0;
+    height: 100%;
+    flex: 1 1 auto;
+  }
+
+  .rx-tx__rx {
+    display: grid;
+    grid-template-columns: 14mm minmax(0, 1fr);
+    align-items: start;
+    gap: var(--space-3);
+  }
+
+  .rx-tx__tx {
+    display: grid;
+    grid-template-columns: 14mm minmax(0, 1fr);
+    align-items: stretch;
+    gap: var(--space-3);
+    min-height: 0;
+  }
+
+  .rx-tx__label {
+    font-family: var(--font-display);
+    font-size: var(--fs-section);
+    font-weight: var(--fw-bold);
+    letter-spacing: 0.04em;
+    color: var(--ink);
+    line-height: var(--lh-tight);
+    padding-top: 1mm;
+  }
+
+  /* Retícula 3 × 5: no usar grid-template-areas (el minificador elimina espacios significativos). */
+  .rx-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-rows: repeat(3, auto);
+    gap: var(--space-2);
+    width: 100%;
+    min-width: 0;
+  }
+
+  .rx-cell {
+    display: grid;
+    place-items: start;
+    aspect-ratio: 5 / 3;
+    width: 100%;
+    border: var(--stroke-inner) solid var(--ink);
+    background: var(--paper);
+    min-width: 0;
+    min-height: 0;
+    padding: 0.8mm;
+  }
+
+  .rx-cell[data-slot='superior'] {
+    grid-column: 3;
+    grid-row: 1;
+  }
+
+  .rx-cell[data-slot='lat-izq-1'] {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .rx-cell[data-slot='lat-izq-2'] {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .rx-cell[data-slot='lat-der-1'] {
+    grid-column: 4;
+    grid-row: 2;
+  }
+
+  .rx-cell[data-slot='lat-der-2'] {
+    grid-column: 5;
+    grid-row: 2;
+  }
+
+  .rx-cell[data-slot='inferior'] {
+    grid-column: 3;
+    grid-row: 3;
+  }
+
+  .rx-cell__index {
+    font-family: var(--font-display);
+    font-size: var(--fs-meta);
+    font-weight: var(--fw-semibold);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.06em;
+    color: var(--ink-muted);
+    line-height: 1;
+  }
+
+  .tx-area {
+    min-height: 0;
+    height: 100%;
+    border: var(--stroke-inner) solid var(--ink);
+    background: var(--paper);
+  }
+
+  .rx-tx__notas {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    min-width: 0;
+  }
+
+  .rx-tx__notas-title {
+    font-family: var(--font-display);
+    font-size: var(--fs-section);
+    font-weight: var(--fw-bold);
+    letter-spacing: var(--tracking-title);
+    color: var(--ink);
+    line-height: var(--lh-tight);
+  }
+
+  .notas-lines {
+    display: flex;
+    flex-direction: column;
+    gap: 3.4mm;
+    min-width: 0;
+  }
+
+  .notas-line {
+    display: block;
+    width: 100%;
+    height: 9mm;
+    border-bottom: var(--stroke-write) solid var(--ink);
+  }
+</style>

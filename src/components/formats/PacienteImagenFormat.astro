@@ -1,0 +1,92 @@
+---
+import OutlinedPanel from '../document/OutlinedPanel.astro';
+import LegendMarker from '../document/LegendMarker.astro';
+
+const legend = [
+  { variant: 'rojo' as const, label: 'Rojo' },
+  { variant: 'azul' as const, label: 'Azul' },
+  { variant: 'verde' as const, label: 'Verde' },
+  { variant: 'otro' as const, label: 'Otro' },
+];
+---
+
+<div class="format" data-format="ODO-F04">
+  <OutlinedPanel>
+    <div class="imagen-doc">
+      <div class="imagen">
+        <h2 class="imagen__title">IMAGEN</h2>
+        <div class="imagen__area" aria-hidden="true"></div>
+      </div>
+      <ul class="leyenda" data-count="4">
+        {
+          legend.map((item) => (
+            <li class="leyenda__item">
+              <LegendMarker variant={item.variant} label={item.label} />
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </OutlinedPanel>
+</div>
+
+<style>
+  .format {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    height: 100%;
+  }
+
+  .format :global(.outlined-panel__body) {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .imagen-doc {
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+    gap: var(--space-4);
+    min-height: 0;
+    height: 100%;
+    flex: 1 1 auto;
+  }
+
+  .imagen {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    min-width: 0;
+    border: var(--stroke-inner) solid var(--ink);
+  }
+
+  .imagen__title {
+    font-family: var(--font-display);
+    font-size: var(--fs-section);
+    font-weight: var(--fw-bold);
+    letter-spacing: var(--tracking-title);
+    text-transform: uppercase;
+    color: var(--ink);
+    padding: 2mm var(--space-3);
+    border-bottom: var(--stroke-inner) solid var(--ink);
+    background: var(--fill-faint);
+  }
+
+  .imagen__area {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  .leyenda {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-3) var(--space-6);
+  }
+
+  .leyenda__item {
+    min-width: 0;
+  }
+</style>

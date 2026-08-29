@@ -1,0 +1,59 @@
+:root {
+  /* Paleta */
+  --ink: #17233b;
+  --ink-muted: color-mix(in srgb, var(--ink) 58%, white);
+  --accent-teal: #1f7a7a;
+  --accent-coral: #e56b6f;
+  --paper: #ffffff;
+  --screen-bg: #eceef1;
+  --fill-faint: color-mix(in srgb, var(--ink) 4%, white);
+  --fill-teal-faint: color-mix(in srgb, var(--accent-teal) 7%, white);
+  --fill-coral-faint: color-mix(in srgb, var(--accent-coral) 8%, white);
+
+  /* Tipografía local (Fontsource variable) */
+  --font-display: "Manrope Variable", "Manrope", sans-serif;
+  --font-body: "Source Sans 3 Variable", "Source Sans 3", sans-serif;
+  --fs-display: 5.4mm;
+  --fs-title: 4.2mm;
+  --fs-section: 3.4mm;
+  --fs-label: 2.5mm;
+  --fs-body: 2.8mm;
+  --fs-meta: 2.2mm;
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+  --lh-tight: 1.12;
+  --lh-body: 1.35;
+  --tracking-title: 0.12em;
+  --tracking-label: 0.06em;
+
+  /* Escala espacial (mm) */
+  --space-1: 1mm;
+  --space-2: 2mm;
+  --space-3: 3mm;
+  --space-4: 4mm;
+  --space-6: 6mm;
+  --space-8: 8mm;
+  --space-12: 12mm;
+  --space-screen: 24px;
+  --write-line: 7.5mm;
+
+  /* Grosores de línea */
+  --stroke-outer: 0.5mm;
+  --stroke-rule: 0.32mm;
+  --stroke-inner: 0.2mm;
+  --stroke-write: 0.16mm;
+  --stroke-accent: 1.1mm;
+
+  /* Lienzo Carta */
+  --page-width: 215.9mm;
+  --page-height: 279.4mm;
+  --page-margin: 12mm;
+  --content-width: 191.9mm;
+  --content-height: 255.4mm;
+  --header-height: 28mm;
+  --footer-height: 9mm;
+  --sheet-gap: 2mm;
+  --marker-size: 6mm;
+}

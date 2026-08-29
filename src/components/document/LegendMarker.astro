@@ -1,0 +1,120 @@
+---
+type LegendVariant = 'rojo' | 'azul' | 'verde' | 'otro';
+
+interface Props {
+  variant: LegendVariant;
+  label: string;
+}
+
+const codes: Record<LegendVariant, string> = {
+  rojo: 'R',
+  azul: 'A',
+  verde: 'V',
+  otro: 'O',
+};
+
+const { variant, label } = Astro.props;
+const code = codes[variant];
+---
+
+<div class="legend-marker" data-testid="legend-marker" data-variant={variant}>
+  <span class:list={['legend-marker__swatch', `is-${variant}`]} aria-hidden="true">
+    <span class="legend-marker__code">{code}</span>
+  </span>
+  <span class="legend-marker__label">{label}</span>
+  <span class="legend-marker__equiv" title="Equivalencia clínica"></span>
+</div>
+
+<style>
+  .legend-marker {
+    display: grid;
+    grid-template-columns: var(--marker-size) auto minmax(18mm, 1fr);
+    align-items: center;
+    gap: var(--space-3);
+    min-width: 0;
+  }
+
+  .legend-marker__swatch {
+    width: var(--marker-size);
+    height: var(--marker-size);
+    border-radius: 50%;
+    border: var(--stroke-inner) solid var(--ink);
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .legend-marker__code {
+    font-family: var(--font-display);
+    font-size: 2.4mm;
+    font-weight: var(--fw-bold);
+    line-height: 1;
+    letter-spacing: 0;
+  }
+
+  .legend-marker__label {
+    font-family: var(--font-body);
+    font-size: var(--fs-body);
+    font-weight: var(--fw-semibold);
+    white-space: nowrap;
+  }
+
+  .legend-marker__equiv {
+    display: block;
+    min-width: 16mm;
+    height: 6mm;
+    border-bottom: var(--stroke-write) solid var(--ink);
+  }
+
+  /* Rojo = R sólido */
+  .is-rojo {
+    background: var(--accent-coral);
+    border-color: var(--accent-coral);
+  }
+
+  .is-rojo .legend-marker__code {
+    color: var(--paper);
+  }
+
+  /* Azul = A con rayado diagonal */
+  .is-azul {
+    background: repeating-linear-gradient(
+      -45deg,
+      var(--ink) 0,
+      var(--ink) 0.55mm,
+      var(--paper) 0.55mm,
+      var(--paper) 1.35mm
+    );
+  }
+
+  .is-azul .legend-marker__code {
+    color: var(--paper);
+    text-shadow:
+      0 0 1.2mm var(--ink),
+      0 0 1.2mm var(--ink);
+  }
+
+  /* Verde = V con puntos */
+  .is-verde {
+    background-color: var(--fill-teal-faint);
+    background-image: radial-gradient(var(--accent-teal) 0.45mm, transparent 0.5mm);
+    background-size: 1.7mm 1.7mm;
+    background-position: 0.4mm 0.4mm;
+    border-color: var(--accent-teal);
+  }
+
+  .is-verde .legend-marker__code {
+    color: var(--ink);
+  }
+
+  /* Otro = O vacío */
+  .is-otro {
+    background: var(--paper);
+  }
+
+  .is-otro .legend-marker__code {
+    color: var(--ink);
+  }
+</style>

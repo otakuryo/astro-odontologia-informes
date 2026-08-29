@@ -1,0 +1,74 @@
+---
+import ManualField from './ManualField.astro';
+
+interface Props {
+  title: string;
+  clinicLabel?: string;
+  patientLabel?: string;
+  folioLabel?: string;
+  dateLabel?: string;
+}
+
+const {
+  title,
+  clinicLabel = 'Clínica / profesional',
+  patientLabel = 'Paciente',
+  folioLabel = 'Folio / expediente',
+  dateLabel = 'Fecha',
+} = Astro.props;
+---
+
+<header class="clinical-header">
+  <div class="clinical-header__title-row">
+    <h1 class="clinical-header__title">{title}</h1>
+  </div>
+  <div class="clinical-header__fields">
+    <ManualField label={clinicLabel} wide />
+    <ManualField label={patientLabel} wide />
+    <ManualField label={folioLabel} />
+    <ManualField label={dateLabel} />
+  </div>
+</header>
+
+<style>
+  .clinical-header {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    gap: 2mm;
+    height: 100%;
+    min-height: 0;
+    border-bottom: var(--stroke-rule) solid var(--ink);
+    padding-bottom: 1.5mm;
+  }
+
+  .clinical-header__title-row {
+    display: flex;
+    align-items: flex-end;
+    gap: var(--space-3);
+    min-height: 8mm;
+  }
+
+  .clinical-header__title {
+    font-family: var(--font-display);
+    font-size: var(--fs-display);
+    font-weight: var(--fw-bold);
+    letter-spacing: var(--tracking-title);
+    text-transform: uppercase;
+    color: var(--ink);
+    line-height: var(--lh-tight);
+    padding-bottom: 1mm;
+    border-bottom: var(--stroke-accent) solid var(--accent-coral);
+  }
+
+  .clinical-header__fields {
+    display: grid;
+    grid-template-columns: 1.35fr 1.35fr 1.05fr 0.85fr;
+    gap: var(--space-3);
+    align-items: end;
+    min-height: 0;
+  }
+
+  .clinical-header :global(.manual-field__line) {
+    height: 6.5mm;
+  }
+</style>

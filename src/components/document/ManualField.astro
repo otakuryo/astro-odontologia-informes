@@ -1,0 +1,58 @@
+---
+interface Props {
+  label: string;
+  wide?: boolean;
+  multiline?: boolean;
+}
+
+const { label, wide = false, multiline = false } = Astro.props;
+const lines = multiline ? [0, 1, 2] : [0];
+---
+
+<div class:list={['manual-field', { 'is-wide': wide, 'is-multiline': multiline }]}>
+  <span class="manual-field__label">{label}</span>
+  <div class="manual-field__lines" aria-hidden="true">
+    {lines.map(() => <span class="manual-field__line"></span>)}
+  </div>
+</div>
+
+<style>
+  .manual-field {
+    display: flex;
+    flex-direction: column;
+    gap: 1mm;
+    min-width: 0;
+  }
+
+  .manual-field.is-wide {
+    flex: 1 1 48mm;
+  }
+
+  .manual-field__label {
+    font-family: var(--font-body);
+    font-size: var(--fs-label);
+    font-weight: var(--fw-semibold);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    line-height: var(--lh-tight);
+  }
+
+  .manual-field__lines {
+    display: flex;
+    flex-direction: column;
+    gap: 2.2mm;
+    min-width: 0;
+  }
+
+  .manual-field__line {
+    display: block;
+    width: 100%;
+    height: var(--write-line);
+    border-bottom: var(--stroke-write) solid var(--ink);
+  }
+
+  .manual-field.is-multiline .manual-field__line {
+    height: 8mm;
+  }
+</style>

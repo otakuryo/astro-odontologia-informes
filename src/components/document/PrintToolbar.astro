@@ -1,0 +1,49 @@
+---
+interface Props {
+  label?: string;
+}
+
+const { label = 'Imprimir hoja' } = Astro.props;
+---
+
+<div class="print-toolbar" data-print-hide>
+  <button class="print-toolbar__button" type="button" onclick="window.print()">
+    {label}
+  </button>
+</div>
+
+<style>
+  .print-toolbar {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin-bottom: var(--space-screen);
+  }
+
+  .print-toolbar__button {
+    appearance: none;
+    cursor: pointer;
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-weight: var(--fw-semibold);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink);
+    background: var(--paper);
+    border: 1.5px solid var(--accent-teal);
+    padding: 10px 22px;
+    border-radius: 2px;
+  }
+
+  .print-toolbar__button:hover,
+  .print-toolbar__button:focus-visible {
+    background: var(--fill-teal-faint);
+    outline: none;
+  }
+
+  @media print {
+    .print-toolbar {
+      display: none !important;
+    }
+  }
+</style>

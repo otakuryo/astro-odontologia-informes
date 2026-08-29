@@ -1,0 +1,146 @@
+@page {
+  size: letter portrait;
+  margin: 0;
+}
+
+html {
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+  color-adjust: exact;
+}
+
+/* Impresión: una sola hoja Carta al 100 %. Sin cromo de pantalla, sin sombras, sin recortes de borde. */
+@media print {
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    width: var(--page-width);
+    height: var(--page-height);
+    max-width: var(--page-width);
+    max-height: var(--page-height);
+    background: var(--paper) !important;
+    overflow: hidden;
+    zoom: 1;
+    transform: none;
+  }
+
+  body.is-print-document {
+    display: block;
+    min-height: 0;
+    padding: 0;
+    background: var(--paper) !important;
+  }
+
+  body.is-catalog,
+  .catalog,
+  .print-toolbar,
+  [data-print-hide] {
+    display: none !important;
+  }
+
+  .sheet {
+    box-shadow: none !important;
+    margin: 0;
+    padding: 0;
+    width: var(--page-width);
+    height: var(--page-height);
+    max-width: var(--page-width);
+    max-height: var(--page-height);
+    overflow: hidden;
+    zoom: 1;
+    transform: none;
+    break-inside: avoid;
+    page-break-inside: avoid;
+    break-after: avoid;
+    page-break-after: avoid;
+    break-before: avoid;
+    page-break-before: avoid;
+  }
+
+  .sheet,
+  .sheet__inner,
+  .sheet__body,
+  .format,
+  .outlined-panel,
+  .clinical-header,
+  .document-footer,
+  .rx-cell,
+  .tx-area,
+  .imagen,
+  .eventos__cell,
+  .folios__row,
+  .leyenda__item,
+  .legend-marker,
+  .manual-field,
+  .notas-line {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Paneles, casillas y marcadores: conservar trazo (nunca border: none). */
+  .outlined-panel {
+    border: var(--stroke-outer) solid var(--ink) !important;
+    box-shadow: none !important;
+    overflow: visible;
+  }
+
+  .rx-cell,
+  .tx-area,
+  .imagen {
+    border: var(--stroke-inner) solid var(--ink) !important;
+    box-shadow: none !important;
+  }
+
+  /* Leyenda: patrones en tinta. El color es refuerzo; las siglas R/A/V/O se leen sin él. */
+  .legend-marker__swatch {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+    color-adjust: exact;
+    forced-color-adjust: none;
+    border: var(--stroke-inner) solid var(--ink) !important;
+    box-shadow: none !important;
+  }
+
+  .legend-marker__code {
+    color: var(--ink) !important;
+    background: var(--paper) !important;
+    text-shadow: none;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  /* R sólido */
+  .legend-marker__swatch.is-rojo {
+    background: var(--ink) !important;
+    border-color: var(--ink) !important;
+  }
+
+  /* A rayado diagonal */
+  .legend-marker__swatch.is-azul {
+    background-color: var(--paper) !important;
+    background-image: repeating-linear-gradient(
+      -45deg,
+      var(--ink) 0,
+      var(--ink) 0.55mm,
+      var(--paper) 0.55mm,
+      var(--paper) 1.35mm
+    ) !important;
+    border-color: var(--ink) !important;
+  }
+
+  /* V puntos */
+  .legend-marker__swatch.is-verde {
+    background-color: var(--paper) !important;
+    background-image: radial-gradient(var(--ink) 0.45mm, transparent 0.5mm) !important;
+    background-size: 1.7mm 1.7mm !important;
+    background-position: 0.4mm 0.4mm !important;
+    border-color: var(--ink) !important;
+  }
+
+  /* O vacío */
+  .legend-marker__swatch.is-otro {
+    background: var(--paper) !important;
+    border-color: var(--ink) !important;
+  }
+}

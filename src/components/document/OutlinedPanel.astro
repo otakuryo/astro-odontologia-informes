@@ -1,0 +1,55 @@
+---
+interface Props {
+  title?: string;
+  flush?: boolean;
+}
+
+const { title, flush = false } = Astro.props;
+---
+
+<section class="outlined-panel">
+  {
+    title ? (
+      <h2 class="outlined-panel__title">{title}</h2>
+    ) : null
+  }
+  <div class:list={['outlined-panel__body', { 'is-flush': flush }]}>
+    <slot />
+  </div>
+</section>
+
+<style>
+  .outlined-panel {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    height: 100%;
+    border: var(--stroke-outer) solid var(--ink);
+    background: var(--paper);
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .outlined-panel__title {
+    font-family: var(--font-display);
+    font-size: var(--fs-section);
+    font-weight: var(--fw-bold);
+    letter-spacing: var(--tracking-title);
+    text-transform: uppercase;
+    color: var(--ink);
+    padding: 2mm var(--space-3);
+    border-bottom: var(--stroke-inner) solid var(--ink);
+    background: var(--fill-faint);
+  }
+
+  .outlined-panel__body {
+    flex: 1 1 auto;
+    min-height: 0;
+    padding: var(--space-3);
+    overflow: hidden;
+  }
+
+  .outlined-panel__body.is-flush {
+    padding: 0;
+  }
+</style>
