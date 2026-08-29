@@ -14,11 +14,8 @@ const legend = [
 <div class="format" data-format="ODO-F04">
   <OutlinedPanel>
     <div class="imagen-doc">
-      <div class="imagen">
-        <h2 class="imagen__title">IMAGEN</h2>
-        <div class="imagen__area">
-          <Odontogram />
-        </div>
+      <div class="imagen-doc__diagrama">
+        <Odontogram />
       </div>
       <ul class="leyenda" data-count="4">
         {
@@ -29,6 +26,10 @@ const legend = [
           ))
         }
       </ul>
+      <div class="imagen-doc__notas">
+        <h2 class="imagen-doc__notas-title">NOTAS</h2>
+        <div class="imagen-notas" data-testid="imagen-notas" aria-hidden="true"></div>
+      </div>
     </div>
   </OutlinedPanel>
 </div>
@@ -44,46 +45,29 @@ const legend = [
   .format :global(.outlined-panel__body) {
     display: flex;
     flex-direction: column;
+    min-height: 0;
   }
 
   .imagen-doc {
-    display: grid;
-    grid-template-rows: minmax(0, 1fr) auto;
-    gap: var(--space-4);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
     min-height: 0;
     height: 100%;
     flex: 1 1 auto;
   }
 
-  .imagen {
+  .imagen-doc__diagrama {
+    flex: 0 1 auto;
     display: flex;
-    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
     min-height: 0;
     min-width: 0;
-    border: var(--stroke-inner) solid var(--ink);
-  }
-
-  .imagen__title {
-    font-family: var(--font-display);
-    font-size: var(--fs-section);
-    font-weight: var(--fw-bold);
-    letter-spacing: var(--tracking-title);
-    text-transform: uppercase;
-    color: var(--ink);
-    padding: var(--panel-title-pad-y) var(--space-3);
-    border-bottom: var(--stroke-inner) solid var(--ink);
-    background: var(--fill-faint);
-  }
-
-  .imagen__area {
-    flex: 1 1 auto;
-    min-height: 0;
-    min-width: 0;
-    display: grid;
-    place-items: center;
   }
 
   .leyenda {
+    flex: 0 0 auto;
     list-style: none;
     margin: 0;
     padding: 0;
@@ -94,5 +78,30 @@ const legend = [
 
   .leyenda__item {
     min-width: 0;
+  }
+
+  .imagen-doc__notas {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    gap: var(--space-2);
+    min-width: 0;
+    min-height: 0;
+  }
+
+  .imagen-doc__notas-title {
+    font-family: var(--font-display);
+    font-size: var(--fs-section);
+    font-weight: var(--fw-bold);
+    letter-spacing: var(--tracking-title);
+    color: var(--ink);
+    line-height: var(--lh-tight);
+  }
+
+  .imagen-notas {
+    flex: 1 1 auto;
+    min-height: var(--imagen-notas-min);
+    border: var(--stroke-inner) solid var(--ink);
+    background: var(--paper);
   }
 </style>

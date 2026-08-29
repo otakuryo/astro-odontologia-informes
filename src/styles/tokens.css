@@ -73,6 +73,7 @@
   --folio-index-col: 12mm;
   --notas-line-height: 9mm;
   --notas-line-gap: 3.4mm;
+  --imagen-notas-min: 42mm;
   --rx-cell-pad: 0.8mm;
   --legend-code-size: 2.4mm;
   --legend-grid-mid: 18mm;
@@ -136,6 +137,7 @@ html[data-paper-size="a5"] {
   --folio-index-col: 9mm;
   --notas-line-height: 6.4mm;
   --notas-line-gap: 2.4mm;
+  --imagen-notas-min: 30mm;
   --rx-cell-pad: 0.6mm;
   --legend-code-size: 2.1mm;
   --legend-grid-mid: 13mm;
@@ -199,6 +201,7 @@ html[data-paper-size="a6"] {
   --folio-index-col: 7mm;
   --notas-line-height: 4.6mm;
   --notas-line-gap: 1.6mm;
+  --imagen-notas-min: 18mm;
   --rx-cell-pad: 0.4mm;
   --legend-code-size: 1.8mm;
   --legend-grid-mid: 10mm;

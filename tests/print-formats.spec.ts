@@ -231,11 +231,11 @@ test.describe('Documentos de formato', () => {
     await expect(page.locator('[data-testid="evento-panel"]')).toHaveText(['01', '02', '03', '04']);
   });
 
-  test('ODO-F04 conserva PACIENTE, IMAGEN y las cuatro leyendas', async ({ page }) => {
+  test('ODO-F04 conserva PACIENTE, NOTAS y las cuatro leyendas', async ({ page }) => {
     await page.goto('/formatos/paciente-imagen/');
 
     await expect(page.getByRole('heading', { name: 'PACIENTE', exact: true })).toBeVisible();
-    await expect(page.getByText('IMAGEN', { exact: true })).toBeVisible();
+    await expect(page.getByText('NOTAS', { exact: true })).toBeVisible();
     await expect(page.getByText('Rojo', { exact: true })).toBeVisible();
     await expect(page.getByText('Azul', { exact: true })).toBeVisible();
     await expect(page.getByText('Verde', { exact: true })).toBeVisible();
@@ -243,6 +243,7 @@ test.describe('Documentos de formato', () => {
     await expect(page.locator('[data-testid="legend-marker"]')).toHaveCount(4);
     await expect(page.locator('svg[data-testid="odontogram"]')).toBeVisible();
     await expect(page.locator('[data-testid="tooth"]')).toHaveCount(52);
+    await expect(page.locator('[data-testid="imagen-notas"]')).toHaveCount(1);
   });
 
   test('ODO-F04 dispone el diagrama dental (pasillo, homólogos, labels)', async ({

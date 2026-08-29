@@ -86,7 +86,7 @@ Los campos clínicos son **líneas vacías** para pluma. Están prohibidos `<inp
 | `SiteNavbar` | Barra de botones daisyUI (`navbar` + `btn` / `join`): enlace al catálogo, selector de diseño, Descargar PDF, Imprimir hoja y Opciones. Solo cromo de pantalla; no entra en `.sheet`. |
 | `PrintToolbar` | Compone `SiteNavbar` con el join Carta / A5 / A6 (diseño, no A4), Descargar PDF (`btn-primary`), Imprimir hoja (`btn-ghost`, `window.print()`) y Opciones. Monta `ExportPanel`. Visible solo en pantalla. No se usa en el catálogo. |
 | `ExportPanel` | Diálogo daisyUI (`modal`) de exportación: diseño sincronizado con el radiogroup, papel de salida, disposición, orientación y lista ordenable de formatos. El PDF se genera en el cliente; no redibuja `.sheet`. |
-| `Odontogram` | Diagrama dental vectorial FDI (52 dientes, glifo de círculo + equis) para el recuadro IMAGEN de ODO-F04. SVG estático, sin estado por superficie. |
+| `Odontogram` | Diagrama dental vectorial FDI (52 dientes, glifo de círculo + equis) de ODO-F04, con cuadrado NOTAS al pie del panel. SVG estático, sin estado por superficie. |
 
 El catálogo (`src/pages/index.astro`) enlaza las cuatro rutas con `btn` daisyUI y no monta `PrintDocumentLayout` ni `PrintToolbar`. Los formatos clínicos y la hoja (`.sheet`) no usan daisyUI.
 

@@ -70,7 +70,7 @@ html {
   .document-footer,
   .rx-cell,
   .tx-area,
-  .imagen,
+  .imagen-notas,
   .eventos__cell,
   .folios__row,
   .leyenda__item,
@@ -90,7 +90,7 @@ html {
 
   .rx-cell,
   .tx-area,
-  .imagen {
+  .imagen-notas {
     border: var(--stroke-inner) solid var(--ink) !important;
     box-shadow: none !important;
   }

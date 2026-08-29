@@ -27,7 +27,7 @@ Hay dos salidas distintas. No las mezcle:
 | ODO-F01 | `/formatos/expedientes/` | Expedientes / folios |
 | ODO-F02 | `/formatos/paciente-rx-tx/` | Paciente, Rx, Tx, notas |
 | ODO-F03 | `/formatos/eventos/` | Cuatro paneles de evento |
-| ODO-F04 | `/formatos/paciente-imagen/` | Imagen, diagrama dental vectorial y leyenda R/A/V/O |
+| ODO-F04 | `/formatos/paciente-imagen/` | Diagrama dental vectorial, leyenda R/A/V/O y notas |
 
 Cada ruta genera exactamente **1/1**. No hay paginación clínica. Puede forzar el diseño con `?papel=a5`, `?papel=a6` o `?papel=carta`.
 

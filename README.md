@@ -33,7 +33,7 @@ bun install
 | `/formatos/expedientes/` | Expedientes / Folios | `ODO-F01` |
 | `/formatos/paciente-rx-tx/` | Paciente · Rx / Tx / Notas | `ODO-F02` |
 | `/formatos/eventos/` | Eventos | `ODO-F03` |
-| `/formatos/paciente-imagen/` | Paciente · Imagen y leyenda | `ODO-F04` |
+| `/formatos/paciente-imagen/` | Paciente · diagrama dental, leyenda y notas | `ODO-F04` |
 
 Cada ruta de formato es **una sola hoja vertical**. En la barra elige el **diseño**: **Carta** (215,9 × 279,4 mm, predeterminado), **A5** (148 × 210 mm) o **A6** (105 × 148 mm). El margen seguro se reduce de forma proporcional (12 mm en Carta, 8 mm en A5, 5,5 mm en A6). A4 no es un diseño en pantalla: es un **papel de salida** del PDF (Opciones → duplicar o cuadernillo, p. ej. A5 sobre A4). **Descargar PDF** usa esos ajustes; **Imprimir hoja** sigue imprimiendo solo la hoja en pantalla.
 
