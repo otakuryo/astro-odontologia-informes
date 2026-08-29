@@ -40,3 +40,7 @@ Cada ruta de formato es **una sola hoja vertical**. En la barra elige el **dise�
 ## Documentación editorial
 
 El sistema de tokens, dimensiones y responsabilidades de componentes está en [`docs/sistema-editorial.md`](docs/sistema-editorial.md).
+
+## Licencia
+
+Este proyecto se distribuye bajo la [Apache License 2.0](LICENSE). Puedes usarlo, modificarlo y redistribuirlo, incluso con fines comerciales, siempre que conserves el aviso de copyright y una copia de la licencia.

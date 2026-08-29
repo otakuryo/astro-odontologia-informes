@@ -2,6 +2,7 @@
   "name": "astro-libro-odontologico-v1",
   "type": "module",
   "private": true,
+  "license": "Apache-2.0",
   "scripts": {
     "dev": "bunx --bun astro dev",
     "build": "bunx --bun astro build",
