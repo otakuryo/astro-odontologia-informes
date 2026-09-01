@@ -107,6 +107,83 @@ test.describe('Cromo web (daisyUI)', () => {
     expect(Math.abs(a6.paperTrigger!.width - letter.paperTrigger!.width)).toBeLessThanOrEqual(delta);
     expect(Math.abs(a6.paperTrigger!.height - letter.paperTrigger!.height)).toBeLessThanOrEqual(delta);
   });
+
+  test('el panel de exportación rellena la casilla marcada y bordea las desmarcadas', async ({
+    page,
+  }) => {
+    const isTransparentColor = (value: string) => {
+      const compact = value.trim().toLowerCase().replace(/\s+/g, '');
+      return compact === 'transparent' || compact === 'rgba(0,0,0,0)' || compact === 'rgb(0,0,0,0)';
+    };
+
+    const controlBorder = (el: Element) => {
+      const styles = getComputedStyle(el);
+      return {
+        borderTopWidth: Number.parseFloat(styles.borderTopWidth) || 0,
+        borderTopColor: styles.borderTopColor,
+        backgroundColor: styles.backgroundColor,
+      };
+    };
+
+    await page.goto('/formatos/expedientes/');
+    await page.locator('.sheet').waitFor();
+
+    await page.getByTestId('export-options').click();
+    await expect(page.getByTestId('export-panel')).toBeVisible();
+
+    const modalBox = page.locator('.modal-box');
+    await expect(modalBox).toBeVisible();
+
+    const checkedFormat = page.locator('[data-testid="export-format"]:checked');
+    const uncheckedFormat = page.locator(
+      '[data-testid="export-format"][data-format-id="paciente-rx-tx"]:not(:checked)',
+    );
+    const uncheckedRadio = page
+      .locator(
+        '[data-testid="export-layout"] .radio:not(:checked), [data-testid="export-orientation"] .radio:not(:checked)',
+      )
+      .first();
+
+    await expect(checkedFormat.first()).toHaveAttribute('data-format-id', 'expedientes');
+    await expect(uncheckedFormat).toHaveCount(1);
+    await expect(uncheckedRadio).toBeVisible();
+
+    const modalBackground = await modalBox.evaluate((el) => getComputedStyle(el).backgroundColor);
+    const checkedBackground = await checkedFormat
+      .first()
+      .evaluate((el) => getComputedStyle(el).backgroundColor);
+
+    expect(isTransparentColor(checkedBackground), 'casilla marcada con relleno').toBe(false);
+    expect(checkedBackground, 'casilla marcada distinta del blanco del modal').not.toBe(
+      modalBackground,
+    );
+
+    const uncheckedFormatBorder = await uncheckedFormat.evaluate(controlBorder);
+    expect(uncheckedFormatBorder.borderTopWidth, 'casilla desmarcada: grosor de borde').toBeGreaterThanOrEqual(
+      1,
+    );
+    expect(
+      isTransparentColor(uncheckedFormatBorder.borderTopColor),
+      'casilla desmarcada: color de borde',
+    ).toBe(false);
+    expect(
+      uncheckedFormatBorder.borderTopColor,
+      'casilla desmarcada: borde distinto del fondo',
+    ).not.toBe(uncheckedFormatBorder.backgroundColor);
+
+    const uncheckedRadioBorder = await uncheckedRadio.evaluate(controlBorder);
+    expect(uncheckedRadioBorder.borderTopWidth, 'radio no seleccionado: grosor de borde').toBeGreaterThanOrEqual(
+      1,
+    );
+    expect(
+      isTransparentColor(uncheckedRadioBorder.borderTopColor),
+      'radio no seleccionado: color de borde',
+    ).toBe(false);
+    expect(
+      uncheckedRadioBorder.borderTopColor,
+      'radio no seleccionado: borde distinto del fondo',
+    ).not.toBe(uncheckedRadioBorder.backgroundColor);
+  });
 });
 
 test.describe('Pie legal permanente', () => {

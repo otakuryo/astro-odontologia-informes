@@ -347,6 +347,12 @@ body.is-print-document .web-chrome {
   flex-shrink: 0;
 }
 
+.web-chrome .modal-box .radio:not(:checked),
+.web-chrome .modal-box .checkbox:not(:checked) {
+  border: 1px solid var(--input-color, color-mix(in oklab, var(--color-base-content) 55%, transparent));
+  background-color: var(--color-base-100);
+}
+
 .web-chrome .modal-box .radio:disabled,
 .web-chrome .modal-box .checkbox:disabled {
   opacity: 0.45;
