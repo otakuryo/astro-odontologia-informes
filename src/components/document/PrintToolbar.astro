@@ -2,72 +2,36 @@
 import ExportPanel from './ExportPanel.astro';
 import ChromeIcon from '../web/ChromeIcon.astro';
 import SiteNavbar from '../web/SiteNavbar.astro';
+import ToolbarSelect from '../web/ToolbarSelect.astro';
 import { VISUAL_THEMES } from '../../lib/visual-theme';
+import { PAPER_PRESETS } from '../../scripts/paper-size';
 
 interface Props {
   label?: string;
 }
 
 const { label = 'Imprimir hoja' } = Astro.props;
-
-const paperOptions = [
-  { id: 'letter', label: 'Carta' },
-  { id: 'a5', label: 'A5' },
-  { id: 'a6', label: 'A6' },
-] as const;
 ---
 
 <SiteNavbar>
-  <div
+  <ToolbarSelect
     slot="theme"
-    class="join"
-    role="radiogroup"
-    aria-label="Estilo visual"
-    data-testid="visual-theme-selector"
-  >
-    {
-      VISUAL_THEMES.map((option) => (
-        <button
-          class={
-            option.id === 'normal'
-              ? 'join-item btn btn-sm btn-active btn-primary'
-              : 'join-item btn btn-sm'
-          }
-          type="button"
-          role="radio"
-          aria-checked={option.id === 'normal' ? 'true' : 'false'}
-          data-visual-theme-option={option.id}
-        >
-          {option.label}
-        </button>
-      ))
-    }
-  </div>
-  <div
+    groupLabel="Estilo visual"
+    testId="visual-theme-selector"
+    icon="palette"
+    options={VISUAL_THEMES}
+    initialId="normal"
+    optionAttr="data-visual-theme-option"
+  />
+  <ToolbarSelect
     slot="paper"
-    class="join"
-    role="radiogroup"
-    aria-label="Papel"
-    data-testid="paper-size-selector"
-  >
-    {
-      paperOptions.map((option) => (
-        <button
-          class={
-            option.id === 'letter'
-              ? 'join-item btn btn-sm btn-active btn-primary'
-              : 'join-item btn btn-sm'
-          }
-          type="button"
-          role="radio"
-          aria-checked={option.id === 'letter' ? 'true' : 'false'}
-          data-paper-size-option={option.id}
-        >
-          {option.label}
-        </button>
-      ))
-    }
-  </div>
+    groupLabel="Papel"
+    testId="paper-size-selector"
+    icon="file"
+    options={Object.values(PAPER_PRESETS)}
+    initialId="letter"
+    optionAttr="data-paper-size-option"
+  />
   <button slot="download" class="btn btn-primary btn-sm" type="button" data-testid="download-pdf">
     <ChromeIcon name="download" />
     <span class="print-toolbar__label" data-download-label>Descargar PDF</span>

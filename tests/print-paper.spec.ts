@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { chooseToolbarOption } from './toolbar-select';
 
 /** 96 dpi: 1 mm = 96 / 25,4 CSS px. */
 const MM = 96 / 25.4;
@@ -115,26 +116,58 @@ async function assertSheetSize(
   expect(box.cssHeight).toBeLessThanOrEqual(expected.height + SIZE_TOLERANCE_PX);
 }
 
+const PAPER_SELECTOR = 'paper-size-selector' as const;
+
+function paperSelector(page: Page) {
+  return page.getByTestId(PAPER_SELECTOR);
+}
+
+function paperTriggerLabel(page: Page) {
+  return paperSelector(page).locator('[data-toolbar-select-label]');
+}
+
 test.describe('Selector de formato de impresión', () => {
-  test('muestra Carta, A5 y A6 y parte de Carta', async ({ page }) => {
+  test('muestra el selector, oculta opciones hasta abrir y parte de Carta', async ({ page }) => {
     await page.goto('/formatos/expedientes/');
 
-    await expect(page.getByTestId('paper-size-selector')).toBeVisible();
-    await expect(page.getByRole('radio', { name: 'Carta' })).toBeVisible();
-    await expect(page.getByRole('radio', { name: 'A5' })).toBeVisible();
-    await expect(page.getByRole('radio', { name: 'A6' })).toBeVisible();
+    const selector = paperSelector(page);
+    await expect(selector).toBeVisible();
+    await expect(paperTriggerLabel(page)).toHaveText('Carta');
+    await expect(selector.locator('summary')).toHaveAttribute('aria-label', 'Papel: Carta');
+    await expect(selector).not.toHaveAttribute('open');
+    await expect(selector.getByRole('option', { name: 'Carta' })).toBeHidden();
+    await expect(selector.getByRole('option', { name: 'A5' })).toBeHidden();
+    await expect(selector.getByRole('option', { name: 'A6' })).toBeHidden();
     await expect(page.locator('html')).toHaveAttribute('data-paper-size', 'letter');
-    await expect(page.getByRole('radio', { name: 'Carta' })).toHaveAttribute('aria-checked', 'true');
+
+    await selector.locator('summary').click();
+
+    await expect(selector).toHaveAttribute('open', '');
+    await expect(selector.getByRole('option', { name: 'Carta' })).toBeVisible();
+    await expect(selector.getByRole('option', { name: 'A5' })).toBeVisible();
+    await expect(selector.getByRole('option', { name: 'A6' })).toBeVisible();
+    await expect(selector.getByRole('option', { name: 'Carta' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
   });
 
-  test('A5 y A6 redimensionan la hoja y persisten entre formatos', async ({ page }) => {
+  test('A5 y A6 redimensionan la hoja, actualizan el disparador y persisten', async ({ page }) => {
     await page.goto('/formatos/expedientes/');
+    const selector = paperSelector(page);
 
-    await page.getByRole('radio', { name: 'A5' }).click();
+    await chooseToolbarOption(page, PAPER_SELECTOR, 'A5');
 
     await expect(page.locator('html')).toHaveAttribute('data-paper-size', 'a5');
-    await expect(page.getByRole('radio', { name: 'A5' })).toHaveAttribute('aria-checked', 'true');
     await expect(page).toHaveURL(/papel=a5/);
+    await expect(paperTriggerLabel(page)).toHaveText('A5');
+    await expect(selector.locator('summary')).toHaveAttribute('aria-label', 'Papel: A5');
+    await expect(selector).not.toHaveAttribute('open');
+    await expect(selector.getByRole('option', { name: 'A5' })).toBeHidden();
+    await expect(selector.getByRole('option', { name: 'A5', includeHidden: true })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
     await expect
       .poll(async () => page.locator('#print-page-size').evaluate((el) => el.textContent ?? ''))
       .toContain('A5');
@@ -144,24 +177,47 @@ test.describe('Selector de formato de impresión', () => {
     await page.goto('/formatos/eventos/');
 
     await expect(page.locator('html')).toHaveAttribute('data-paper-size', 'a5');
-    await expect(page.getByRole('radio', { name: 'A5' })).toHaveAttribute('aria-checked', 'true');
+    await expect(paperTriggerLabel(page)).toHaveText('A5');
+    await expect(
+      paperSelector(page).getByRole('option', { name: 'A5', includeHidden: true }),
+    ).toHaveAttribute('aria-selected', 'true');
     await assertSheetSize(page, { width: 148 * MM, height: 210 * MM });
 
-    await page.getByRole('radio', { name: 'A6' }).click();
+    await chooseToolbarOption(page, PAPER_SELECTOR, 'A6');
 
     await expect(page.locator('html')).toHaveAttribute('data-paper-size', 'a6');
     await expect(page).toHaveURL(/papel=a6/);
+    await expect(paperTriggerLabel(page)).toHaveText('A6');
+    await expect(paperSelector(page)).not.toHaveAttribute('open');
     await expect
       .poll(async () => page.locator('#print-page-size').evaluate((el) => el.textContent ?? ''))
       .toContain('A6');
     await assertSheetSize(page, { width: 105 * MM, height: 148 * MM });
     await assertNoSheetOverflow(page);
 
-    await page.getByRole('radio', { name: 'Carta' }).click();
+    await chooseToolbarOption(page, PAPER_SELECTOR, 'Carta');
 
     await expect(page.locator('html')).toHaveAttribute('data-paper-size', 'letter');
     await expect(page).not.toHaveURL(/papel=/);
+    await expect(paperTriggerLabel(page)).toHaveText('Carta');
+    await expect(paperSelector(page)).not.toHaveAttribute('open');
     await assertSheetSize(page, { width: 8.5 * 96, height: 11 * 96 });
+  });
+
+  test('Escape cierra el menú sin cambiar data-paper-size', async ({ page }) => {
+    await page.goto('/formatos/expedientes/');
+    const selector = paperSelector(page);
+
+    await selector.locator('summary').click();
+    await expect(selector.getByRole('option', { name: 'A5' })).toBeVisible();
+    await expect(page.locator('html')).toHaveAttribute('data-paper-size', 'letter');
+
+    await page.keyboard.press('Escape');
+
+    await expect(selector).not.toHaveAttribute('open');
+    await expect(selector.getByRole('option', { name: 'A5' })).toBeHidden();
+    await expect(page.locator('html')).toHaveAttribute('data-paper-size', 'letter');
+    await expect(paperTriggerLabel(page)).toHaveText('Carta');
   });
 
   test('el parámetro papel fuerza el tamaño aunque haya otro guardado', async ({ page }) => {

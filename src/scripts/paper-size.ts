@@ -46,13 +46,74 @@ function syncPageRule(size: PaperSizeId) {
 
 function syncToolbar(size: PaperSizeId) {
   const buttons = document.querySelectorAll<HTMLButtonElement>('[data-paper-size-option]');
+  let label = '';
+  let details: HTMLDetailsElement | null = null;
 
   for (const button of buttons) {
     const active = button.dataset.paperSizeOption === size;
-    button.setAttribute('aria-checked', String(active));
-    button.classList.toggle('btn-active', active);
-    button.classList.toggle('btn-primary', active);
+    button.setAttribute('aria-selected', String(active));
+    button.classList.toggle('menu-active', active);
+
+    if (active) {
+      label = button.textContent?.trim() ?? '';
+      details = button.closest('details');
+    }
   }
+
+  if (!details || !label) {
+    return;
+  }
+
+  const labelEl = details.querySelector('[data-toolbar-select-label]');
+  if (labelEl) {
+    labelEl.textContent = label;
+  }
+
+  const group = details.getAttribute('data-toolbar-select-group') ?? 'Papel';
+  details.querySelector('summary')?.setAttribute('aria-label', `${group}: ${label}`);
+}
+
+function bindSelectDismiss(details: HTMLDetailsElement | null) {
+  if (!details) {
+    return;
+  }
+
+  const summary = details.querySelector('summary');
+
+  details.addEventListener('toggle', () => {
+    summary?.setAttribute('aria-expanded', String(details.open));
+
+    if (!details.open) {
+      return;
+    }
+
+    document.querySelectorAll<HTMLDetailsElement>('details[data-toolbar-select-group]').forEach((other) => {
+      if (other !== details) {
+        other.open = false;
+      }
+    });
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape' || !details.open) {
+      return;
+    }
+
+    details.open = false;
+    summary?.focus();
+  });
+
+  document.addEventListener('pointerdown', (event) => {
+    if (!details.open) {
+      return;
+    }
+
+    if (event.target instanceof Node && details.contains(event.target)) {
+      return;
+    }
+
+    details.open = false;
+  });
 }
 
 function syncUrl(size: PaperSizeId) {
@@ -94,11 +155,19 @@ export function applyPaperSize(
 export function bindPaperToolbar() {
   applyPaperSize(getPaperSizeFromDocument(), { persist: true, updateUrl: false });
 
-  document.querySelectorAll<HTMLButtonElement>('[data-paper-size-option]').forEach((button) => {
+  const buttons = document.querySelectorAll<HTMLButtonElement>('[data-paper-size-option]');
+
+  buttons.forEach((button) => {
     button.addEventListener('click', () => {
       applyPaperSize(normalizePaperSize(button.dataset.paperSizeOption));
+      const details = button.closest('details');
+      if (details) {
+        details.open = false;
+      }
     });
   });
+
+  bindSelectDismiss(buttons[0]?.closest('details') ?? null);
 
   window.addEventListener('beforeprint', () => {
     applyPaperSize(getPaperSizeFromDocument(), { persist: false, updateUrl: false });

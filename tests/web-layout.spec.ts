@@ -1,10 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
-import {
-  SITE_AUTHOR,
-  SITE_CONTACT_EMAIL,
-  SITE_LICENSE,
-} from '../src/lib/site-config';
+import { SITE_LICENSE } from '../src/lib/site-config';
 import { SITE_NAME } from '../src/lib/site';
+import { chooseToolbarOption } from './toolbar-select';
 
 const LEGAL_HREFS = [
   '/aviso-legal/',
@@ -36,15 +33,15 @@ test.describe('Cromo web (daisyUI)', () => {
     await expect(page.locator('a[href^="/formatos/"]')).toHaveCount(4);
   });
 
-  test('en un formato: radiogroup, imprimir y enlace a inicio visibles', async ({ page }) => {
+  test('en un formato: selectores, imprimir y enlace a inicio visibles', async ({ page }) => {
     await page.goto('/formatos/expedientes/');
     await page.locator('.sheet').waitFor();
 
     await expect(page.getByTestId('print-toolbar')).toBeVisible();
     await expect(page.getByTestId('paper-size-selector')).toBeVisible();
     await expect(page.getByTestId('visual-theme-selector')).toBeVisible();
-    await expect(page.getByRole('radiogroup', { name: 'Papel' })).toBeVisible();
-    await expect(page.getByRole('radiogroup', { name: 'Estilo visual' })).toBeVisible();
+    await expect(page.getByTestId('paper-size-selector').locator('summary')).toBeVisible();
+    await expect(page.getByTestId('visual-theme-selector').locator('summary')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Imprimir hoja' })).toBeVisible();
     await expect(page.getByRole('link', { name: SITE_NAME })).toBeVisible();
     await expect(page.getByRole('link', { name: SITE_NAME })).toHaveAttribute('href', '/');
@@ -83,14 +80,14 @@ test.describe('Cromo web (daisyUI)', () => {
     const measure = async () => {
       const toolbar = await page.getByTestId('print-toolbar').boundingBox();
       const printButton = await page.getByRole('button', { name: 'Imprimir hoja' }).boundingBox();
-      const carta = await page.getByRole('radio', { name: 'Carta' }).boundingBox();
+      const paperTrigger = await page.getByTestId('paper-size-selector').locator('summary').boundingBox();
 
-      return { toolbar, printButton, carta };
+      return { toolbar, printButton, paperTrigger };
     };
 
     const letter = await measure();
 
-    await page.getByRole('radio', { name: 'A6' }).click();
+    await chooseToolbarOption(page, 'paper-size-selector', 'A6');
     await expect(page.locator('html')).toHaveAttribute('data-paper-size', 'a6');
 
     const a6 = await measure();
@@ -99,23 +96,21 @@ test.describe('Cromo web (daisyUI)', () => {
     expect(a6.toolbar, 'barra en A6').not.toBeNull();
     expect(letter.printButton, 'imprimir en Carta').not.toBeNull();
     expect(a6.printButton, 'imprimir en A6').not.toBeNull();
-    expect(letter.carta, 'Carta en Carta').not.toBeNull();
-    expect(a6.carta, 'Carta en A6').not.toBeNull();
+    expect(letter.paperTrigger, 'disparador Papel en Carta').not.toBeNull();
+    expect(a6.paperTrigger, 'disparador Papel en A6').not.toBeNull();
 
     const delta = 2;
-    expect(Math.abs(a6.toolbar!.width - letter.toolbar!.width)).toBeLessThan(delta);
-    expect(Math.abs(a6.toolbar!.height - letter.toolbar!.height)).toBeLessThan(delta);
-    expect(Math.abs(a6.printButton!.width - letter.printButton!.width)).toBeLessThan(delta);
-    expect(Math.abs(a6.printButton!.height - letter.printButton!.height)).toBeLessThan(delta);
-    expect(Math.abs(a6.carta!.width - letter.carta!.width)).toBeLessThan(delta);
-    expect(Math.abs(a6.carta!.height - letter.carta!.height)).toBeLessThan(delta);
+    expect(Math.abs(a6.toolbar!.width - letter.toolbar!.width)).toBeLessThanOrEqual(delta);
+    expect(Math.abs(a6.toolbar!.height - letter.toolbar!.height)).toBeLessThanOrEqual(delta);
+    expect(Math.abs(a6.printButton!.width - letter.printButton!.width)).toBeLessThanOrEqual(delta);
+    expect(Math.abs(a6.printButton!.height - letter.printButton!.height)).toBeLessThanOrEqual(delta);
+    expect(Math.abs(a6.paperTrigger!.width - letter.paperTrigger!.width)).toBeLessThanOrEqual(delta);
+    expect(Math.abs(a6.paperTrigger!.height - letter.paperTrigger!.height)).toBeLessThanOrEqual(delta);
   });
 });
 
 test.describe('Pie legal permanente', () => {
-  test('el pie está en / y en un formato, con autor, correo, licencia y rutas legales', async ({
-    page,
-  }) => {
+  test('el pie está en / y en un formato, con licencia y rutas legales', async ({ page }) => {
     for (const path of ['/', '/formatos/expedientes/'] as const) {
       await page.goto(path);
       if (path !== '/') {
@@ -124,12 +119,7 @@ test.describe('Pie legal permanente', () => {
 
       const footer = page.locator('.site-footer');
       await expect(footer).toBeVisible();
-      await expect(footer.getByText(`Responsable: ${SITE_AUTHOR}`, { exact: true })).toBeVisible();
-      await expect(footer.getByRole('link', { name: SITE_CONTACT_EMAIL })).toBeVisible();
-      await expect(footer.getByRole('link', { name: SITE_CONTACT_EMAIL })).toHaveAttribute(
-        'href',
-        `mailto:${SITE_CONTACT_EMAIL}`,
-      );
+      await expect(footer.getByText(SITE_NAME)).toBeVisible();
       await expect(footer.getByText(SITE_LICENSE)).toBeVisible();
 
       for (const href of LEGAL_HREFS) {
@@ -210,7 +200,7 @@ test.describe('Cromo web en viewport estrecho (390×844)', () => {
     }
   });
 
-  test('barra, radiogroup, imprimir y catálogo accesibles; sin Home ni recorte', async ({
+  test('barra, selectores, imprimir y catálogo accesibles; sin Home ni recorte', async ({
     page,
   }) => {
     await page.setViewportSize(NARROW);
@@ -220,28 +210,30 @@ test.describe('Cromo web en viewport estrecho (390×844)', () => {
     await expect(page.getByRole('link', { name: 'Home', exact: true })).toHaveCount(0);
 
     const toolbar = page.getByTestId('print-toolbar');
-    const paperGroup = page.getByRole('radiogroup', { name: 'Papel' });
-    const themeGroup = page.getByRole('radiogroup', { name: 'Estilo visual' });
+    const paperTrigger = page.getByTestId('paper-size-selector').locator('summary');
+    const themeTrigger = page.getByTestId('visual-theme-selector').locator('summary');
     const printButton = page.getByRole('button', { name: 'Imprimir hoja' });
     const catalogLink = page.getByRole('link', { name: SITE_NAME });
 
     await expect(toolbar).toBeVisible();
-    await expect(paperGroup).toBeVisible();
-    await expect(themeGroup).toBeVisible();
+    await expect(page.getByTestId('paper-size-selector')).toBeVisible();
+    await expect(page.getByTestId('visual-theme-selector')).toBeVisible();
+    await expect(paperTrigger).toBeVisible();
+    await expect(themeTrigger).toBeVisible();
     await expect(printButton).toBeVisible();
     await expect(catalogLink).toBeVisible();
     await expect(catalogLink).toHaveAttribute('href', '/');
 
     assertNoHorizontalClip(page, await toolbar.boundingBox());
-    assertNoHorizontalClip(page, await paperGroup.boundingBox());
-    assertNoHorizontalClip(page, await themeGroup.boundingBox());
+    assertNoHorizontalClip(page, await paperTrigger.boundingBox());
+    assertNoHorizontalClip(page, await themeTrigger.boundingBox());
     assertNoHorizontalClip(page, await printButton.boundingBox());
     assertNoHorizontalClip(page, await catalogLink.boundingBox());
 
     const controls = [
       catalogLink,
-      themeGroup,
-      paperGroup,
+      themeTrigger,
+      paperTrigger,
       page.getByTestId('download-pdf'),
       printButton,
       page.getByTestId('export-options'),

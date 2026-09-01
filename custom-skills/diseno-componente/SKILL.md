@@ -18,7 +18,7 @@ Son ejes independientes. No los mezcles ni los renombres.
 | Tamaño de hoja (Carta / A5 / A6) | **Papel** | `DesignSizeId`, `?papel=` | `html[data-paper-size]` |
 | Estilo visual de `.sheet` | **Estilo visual** | `VisualThemeId`, `?estilo=` | `html[data-visual-theme]` |
 
-El panel de exportación llama **Diseño** al tamaño de hoja. No toques `DesignSizeId`.
+El panel de exportación llama **Diseño** al tamaño de hoja. No toques `DesignSizeId`. En la barra, **Papel** y **Estilo visual** son desplegables daisyUI (`dropdown` + `menu` con `listbox` / `option`), no un radiogroup. daisyUI sigue prohibido dentro de `.sheet`.
 
 `VisualThemeId`: `normal` | `rounded` | `glass`. Etiquetas: Normal, Rounded, Glassmorfismo. Pieles mutuamente excluyentes: no combines Rounded + Glass. El query `?estilo=` gana sobre `localStorage` (`odo-visual-theme`). Alias: `glassmorfismo` → `glass`, `redondeado` → `rounded`.
 

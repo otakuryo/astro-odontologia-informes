@@ -1,0 +1,63 @@
+---
+import ChromeIcon from './ChromeIcon.astro';
+
+interface ToolbarSelectOption {
+  id: string;
+  label: string;
+}
+
+interface Props {
+  groupLabel: string;
+  testId: string;
+  icon: 'palette' | 'file';
+  options: readonly ToolbarSelectOption[];
+  initialId: string;
+  optionAttr: 'data-visual-theme-option' | 'data-paper-size-option';
+}
+
+const { groupLabel, testId, icon, options, initialId, optionAttr } = Astro.props;
+
+const initialLabel = options.find((option) => option.id === initialId)?.label ?? options[0]?.label ?? '';
+const longestLabel = options.reduce(
+  (longest, option) => (option.label.length > longest.length ? option.label : longest),
+  '',
+);
+---
+
+<details class="dropdown" data-testid={testId} data-toolbar-select-group={groupLabel}>
+  <summary
+    class="btn btn-sm list-none whitespace-nowrap"
+    aria-haspopup="listbox"
+    aria-expanded="false"
+    aria-label={`${groupLabel}: ${initialLabel}`}
+  >
+    <ChromeIcon name={icon} />
+    <span class="toolbar-select__value">
+      <span class="toolbar-select__sizer" aria-hidden="true">{longestLabel}</span>
+      <span data-toolbar-select-label>{initialLabel}</span>
+    </span>
+    <ChromeIcon name="chevron-down" />
+  </summary>
+  <ul
+    class="menu dropdown-content bg-base-100 rounded-box z-50 min-w-full p-2 shadow-sm"
+    role="listbox"
+    aria-label={groupLabel}
+  >
+    {
+      options.map((option) => (
+        <li role="presentation">
+          <button
+            class:list={['whitespace-nowrap', { 'menu-active': option.id === initialId }]}
+            type="button"
+            role="option"
+            aria-selected={option.id === initialId ? 'true' : 'false'}
+            data-visual-theme-option={optionAttr === 'data-visual-theme-option' ? option.id : undefined}
+            data-paper-size-option={optionAttr === 'data-paper-size-option' ? option.id : undefined}
+          >
+            {option.label}
+          </button>
+        </li>
+      ))
+    }
+  </ul>
+</details>

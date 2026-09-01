@@ -11,7 +11,7 @@
 @plugin "daisyui" {
   themes: false;
   root: ".web-chrome";
-  include: button, join, navbar, modal, fieldset, label, radio, checkbox, alert;
+  include: button, join, navbar, modal, fieldset, label, radio, checkbox, alert, dropdown, menu;
   exclude: reset, rootcolor, rootscrollgutter;
 }
 
@@ -80,6 +80,9 @@ body.is-print-document .web-chrome {
   gap: 0.5rem;
   height: auto;
   min-height: 0;
+  position: relative;
+  z-index: 20;
+  overflow: visible;
 }
 
 .web-chrome .print-toolbar__home {
@@ -112,6 +115,34 @@ body.is-print-document .web-chrome {
   justify-content: center;
   gap: 0.5rem;
   max-width: 100%;
+}
+
+.web-chrome .print-toolbar__controls {
+  overflow: visible;
+}
+
+.web-chrome .toolbar-select__value {
+  display: inline-grid;
+  justify-items: start;
+}
+
+.web-chrome .toolbar-select__sizer,
+.web-chrome [data-toolbar-select-label] {
+  grid-area: 1 / 1;
+  white-space: nowrap;
+}
+
+.web-chrome .toolbar-select__sizer {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.web-chrome .print-toolbar details.dropdown > summary {
+  list-style: none;
+}
+
+.web-chrome .print-toolbar details.dropdown > summary::-webkit-details-marker {
+  display: none;
 }
 
 /* En 390 px: iconos Lucide a la vista; el texto (acciones y marca) sigue en el nombre accesible. */

@@ -14,7 +14,7 @@ Una ruta bajo `src/pages/formatos/` es **una sola hoja**. Envuélvela en `PrintD
 - `html` con `data-paper-size` y `data-visual-theme` (valores iniciales `letter` y `normal`)
 - Script inline FOUC de `?papel=` / `odo-paper-size`
 - Script inline FOUC de `?estilo=` / `odo-visual-theme` (el query gana sobre `localStorage`)
-- `PrintToolbar`: radiogroup **Estilo visual** (`VisualThemeId`) y radiogroup **Papel** (`DesignSizeId`)
+- `PrintToolbar`: desplegable listbox **Estilo visual** (`VisualThemeId`) y desplegable listbox **Papel** (`DesignSizeId`)
 - Import de `tokens.css`, `visual-themes.css` y `print.css`
 - `.sheet`, cabecera clínica, `slot` y pie documental
 
@@ -78,7 +78,7 @@ No implementes un cuarto estilo salvo que te lo pidan. Si lo piden, no combines 
 
 2. **FOUC** — el script inline de `src/layouts/PrintDocumentLayout.astro` duplica el mapa de alias. Añade la misma clave ahí. Si el query o `localStorage` no coinciden, el fallback sigue siendo `normal`.
 
-3. **Barra** — `PrintToolbar` itera `VISUAL_THEMES`. No añadas un cuarto botón a mano.
+3. **Barra** — `PrintToolbar` itera `VISUAL_THEMES` en el desplegable. No añadas una cuarta opción a mano.
 
 4. **CSS** — `src/styles/visual-themes.css`, bloque excluyente:
 
