@@ -94,7 +94,6 @@ body.is-print-document .web-chrome {
   flex-shrink: 0;
   height: 24px;
   border-radius: 0.25rem;
-  background: var(--ink);
   overflow: hidden;
 }
 
