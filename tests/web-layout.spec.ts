@@ -42,7 +42,9 @@ test.describe('Cromo web (daisyUI)', () => {
 
     await expect(page.getByTestId('print-toolbar')).toBeVisible();
     await expect(page.getByTestId('paper-size-selector')).toBeVisible();
-    await expect(page.getByRole('radiogroup')).toBeVisible();
+    await expect(page.getByTestId('visual-theme-selector')).toBeVisible();
+    await expect(page.getByRole('radiogroup', { name: 'Papel' })).toBeVisible();
+    await expect(page.getByRole('radiogroup', { name: 'Estilo visual' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Imprimir hoja' })).toBeVisible();
     await expect(page.getByRole('link', { name: SITE_NAME })).toBeVisible();
     await expect(page.getByRole('link', { name: SITE_NAME })).toHaveAttribute('href', '/');
@@ -218,24 +220,28 @@ test.describe('Cromo web en viewport estrecho (390×844)', () => {
     await expect(page.getByRole('link', { name: 'Home', exact: true })).toHaveCount(0);
 
     const toolbar = page.getByTestId('print-toolbar');
-    const radiogroup = page.getByRole('radiogroup');
+    const paperGroup = page.getByRole('radiogroup', { name: 'Papel' });
+    const themeGroup = page.getByRole('radiogroup', { name: 'Estilo visual' });
     const printButton = page.getByRole('button', { name: 'Imprimir hoja' });
     const catalogLink = page.getByRole('link', { name: SITE_NAME });
 
     await expect(toolbar).toBeVisible();
-    await expect(radiogroup).toBeVisible();
+    await expect(paperGroup).toBeVisible();
+    await expect(themeGroup).toBeVisible();
     await expect(printButton).toBeVisible();
     await expect(catalogLink).toBeVisible();
     await expect(catalogLink).toHaveAttribute('href', '/');
 
     assertNoHorizontalClip(page, await toolbar.boundingBox());
-    assertNoHorizontalClip(page, await radiogroup.boundingBox());
+    assertNoHorizontalClip(page, await paperGroup.boundingBox());
+    assertNoHorizontalClip(page, await themeGroup.boundingBox());
     assertNoHorizontalClip(page, await printButton.boundingBox());
     assertNoHorizontalClip(page, await catalogLink.boundingBox());
 
     const controls = [
       catalogLink,
-      radiogroup,
+      themeGroup,
+      paperGroup,
       page.getByTestId('download-pdf'),
       printButton,
       page.getByTestId('export-options'),

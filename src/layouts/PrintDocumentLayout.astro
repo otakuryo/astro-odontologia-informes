@@ -3,6 +3,7 @@ import '@fontsource-variable/manrope/wght.css';
 import '@fontsource-variable/source-sans-3/wght.css';
 import '../styles/tokens.css';
 import '../styles/base.css';
+import '../styles/visual-themes.css';
 import '../styles/print.css';
 import '../styles/web.css';
 import '../styles/legal.css';
@@ -26,7 +27,7 @@ const { title, description, documentTitle, code, revision = 'REV. 01', page = '1
 ---
 
 <!doctype html>
-<html lang="es-ES" data-paper-size="letter">
+<html lang="es-ES" data-paper-size="letter" data-visual-theme="normal">
   <head>
     <script is:inline>
       (function () {
@@ -43,6 +44,30 @@ const { title, description, documentTitle, code, revision = 'REV. 01', page = '1
           } catch (e) {}
         }
         document.documentElement.setAttribute('data-paper-size', size || 'letter');
+      })();
+    </script>
+    <script is:inline>
+      (function () {
+        var aliases = {
+          normal: 'normal',
+          rounded: 'rounded',
+          glass: 'glass',
+          glassmorfismo: 'glass',
+          redondeado: 'rounded',
+        };
+        var param = new URLSearchParams(location.search).get('estilo');
+        var raw = param ? String(param).toLowerCase() : '';
+        var theme = aliases[raw] || '';
+        if (!theme) {
+          try {
+            var stored = localStorage.getItem('odo-visual-theme');
+            if (stored) {
+              stored = String(stored).toLowerCase();
+              if (aliases[stored]) theme = aliases[stored];
+            }
+          } catch (e) {}
+        }
+        document.documentElement.setAttribute('data-visual-theme', theme || 'normal');
       })();
     </script>
     <SeoHead

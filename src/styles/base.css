@@ -81,13 +81,15 @@ img {
     overflow: hidden;
     margin-inline: auto;
     transform-origin: top left;
+    border-radius: var(--radius-sheet);
     box-shadow: 0 10px 36px color-mix(in srgb, var(--ink) 14%, transparent);
   }
 
   body.is-print-document .sheet {
     width: var(--page-width);
     height: var(--page-height);
-    background: var(--paper);
+    background: var(--sheet-bg);
+    border-radius: var(--radius-sheet);
     transform: scale(var(--preview-scale));
     transform-origin: top left;
   }
@@ -103,7 +105,9 @@ img {
 .sheet {
   width: var(--page-width);
   height: var(--page-height);
-  background: var(--paper);
+  background: var(--sheet-bg);
+  border-radius: var(--radius-sheet);
+  overflow: hidden;
   color: var(--ink);
   font-size: var(--fs-body);
 }

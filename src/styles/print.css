@@ -10,7 +10,7 @@ html {
   color-adjust: exact;
 }
 
-/* Impresión: una sola hoja al 100 % (Carta, A5 o A6). Sin cromo de pantalla, sin sombras, sin recortes de borde. */
+/* Impresión: una sola hoja al 100 % (Carta, A5 o A6). Sin cromo de pantalla. */
 @media print {
   html,
   body {
@@ -66,6 +66,8 @@ html {
     height: var(--page-height);
     max-width: var(--page-width);
     max-height: var(--page-height);
+    background: var(--sheet-bg);
+    border-radius: var(--radius-sheet);
     overflow: hidden;
     zoom: 1;
     transform: none;
@@ -97,18 +99,20 @@ html {
     page-break-inside: avoid;
   }
 
-  /* Paneles, casillas y marcadores: conservar trazo (nunca border: none). */
+  /* Paneles y casillas: tokens de piel (nunca border: none). */
   .outlined-panel {
-    border: var(--stroke-outer) solid var(--ink) !important;
-    box-shadow: none !important;
-    overflow: visible;
+    border: var(--stroke-outer) solid var(--panel-border-color) !important;
+    box-shadow: var(--panel-shadow) !important;
+    border-radius: var(--radius-panel);
+    overflow: hidden;
   }
 
   .rx-cell,
   .tx-area,
   .imagen-notas {
-    border: var(--stroke-inner) solid var(--ink) !important;
-    box-shadow: none !important;
+    border: var(--stroke-inner) solid var(--cell-border-color) !important;
+    background: var(--cell-bg);
+    border-radius: var(--radius-cell);
   }
 
   /* Leyenda: patrones en tinta. El color es refuerzo; las siglas R/A/V/O se leen sin él. */

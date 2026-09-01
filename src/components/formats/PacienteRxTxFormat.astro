@@ -113,8 +113,9 @@ const notaLines = [1, 2, 3];
     place-items: start;
     aspect-ratio: 5 / 3;
     width: 100%;
-    border: var(--stroke-inner) solid var(--ink);
-    background: var(--paper);
+    border: var(--stroke-inner) solid var(--cell-border-color);
+    background: var(--cell-bg);
+    border-radius: var(--radius-cell);
     min-width: 0;
     min-height: 0;
     padding: var(--rx-cell-pad);
@@ -168,8 +169,9 @@ const notaLines = [1, 2, 3];
   .tx-area {
     min-height: 0;
     height: 100%;
-    border: var(--stroke-inner) solid var(--ink);
-    background: var(--paper);
+    border: var(--stroke-inner) solid var(--cell-border-color);
+    background: var(--cell-bg);
+    border-radius: var(--radius-cell);
   }
 
   .rx-tx__notas {

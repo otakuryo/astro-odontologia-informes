@@ -16,6 +16,7 @@ const { homeLabel = SITE_NAME } = Astro.props;
     <span class="print-toolbar__label">{homeLabel}</span>
   </a>
   <div class="print-toolbar__controls">
+    <slot name="theme" />
     <slot name="paper" />
     <div class="print-toolbar__actions">
       <slot name="download" />

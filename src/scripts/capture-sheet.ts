@@ -4,6 +4,7 @@
  */
 import { toPng } from 'html-to-image';
 import type { DesignSizeId } from '../lib/print-export/types';
+import { normalizeVisualTheme, sheetCaptureUrl } from '../lib/visual-theme';
 
 /** 1 CSS px = 1/96 in; pixelRatio = dpi de captura / 96. */
 export const PRINT_CAPTURE_DPI = 300;
@@ -161,6 +162,26 @@ function prepareSheetForCapture(root: HTMLElement): RestoreFn {
     style.printColorAdjust = 'exact';
   });
 
+  const themeSurfaces = [root, ...root.querySelectorAll('.outlined-panel, .rx-cell, .tx-area, .imagen-notas')];
+  for (const el of themeSurfaces) {
+    const cs = view.getComputedStyle(el);
+    restores.push(snapshotInline(el));
+    const style = (el as HTMLElement).style;
+    style.background = cs.background;
+    style.backgroundColor = cs.backgroundColor;
+    style.backgroundImage = cs.backgroundImage;
+    style.backgroundSize = cs.backgroundSize;
+    style.backgroundPosition = cs.backgroundPosition;
+    style.backgroundRepeat = cs.backgroundRepeat;
+    style.border = cs.border;
+    style.borderColor = cs.borderColor;
+    style.borderStyle = cs.borderStyle;
+    style.borderWidth = cs.borderWidth;
+    style.borderRadius = cs.borderRadius;
+    style.boxShadow = cs.boxShadow;
+    style.printColorAdjust = 'exact';
+  }
+
   return () => {
     for (let index = restores.length - 1; index >= 0; index -= 1) {
       restores[index]?.();
@@ -286,11 +307,11 @@ function iframeHost(): HTMLElement {
 }
 
 /**
- * Carga `url?papel=<diseño>` en un iframe del mismo origen, captura su `.sheet` y destruye el iframe.
+ * Carga `url?papel=<diseño>&estilo=<piel>` en un iframe del mismo origen, captura su `.sheet` y destruye el iframe.
  */
 export async function captureFormatByUrl(url: string, design: DesignSizeId): Promise<Uint8Array> {
-  const frameUrl = new URL(url, window.location.origin);
-  frameUrl.searchParams.set('papel', design);
+  const theme = normalizeVisualTheme(document.documentElement.dataset.visualTheme);
+  const frameUrl = new URL(sheetCaptureUrl(url, design, theme), window.location.origin);
 
   const iframe = document.createElement('iframe');
   iframe.title = 'Captura de formato';

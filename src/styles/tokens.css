@@ -86,6 +86,18 @@
   --dot-clear: 0.5mm;
   --dot-cell: 1.7mm;
   --dot-pos: 0.4mm;
+
+  /* Piel visual de la hoja (Normal: radio 0, fondos opacos). */
+  --radius-sheet: 0;
+  --radius-panel: 0;
+  --radius-cell: 0;
+  --sheet-bg: var(--paper);
+  --panel-bg: var(--paper);
+  --panel-title-bg: var(--fill-faint);
+  --panel-border-color: var(--ink);
+  --panel-shadow: none;
+  --cell-bg: var(--paper);
+  --cell-border-color: var(--ink);
 }
 
 /* A5: 148 × 210 mm. Tipografía menos comprimida que el espacio; cabecera en 2 × 2. */
@@ -106,7 +118,7 @@ html[data-paper-size="a5"] {
   --space-12: 8.6mm;
   --write-line: 5.6mm;
 
-  --stroke-outer: 0.4mm;
+  --stroke-outer: 0.2mm;
   --stroke-rule: 0.26mm;
   --stroke-inner: 0.18mm;
   --stroke-write: 0.14mm;

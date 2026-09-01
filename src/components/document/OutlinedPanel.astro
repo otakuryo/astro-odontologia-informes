@@ -24,8 +24,11 @@ const { title, flush = false } = Astro.props;
     flex-direction: column;
     min-height: 0;
     height: 100%;
-    border: var(--stroke-outer) solid var(--ink);
-    background: var(--paper);
+    border: var(--stroke-outer) solid var(--panel-border-color);
+    background: var(--panel-bg);
+    border-radius: var(--radius-panel);
+    box-shadow: var(--panel-shadow);
+    overflow: hidden;
     break-inside: avoid;
     page-break-inside: avoid;
   }
@@ -38,8 +41,8 @@ const { title, flush = false } = Astro.props;
     text-transform: uppercase;
     color: var(--ink);
     padding: var(--panel-title-pad-y) var(--space-3);
-    border-bottom: var(--stroke-inner) solid var(--ink);
-    background: var(--fill-faint);
+    border-bottom: var(--stroke-inner) solid var(--panel-border-color);
+    background: var(--panel-title-bg);
   }
 
   .outlined-panel__body {

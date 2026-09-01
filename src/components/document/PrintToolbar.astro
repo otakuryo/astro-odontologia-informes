@@ -2,6 +2,7 @@
 import ExportPanel from './ExportPanel.astro';
 import ChromeIcon from '../web/ChromeIcon.astro';
 import SiteNavbar from '../web/SiteNavbar.astro';
+import { VISUAL_THEMES } from '../../lib/visual-theme';
 
 interface Props {
   label?: string;
@@ -17,6 +18,31 @@ const paperOptions = [
 ---
 
 <SiteNavbar>
+  <div
+    slot="theme"
+    class="join"
+    role="radiogroup"
+    aria-label="Estilo visual"
+    data-testid="visual-theme-selector"
+  >
+    {
+      VISUAL_THEMES.map((option) => (
+        <button
+          class={
+            option.id === 'normal'
+              ? 'join-item btn btn-sm btn-active btn-primary'
+              : 'join-item btn btn-sm'
+          }
+          type="button"
+          role="radio"
+          aria-checked={option.id === 'normal' ? 'true' : 'false'}
+          data-visual-theme-option={option.id}
+        >
+          {option.label}
+        </button>
+      ))
+    }
+  </div>
   <div
     slot="paper"
     class="join"
@@ -59,8 +85,10 @@ const paperOptions = [
 
 <script>
   import { bindPaperToolbar } from '../../scripts/paper-size';
+  import { bindVisualThemeToolbar } from '../../scripts/visual-theme';
   import { bindPdfExport } from '../../scripts/export-pdf';
 
   bindPaperToolbar();
+  bindVisualThemeToolbar();
   bindPdfExport();
 </script>

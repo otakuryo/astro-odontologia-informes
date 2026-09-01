@@ -1,0 +1,64 @@
+/*
+  Pieles mutuamente excluyentes de la hoja clínica.
+  No usan backdrop-filter: html-to-image no lo rasteriza en PNG.
+  No alteran la retícula ni las medidas en milímetros.
+*/
+
+html[data-visual-theme='rounded'] {
+  --radius-sheet: 3mm;
+  --radius-panel: 4mm;
+  --radius-cell: 2.2mm;
+}
+
+html[data-visual-theme='rounded'][data-paper-size='a5'] {
+  --radius-sheet: 2.2mm;
+  --radius-panel: 2mm;
+  --radius-cell: 1.6mm;
+}
+
+html[data-visual-theme='rounded'][data-paper-size='a6'] {
+  --radius-sheet: 1.6mm;
+  --radius-panel: 2.2mm;
+  --radius-cell: 1.2mm;
+}
+
+html[data-visual-theme='glass'] {
+  --radius-sheet: 2.5mm;
+  --radius-panel: 2.8mm;
+  --radius-cell: 1.6mm;
+  --sheet-bg: linear-gradient(
+    165deg,
+    color-mix(in srgb, var(--accent-teal) 12%, white) 0%,
+    color-mix(in srgb, var(--accent-teal) 8%, white) 32%,
+    var(--paper) 52%,
+    color-mix(in srgb, var(--accent-coral) 8%, white) 78%,
+    color-mix(in srgb, var(--accent-coral) 12%, white) 100%
+  );
+  --panel-bg: color-mix(in srgb, white 78%, transparent);
+  --panel-title-bg: color-mix(in srgb, var(--ink) 4%, white);
+  --panel-border-color: color-mix(in srgb, var(--ink) 28%, white);
+  --panel-shadow:
+    inset 0 1px 0 color-mix(in srgb, white 72%, transparent),
+    0 1.2mm 2.4mm color-mix(in srgb, var(--ink) 10%, transparent);
+  --cell-bg: color-mix(in srgb, white 82%, transparent);
+  --cell-border-color: color-mix(in srgb, var(--ink) 28%, white);
+}
+
+html[data-visual-theme='glass'][data-paper-size='a5'] {
+  --radius-sheet: 1.8mm;
+  --radius-panel: 2.2mm;
+  --radius-cell: 1.2mm;
+}
+
+html[data-visual-theme='glass'][data-paper-size='a6'] {
+  --radius-sheet: 1.2mm;
+  --radius-panel: 1.6mm;
+  --radius-cell: 0.9mm;
+}
+
+/* El papel físico es rectangular; radios internos, fondos y sombras se conservan. */
+@media print {
+  .sheet {
+    --radius-sheet: 0;
+  }
+}
