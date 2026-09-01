@@ -172,12 +172,9 @@ function paintMoveButtons(): void {
   });
 }
 
-function paintDownload(settings: ExportSettings): void {
-  const allowed = canExport(settings);
+function paintDownload(_settings: ExportSettings): void {
   for (const button of downloadButtons()) {
-    // No usar `disabled` durante la generación: daisyUI lo apaga y el texto
-    // «Descargando…» no llega a pintarse antes de bloquear el hilo.
-    button.disabled = !busy && !allowed;
+    button.disabled = false;
     button.setAttribute('aria-busy', String(busy));
     button.classList.toggle('is-exporting', busy);
     const label = button.querySelector('[data-download-label]');
@@ -263,7 +260,7 @@ function onDesignFromToolbar(): void {
   if (design === draft.design) {
     return;
   }
-  setDraft(reconcileLayout({ ...draft, design }));
+  setDraft(normalizeExportSettings({ ...draft, design }, currentFormat()));
 }
 
 export function showExportError(detail: string): boolean {
@@ -397,9 +394,11 @@ export function bindExportPanel(download: () => Promise<unknown>): void {
   }
 
   const runDownload = () => {
-    if (!draft || busy || !canExport(draft)) {
+    if (!draft || busy) {
       return;
     }
+    const settings = normalizeExportSettings({ ...draft, design: currentDesign() }, currentFormat());
+    setDraft(settings);
     busy = true;
     captureError = null;
     paint(draft);

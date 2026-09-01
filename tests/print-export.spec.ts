@@ -1,8 +1,10 @@
 import { expect, test, type Page } from '@playwright/test';
 import { PDFDocument } from 'pdf-lib';
 import { readFile } from 'node:fs/promises';
+import { PAPER_SIZE_STORAGE_KEY, PRINT_EXPORT_STORAGE_KEY } from '../src/lib/print-export/settings';
 import type { ExportSettings } from '../src/lib/print-export/types';
 import type { PrintExportHook } from '../src/scripts/export-pdf';
+import { chooseToolbarOption } from './toolbar-select';
 
 declare global {
   interface Window {
@@ -51,6 +53,11 @@ async function composeInPage(page: Page, settings: ExportSettings) {
   }, settings);
 
   return PDFDocument.load(Buffer.from(base64, 'base64'));
+}
+
+async function expectDownloadsEnabled(page: Page) {
+  await expect(page.getByTestId('download-pdf')).toBeEnabled();
+  await expect(page.getByTestId('download-pdf-panel')).toBeEnabled();
 }
 
 test.describe('Exportación PDF', () => {
@@ -202,6 +209,75 @@ test.describe('Exportación PDF', () => {
     const downloadDisabled = await page.getByTestId('download-pdf-panel').isDisabled();
 
     expect(checked > 0 || downloadDisabled).toBeTruthy();
+  });
+
+  test('barra Papel: A5, A6 y Carta dejan la descarga habilitada; panel Carta+A4 avisa sin apagar el botón', async ({
+    page,
+  }) => {
+    test.setTimeout(60_000);
+    await page.goto('/formatos/expedientes/');
+    await page.locator('.sheet').waitFor();
+    await page.waitForFunction(() => Boolean(window.__odoPrintExport));
+
+    await expect(page.getByTestId('download-pdf')).toBeEnabled();
+
+    for (const [name, design] of [
+      ['A5', 'a5'],
+      ['A6', 'a6'],
+      ['Carta', 'letter'],
+    ] as const) {
+      await chooseToolbarOption(page, 'paper-size-selector', name);
+      await expect(page.locator('html')).toHaveAttribute('data-paper-size', design);
+      await expectDownloadsEnabled(page);
+    }
+
+    await page.getByTestId('export-options').click();
+    await expect(page.getByTestId('export-panel')).toBeVisible();
+    await page.getByTestId('export-panel').locator('[data-export-design="letter"]').click();
+    await page.locator('[data-export-paper="a4"]').click();
+
+    await expect(page.getByTestId('export-alert')).toBeVisible();
+    await expectDownloadsEnabled(page);
+
+    const downloadPromise = page.waitForEvent('download');
+    await page.getByTestId('download-pdf-panel').click();
+    const download = await downloadPromise;
+    expect(download.suggestedFilename()).toBe('ODO-F01-letter-sobre-letter-1up.pdf');
+  });
+
+  test('barra Papel: A5 sobre A4 cuadernillo a Carta deja la descarga habilitada', async ({
+    page,
+  }) => {
+    const stored: ExportSettings = {
+      design: 'a5',
+      paper: 'a4',
+      layout: 'booklet',
+      orientation: 'landscape',
+      formats: ['expedientes'],
+    };
+
+    await page.addInitScript(
+      ({ exportKey, paperKey, settings }) => {
+        localStorage.setItem(exportKey, JSON.stringify(settings));
+        localStorage.setItem(paperKey, settings.design);
+      },
+      {
+        exportKey: PRINT_EXPORT_STORAGE_KEY,
+        paperKey: PAPER_SIZE_STORAGE_KEY,
+        settings: stored,
+      },
+    );
+
+    await page.goto('/formatos/expedientes/');
+    await page.locator('.sheet').waitFor();
+    await page.waitForFunction(() => Boolean(window.__odoPrintExport));
+
+    await expect(page.locator('html')).toHaveAttribute('data-paper-size', 'a5');
+    await expectDownloadsEnabled(page);
+
+    await chooseToolbarOption(page, 'paper-size-selector', 'Carta');
+    await expect(page.locator('html')).toHaveAttribute('data-paper-size', 'letter');
+    await expectDownloadsEnabled(page);
   });
 
   test('ODO-F04 conserva trazos del odontograma y relleno de la leyenda', async ({ page }) => {

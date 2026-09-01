@@ -22,6 +22,7 @@ Son ejes independientes. No los mezcle.
 - **Diseño** (Carta, A5 o A6): tamaño de la hoja clínica en pantalla. En la barra es el radiogroup **Papel** (`?papel=`, `localStorage odo-paper-size`, `html[data-paper-size]`). **A4 no es un diseño**: no existe hoja A4 en pantalla.
 - **Papel de salida** (Carta, A4, A5 o A6): tamaño de cada página del PDF. Se elige en **Opciones**.
 - **Nunca se escala.** Solo hay disposición si el diseño y el papel coinciden (1-up) o si hay un anidamiento ISO de un escalón: A5 sobre A4, o A6 sobre A5 (duplicar y cuadernillo). Carta×A4 y A6×A4 (4-up) no están disponibles.
+- **Descargar PDF** permanece habilitado. Si el papel de salida del panel deja de ser imponible (al cambiar **Papel** en la barra o al pulsar descargar), se realinea al diseño en 1-up. El panel sigue alertando en cruces imposibles elegidos ahí, sin apagar el botón.
 
 ## Antes de imprimir
 
