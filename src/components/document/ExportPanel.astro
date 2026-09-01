@@ -23,129 +23,141 @@ const layoutOptions = [
 ---
 
 <dialog id="export-panel" class="modal" data-testid="export-panel" aria-labelledby="export-panel-title">
-  <div class="modal-box w-11/12 max-w-lg max-h-[90vh] overflow-y-auto overflow-x-hidden">
-    <h2 id="export-panel-title" class="text-lg font-bold">Exportar PDF</h2>
-    <p class="py-2 text-sm leading-snug">
-      El diseño es la hoja en pantalla. El papel es el tamaño de cada página del PDF. No se escala.
-    </p>
+  <div class="modal-box export-panel__box">
+    <div class="export-panel__scroll">
+      <h2 id="export-panel-title" class="text-lg font-bold">Exportar PDF</h2>
+      <p class="py-2 text-sm leading-snug">
+        El diseño es la hoja en pantalla. El papel es el tamaño de cada página del PDF. No se escala.
+      </p>
 
-    <div role="alert" class="alert hidden" data-testid="export-alert">
-      <span data-export-alert-text></span>
+      <div role="alert" class="alert hidden" data-testid="export-alert">
+        <span data-export-alert-text></span>
+      </div>
+
+      <fieldset class="fieldset">
+        <legend class="fieldset-legend">Diseño</legend>
+        <div class="export-panel__fields">
+          <div class="join" data-testid="export-design">
+            {
+              designOptions.map((option) => (
+                <button
+                  class="join-item btn btn-sm"
+                  type="button"
+                  data-export-design={option.id}
+                  aria-pressed="false"
+                >
+                  {option.label}
+                </button>
+              ))
+            }
+          </div>
+          <p class="fieldset-label">
+            El mismo que Carta / A5 / A6 de la barra. A4 no es un diseño.
+          </p>
+        </div>
+      </fieldset>
+
+      <fieldset class="fieldset" data-testid="export-paper">
+        <legend class="fieldset-legend">Papel de salida</legend>
+        <div class="export-panel__fields">
+          <div class="join">
+            {
+              paperOptions.map((option) => (
+                <button
+                  class="join-item btn btn-sm"
+                  type="button"
+                  data-export-paper={option.id}
+                  aria-pressed="false"
+                >
+                  {option.label}
+                </button>
+              ))
+            }
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset class="fieldset" data-testid="export-layout">
+        <legend class="fieldset-legend">Disposición</legend>
+        <div class="export-panel__fields">
+          {
+            layoutOptions.map((option) => (
+              <label class="export-panel__choice">
+                <input
+                  class="radio radio-sm radio-primary"
+                  type="radio"
+                  name="export-layout"
+                  data-export-layout={option.id}
+                />
+                <span>{option.label}</span>
+                <span class="export-panel__hint hidden" data-layout-unavailable={option.id}>
+                  No aplica
+                </span>
+              </label>
+            ))
+          }
+        </div>
+      </fieldset>
+
+      <fieldset class="fieldset" data-testid="export-orientation">
+        <legend class="fieldset-legend">Orientación</legend>
+        <div class="export-panel__fields">
+          <label class="export-panel__choice">
+            <input class="radio radio-sm radio-primary" type="radio" name="export-orientation" value="portrait" />
+            <span>Vertical</span>
+          </label>
+          <label class="export-panel__choice">
+            <input class="radio radio-sm radio-primary" type="radio" name="export-orientation" value="landscape" />
+            <span>Apaisado</span>
+          </label>
+          <p class="export-panel__hint hidden" data-orientation-auto>Automática (apaisado)</p>
+        </div>
+      </fieldset>
+
+      <fieldset class="fieldset">
+        <legend class="fieldset-legend">Formatos</legend>
+        <div class="export-panel__fields">
+          <p class="fieldset-label">
+            El formato de esta página parte marcado. No se puede dejar la lista vacía.
+          </p>
+          <ul class="export-panel__formats" data-export-format-list>
+            {
+              FORMATS.map((format) => (
+                <li data-format-id={format.id}>
+                  <label class="export-panel__choice export-panel__choice--grow">
+                    <input
+                      class="checkbox checkbox-sm checkbox-primary"
+                      type="checkbox"
+                      data-testid="export-format"
+                      data-format-id={format.id}
+                    />
+                    <span>{format.title}</span>
+                  </label>
+                  <button
+                    class="btn btn-square btn-sm shrink-0"
+                    type="button"
+                    data-testid="export-format-up"
+                    aria-label={`Subir ${format.code}`}
+                  >
+                    <ChromeIcon name="chevron-up" />
+                  </button>
+                  <button
+                    class="btn btn-square btn-sm shrink-0"
+                    type="button"
+                    data-testid="export-format-down"
+                    aria-label={`Bajar ${format.code}`}
+                  >
+                    <ChromeIcon name="chevron-down" />
+                  </button>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+      </fieldset>
     </div>
 
-    <fieldset class="fieldset">
-      <legend class="fieldset-legend">Diseño</legend>
-      <div class="join justify-center" data-testid="export-design">
-        {
-          designOptions.map((option) => (
-            <button
-              class="join-item btn btn-sm"
-              type="button"
-              data-export-design={option.id}
-              aria-pressed="false"
-            >
-              {option.label}
-            </button>
-          ))
-        }
-      </div>
-      <p class="fieldset-label whitespace-normal">
-        El mismo que Carta / A5 / A6 de la barra. A4 no es un diseño.
-      </p>
-    </fieldset>
-
-    <fieldset class="fieldset" data-testid="export-paper">
-      <legend class="fieldset-legend">Papel de salida</legend>
-      <div class="join justify-center">
-        {
-          paperOptions.map((option) => (
-            <button
-              class="join-item btn btn-sm"
-              type="button"
-              data-export-paper={option.id}
-              aria-pressed="false"
-            >
-              {option.label}
-            </button>
-          ))
-        }
-      </div>
-    </fieldset>
-
-    <fieldset class="fieldset" data-testid="export-layout">
-      <legend class="fieldset-legend">Disposición</legend>
-      {
-        layoutOptions.map((option) => (
-          <label class="fieldset-label cursor-pointer justify-start gap-2 whitespace-normal">
-            <input
-              class="radio radio-sm radio-primary"
-              type="radio"
-              name="export-layout"
-              data-export-layout={option.id}
-            />
-            <span>{option.label}</span>
-            <span class="fieldset-label hidden" data-layout-unavailable={option.id}>
-              No aplica
-            </span>
-          </label>
-        ))
-      }
-    </fieldset>
-
-    <fieldset class="fieldset" data-testid="export-orientation">
-      <legend class="fieldset-legend">Orientación</legend>
-      <label class="fieldset-label cursor-pointer justify-start gap-2 whitespace-normal">
-        <input class="radio radio-sm radio-primary" type="radio" name="export-orientation" value="portrait" />
-        <span>Vertical</span>
-      </label>
-      <label class="fieldset-label cursor-pointer justify-start gap-2 whitespace-normal">
-        <input class="radio radio-sm radio-primary" type="radio" name="export-orientation" value="landscape" />
-        <span>Apaisado</span>
-      </label>
-      <p class="fieldset-label hidden" data-orientation-auto>Automática (apaisado)</p>
-    </fieldset>
-
-    <fieldset class="fieldset">
-      <legend class="fieldset-legend">Formatos</legend>
-      <p class="fieldset-label whitespace-normal">
-        El formato de esta página parte marcado. No se puede dejar la lista vacía.
-      </p>
-      <ul class="flex min-w-0 flex-col gap-2" data-export-format-list>
-        {
-          FORMATS.map((format) => (
-            <li class="flex min-w-0 items-center gap-1" data-format-id={format.id}>
-              <label class="fieldset-label min-w-0 flex-1 cursor-pointer justify-start gap-2 whitespace-normal">
-                <input
-                  class="checkbox checkbox-sm checkbox-primary"
-                  type="checkbox"
-                  data-testid="export-format"
-                  data-format-id={format.id}
-                />
-                <span class="min-w-0">{format.title}</span>
-              </label>
-              <button
-                class="btn btn-square btn-sm shrink-0"
-                type="button"
-                data-testid="export-format-up"
-                aria-label={`Subir ${format.code}`}
-              >
-                <ChromeIcon name="chevron-up" />
-              </button>
-              <button
-                class="btn btn-square btn-sm shrink-0"
-                type="button"
-                data-testid="export-format-down"
-                aria-label={`Bajar ${format.code}`}
-              >
-                <ChromeIcon name="chevron-down" />
-              </button>
-            </li>
-          ))
-        }
-      </ul>
-    </fieldset>
-
-    <div class="modal-action flex-wrap">
+    <div class="modal-action">
       <form method="dialog">
         <button class="btn btn-sm" type="submit">Cerrar</button>
       </form>

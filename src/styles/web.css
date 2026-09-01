@@ -175,12 +175,78 @@ body.is-print-document .web-chrome {
   }
 }
 
-.web-chrome .modal-box {
-  min-width: 0;
-  max-width: min(32rem, calc(100vw - 1.5rem));
+/*
+  iOS/Safari: el UA del <dialog> (fit-content, borde, padding) y overflow:clip
+  de daisyUI recortan el panel. 90vh ignora la barra del navegador (usar svh).
+  WebKit ignora display:grid en fieldset y min-inline-size:min-content desborda.
+*/
+.web-chrome .modal {
+  box-sizing: border-box;
+  border: 0;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: 100dvh;
+  margin: 0;
+  padding: 0.75rem;
+  overflow: auto;
+  overscroll-behavior: contain;
+  align-items: center;
+  justify-items: center;
 }
 
-.web-chrome .modal-box .fieldset,
+.web-chrome .export-panel__box {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  width: 100%;
+  max-width: min(32rem, 100%);
+  max-height: calc(100dvh - 1.5rem);
+  overflow: hidden;
+  padding: 1rem;
+}
+
+.web-chrome .export-panel__scroll {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+.web-chrome .export-panel__box .modal-action {
+  flex-shrink: 0;
+  margin-top: 1rem;
+}
+
+.web-chrome .modal-box .fieldset {
+  min-width: 0;
+  min-inline-size: 0;
+  max-width: 100%;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.web-chrome .modal-box .fieldset-legend {
+  float: none;
+  display: block;
+  width: auto;
+  max-width: 100%;
+  margin: 0;
+  padding: 0.25rem 0 0.125rem;
+}
+
+.web-chrome .export-panel__fields {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.375rem;
+  min-width: 0;
+  max-width: 100%;
+}
+
 .web-chrome .modal-box p {
   min-width: 0;
   max-width: 100%;
@@ -196,8 +262,67 @@ body.is-print-document .web-chrome {
 }
 
 .web-chrome .modal-box .fieldset-label {
+  display: block;
   white-space: normal;
   max-width: 100%;
+  text-align: start;
+}
+
+.web-chrome .export-panel__choice {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  text-align: start;
+  cursor: pointer;
+}
+
+.web-chrome .export-panel__choice--grow {
+  flex: 1 1 auto;
+  flex-wrap: nowrap;
+}
+
+.web-chrome .export-panel__choice span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.web-chrome .export-panel__hint {
+  font-size: 0.75rem;
+  color: color-mix(in oklab, var(--color-base-content) 60%, transparent);
+}
+
+.web-chrome .modal-box .radio,
+.web-chrome .modal-box .checkbox {
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.web-chrome .modal-box .radio:disabled,
+.web-chrome .modal-box .checkbox:disabled {
+  opacity: 0.45;
+}
+
+.web-chrome .export-panel__formats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.web-chrome .export-panel__formats > li {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 0;
+  width: 100%;
 }
 
 .web-chrome .modal-action {
@@ -205,7 +330,24 @@ body.is-print-document .web-chrome {
   justify-content: flex-end;
 }
 
+@supports (height: 100svh) {
+  .web-chrome .modal {
+    height: 100svh;
+    max-height: 100svh;
+  }
+
+  .web-chrome .export-panel__box {
+    max-height: calc(100svh - 1.5rem);
+  }
+}
+
 @media (max-width: 40rem) {
+  .web-chrome .modal {
+    place-items: start center;
+    padding-top: max(0.75rem, env(safe-area-inset-top));
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+  }
+
   .web-chrome .modal-action {
     flex-direction: column-reverse;
     align-items: stretch;

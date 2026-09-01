@@ -145,6 +145,7 @@ test.describe('Pie legal permanente', () => {
 });
 
 const NARROW = { width: 390, height: 844 } as const;
+const IPHONE_SE = { width: 375, height: 667 } as const;
 
 async function assertNoHorizontalClip(
   page: Page,
@@ -155,6 +156,17 @@ async function assertNoHorizontalClip(
   expect(viewport, 'viewport').not.toBeNull();
   expect(box!.x).toBeGreaterThanOrEqual(-1);
   expect(box!.x + box!.width).toBeLessThanOrEqual(viewport!.width + 1);
+}
+
+async function assertNoVerticalClip(
+  page: Page,
+  box: { x: number; y: number; width: number; height: number } | null,
+) {
+  const viewport = page.viewportSize();
+  expect(box, 'caja visible').not.toBeNull();
+  expect(viewport, 'viewport').not.toBeNull();
+  expect(box!.y).toBeGreaterThanOrEqual(-1);
+  expect(box!.y + box!.height).toBeLessThanOrEqual(viewport!.height + 1);
 }
 
 test.describe('Cromo web en viewport estrecho (390×844)', () => {
@@ -282,6 +294,7 @@ test.describe('Cromo web en viewport estrecho (390×844)', () => {
     const modalBox = page.locator('.modal-box');
     await expect(modalBox).toBeVisible();
     assertNoHorizontalClip(page, await modalBox.boundingBox());
+    assertNoVerticalClip(page, await modalBox.boundingBox());
 
     const paperJoin = page.getByTestId('export-paper').locator('.join');
     await expect(paperJoin).toBeVisible();
@@ -298,6 +311,43 @@ test.describe('Cromo web en viewport estrecho (390×844)', () => {
     for (const label of ['Carta', 'A4', 'A5', 'A6'] as const) {
       await expect(page.getByTestId('export-paper').getByRole('button', { name: label })).toBeVisible();
     }
+
+    await expect(page.getByTestId('download-pdf-panel')).toBeInViewport();
+
+    const controls = await modalBox.evaluate((el) => {
+      const boxRect = el.getBoundingClientRect();
+      return [...el.querySelectorAll<HTMLElement>('.radio, .checkbox')].map((control) => {
+        const rect = control.getBoundingClientRect();
+        return {
+          width: rect.width,
+          inside:
+            rect.width > 0 &&
+            rect.left >= boxRect.left - 1 &&
+            rect.right <= boxRect.right + 1,
+        };
+      });
+    });
+    expect(controls.length).toBeGreaterThan(0);
+    for (const control of controls) {
+      expect(control.width, 'control visible').toBeGreaterThan(0);
+      expect(control.inside, 'radio o casilla dentro del modal').toBe(true);
+    }
+  });
+
+  test('el modal de exportación cabe en altura de iPhone SE y deja Descargar a la vista', async ({ page }) => {
+    await page.setViewportSize(IPHONE_SE);
+    await page.goto('/formatos/expedientes/');
+    await page.locator('.sheet').waitFor();
+
+    await page.getByTestId('export-options').click();
+    await expect(page.getByTestId('export-panel')).toBeVisible();
+
+    const modalBox = page.locator('.modal-box');
+    await expect(modalBox).toBeVisible();
+    assertNoHorizontalClip(page, await modalBox.boundingBox());
+    assertNoVerticalClip(page, await modalBox.boundingBox());
+    await expect(page.getByTestId('download-pdf-panel')).toBeInViewport();
+    await expect(page.getByRole('button', { name: 'Cerrar' }).first()).toBeInViewport();
   });
 });
 
