@@ -11,6 +11,15 @@ export const PRINT_CAPTURE_DPI = 300;
 export const CSS_DPI = 96;
 export const CAPTURE_PIXEL_RATIO = PRINT_CAPTURE_DPI / CSS_DPI;
 
+/** Fondo del papel `.sheet` al rasterizar. Por defecto opaco (PDF). */
+export type CaptureSheetOptions = {
+  background?: 'opaque' | 'transparent';
+};
+
+function isTransparentBackground(options?: CaptureSheetOptions): boolean {
+  return options?.background === 'transparent';
+}
+
 const IFRAME_WAIT_MS = 20_000;
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -98,8 +107,11 @@ function snapshotInline(el: Element): RestoreFn {
  * El relleno `--paper` queda blanco y el trazo (solo en CSS) desaparece; los `<text>`
  * sí se ven porque el fill por defecto del SVG es negro. Inlinamos pintura calculada
  * para que el clon conserve odontograma y leyenda.
+ *
+ * En `background: 'transparent'` solo el papel de `.sheet` se vacía; paneles,
+ * casillas y SVG se inlinean igual que en el modo opaco.
  */
-function prepareSheetForCapture(root: HTMLElement): RestoreFn {
+function prepareSheetForCapture(root: HTMLElement, options?: CaptureSheetOptions): RestoreFn {
   const view = root.ownerDocument?.defaultView;
   if (!view) {
     return () => {};
@@ -162,11 +174,24 @@ function prepareSheetForCapture(root: HTMLElement): RestoreFn {
     style.printColorAdjust = 'exact';
   });
 
+  const transparentPaper = isTransparentBackground(options);
   const themeSurfaces = [root, ...root.querySelectorAll('.outlined-panel, .rx-cell, .tx-area, .imagen-notas')];
   for (const el of themeSurfaces) {
     const cs = view.getComputedStyle(el);
     restores.push(snapshotInline(el));
     const style = (el as HTMLElement).style;
+
+    if (transparentPaper && el === root) {
+      style.background = 'transparent';
+      style.backgroundColor = 'transparent';
+      style.backgroundImage = 'none';
+      style.boxShadow = 'none';
+      style.overflow = 'hidden';
+      style.borderRadius = cs.borderRadius;
+      style.printColorAdjust = 'exact';
+      continue;
+    }
+
     style.background = cs.background;
     style.backgroundColor = cs.backgroundColor;
     style.backgroundImage = cs.backgroundImage;
@@ -216,17 +241,18 @@ function waitForSheet(doc: Document): Promise<HTMLElement> {
 }
 
 /** PNG de un `.sheet` vivo. No incluye la barra (`.web-chrome` / `[data-print-hide]`). */
-export async function captureSheet(el: HTMLElement): Promise<Uint8Array> {
+export async function captureSheet(el: HTMLElement, options?: CaptureSheetOptions): Promise<Uint8Array> {
   const doc = el.ownerDocument ?? document;
   await waitForFonts(doc);
   await waitForImages(el);
 
   await yieldForPaint();
-  const restore = prepareSheetForCapture(el);
+  const restore = prepareSheetForCapture(el, options);
   try {
+    const transparentPaper = isTransparentBackground(options);
     const dataUrl = await toPng(el, {
       pixelRatio: CAPTURE_PIXEL_RATIO,
-      backgroundColor: '#ffffff',
+      ...(transparentPaper ? {} : { backgroundColor: '#ffffff' }),
       skipAutoScale: true,
       style: {
         boxShadow: 'none',
@@ -309,7 +335,11 @@ function iframeHost(): HTMLElement {
 /**
  * Carga `url?papel=<diseño>&estilo=<piel>` en un iframe del mismo origen, captura su `.sheet` y destruye el iframe.
  */
-export async function captureFormatByUrl(url: string, design: DesignSizeId): Promise<Uint8Array> {
+export async function captureFormatByUrl(
+  url: string,
+  design: DesignSizeId,
+  options?: CaptureSheetOptions,
+): Promise<Uint8Array> {
   const theme = normalizeVisualTheme(document.documentElement.dataset.visualTheme);
   const frameUrl = new URL(sheetCaptureUrl(url, design, theme), window.location.origin);
 
@@ -341,7 +371,7 @@ export async function captureFormatByUrl(url: string, design: DesignSizeId): Pro
     await new Promise<void>((resolve) => {
       requestAnimationFrame(() => resolve());
     });
-    return await captureSheet(sheet);
+    return await captureSheet(sheet, options);
   } finally {
     iframe.remove();
   }

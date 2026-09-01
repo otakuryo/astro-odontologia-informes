@@ -312,7 +312,10 @@ test.describe('Cromo web en viewport estrecho (390×844)', () => {
       await expect(page.getByTestId('export-paper').getByRole('button', { name: label })).toBeVisible();
     }
 
+    await expect(page.getByTestId('download-pdf-panel')).toBeVisible();
     await expect(page.getByTestId('download-pdf-panel')).toBeInViewport();
+    await expect(page.getByTestId('download-png-panel')).toBeVisible();
+    await expect(page.getByTestId('download-png-panel')).toBeInViewport();
 
     const controls = await modalBox.evaluate((el) => {
       const boxRect = el.getBoundingClientRect();
@@ -346,7 +349,10 @@ test.describe('Cromo web en viewport estrecho (390×844)', () => {
     await expect(modalBox).toBeVisible();
     assertNoHorizontalClip(page, await modalBox.boundingBox());
     assertNoVerticalClip(page, await modalBox.boundingBox());
+    await expect(page.getByTestId('download-pdf-panel')).toBeVisible();
     await expect(page.getByTestId('download-pdf-panel')).toBeInViewport();
+    await expect(page.getByTestId('download-png-panel')).toBeVisible();
+    await expect(page.getByTestId('download-png-panel')).toBeInViewport();
     await expect(page.getByRole('button', { name: 'Cerrar', exact: true })).toBeInViewport();
 
     const backdrop = page.locator('.modal-backdrop button');

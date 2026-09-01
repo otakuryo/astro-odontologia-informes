@@ -34,7 +34,7 @@ const { label = 'Imprimir hoja' } = Astro.props;
   />
   <button slot="download" class="btn btn-primary btn-sm" type="button" data-testid="download-pdf">
     <ChromeIcon name="download" />
-    <span class="print-toolbar__label" data-download-label>Descargar PDF</span>
+    <span class="print-toolbar__label" data-download-label data-download-idle="Descargar PDF">Descargar PDF</span>
   </button>
   <button slot="print" class="btn btn-ghost btn-sm" type="button" onclick="window.print()">
     <ChromeIcon name="printer" />

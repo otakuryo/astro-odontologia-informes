@@ -13,15 +13,23 @@ import {
   type ExportSettings,
   type FormatId,
 } from '../lib/print-export/types';
-import { captureFormatByUrl, captureSheet, yieldForPaint } from './capture-sheet';
+import { captureFormatByUrl, captureSheet, yieldForPaint, type CaptureSheetOptions } from './capture-sheet';
 import { bindExportPanel, showExportError } from './export-panel';
+import { downloadConfiguredPngZip } from './export-png';
+
+export type { CaptureSheetOptions };
 
 export type PrintExportHook = {
-  captureSheet: (el: HTMLElement) => Promise<Uint8Array>;
-  captureFormatByUrl: (url: string, design: DesignSizeId) => Promise<Uint8Array>;
+  captureSheet: (el: HTMLElement, options?: CaptureSheetOptions) => Promise<Uint8Array>;
+  captureFormatByUrl: (
+    url: string,
+    design: DesignSizeId,
+    options?: CaptureSheetOptions,
+  ) => Promise<Uint8Array>;
   composePdf: (settings: ExportSettings, captures: readonly Uint8Array[]) => Promise<Uint8Array>;
   exportPrintPdf: (settings: ExportSettings, currentSheet?: HTMLElement | null) => Promise<Uint8Array>;
   downloadCurrentFormatPdf: () => Promise<Uint8Array>;
+  downloadConfiguredPngZip: () => Promise<Uint8Array>;
   imposeDuplicate: (pageCount: number) => ImposedSheet[];
   imposeBooklet: (pageCount: number) => ImposedSheet[];
 };
@@ -135,10 +143,15 @@ function triggerDownload(bytes: Uint8Array, fileName: string): void {
   }, 2_000);
 }
 
-async function captureFormats(
+/**
+ * Captura cada id de `settings.formats` (lista ya normalizada, no vacía).
+ * Hoja viva del formato actual; iframe para el resto. Fondo opaco si se omite `options`.
+ */
+export async function captureFormats(
   settings: ExportSettings,
   currentSheet: HTMLElement | null | undefined,
   currentFormat: FormatId,
+  options?: CaptureSheetOptions,
 ): Promise<Uint8Array[]> {
   const liveSheet = currentSheet ?? document.querySelector<HTMLElement>('.sheet');
 
@@ -148,10 +161,10 @@ async function captureFormats(
       continue;
     }
     if (formatId === currentFormat && liveSheet) {
-      captures.push(await captureSheet(liveSheet));
+      captures.push(await captureSheet(liveSheet, options));
     } else {
       const definition = getFormat(formatId);
-      captures.push(await captureFormatByUrl(definition.path, settings.design));
+      captures.push(await captureFormatByUrl(definition.path, settings.design, options));
     }
     await yieldForPaint();
   }
@@ -284,6 +297,7 @@ export function installPrintExportHook(): void {
     composePdf,
     exportPrintPdf,
     downloadCurrentFormatPdf,
+    downloadConfiguredPngZip,
     imposeDuplicate,
     imposeBooklet,
   };
@@ -291,5 +305,5 @@ export function installPrintExportHook(): void {
 
 export function bindPdfExport(): void {
   installPrintExportHook();
-  bindExportPanel(downloadConfiguredPdf);
+  bindExportPanel({ downloadPdf: downloadConfiguredPdf, downloadPngZip: downloadConfiguredPngZip });
 }

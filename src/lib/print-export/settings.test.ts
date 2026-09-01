@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { exportFileName } from "./formats";
+import { exportFileName, exportPngEntryName, exportPngZipFileName } from "./formats";
 import { normalizeExportSettings, PAPER_SIZE_STORAGE_KEY, PRINT_EXPORT_STORAGE_KEY, readExportSettings, writeExportSettings, type StorageLike } from "./settings";
 
 function memoryStorage(initial: Record<string, string> = {}): StorageLike {
@@ -104,5 +104,49 @@ describe("exportFileName", () => {
         layout: "1up",
       }),
     ).toBe("libro-odontologico-letter-sobre-letter-1up.pdf");
+  });
+});
+
+describe("exportPngZipFileName y exportPngEntryName", () => {
+  test("un formato A5: zip y entrada con código y sin-fondo", () => {
+    expect(
+      exportPngZipFileName({
+        formats: ["expedientes"],
+        design: "a5",
+      }),
+    ).toBe("ODO-F01-a5-sin-fondo.zip");
+
+    expect(
+      exportPngEntryName({
+        index: 1,
+        format: "expedientes",
+        design: "a5",
+      }),
+    ).toBe("01-ODO-F01-a5-sin-fondo.png");
+  });
+
+  test("dos formatos letter: zip de libro y entradas 01 / 02", () => {
+    expect(
+      exportPngZipFileName({
+        formats: ["expedientes", "paciente-rx-tx"],
+        design: "letter",
+      }),
+    ).toBe("libro-odontologico-letter-sin-fondo.zip");
+
+    expect(
+      exportPngEntryName({
+        index: 1,
+        format: "expedientes",
+        design: "letter",
+      }),
+    ).toBe("01-ODO-F01-letter-sin-fondo.png");
+
+    expect(
+      exportPngEntryName({
+        index: 2,
+        format: "paciente-rx-tx",
+        design: "letter",
+      }),
+    ).toBe("02-ODO-F02-letter-sin-fondo.png");
   });
 });

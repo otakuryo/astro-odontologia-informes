@@ -120,6 +120,10 @@ const layoutOptions = [
           <p class="fieldset-label">
             El formato de esta página parte marcado. No se puede dejar la lista vacía.
           </p>
+          <p class="fieldset-label">
+            PNG para editar descarga un ZIP con un PNG por formato marcado, sin fondo de hoja. El
+            papel de salida, la disposición y la orientación aplican solo al PDF.
+          </p>
           <ul class="export-panel__formats" data-export-format-list>
             {
               FORMATS.map((format) => (
@@ -161,9 +165,13 @@ const layoutOptions = [
       <form method="dialog">
         <button class="btn btn-sm" type="submit">Cerrar</button>
       </form>
+      <button class="btn btn-ghost btn-sm" type="button" data-testid="download-png-panel">
+        <ChromeIcon name="image" />
+        <span data-download-label data-download-idle="PNG para editar">PNG para editar</span>
+      </button>
       <button class="btn btn-primary btn-sm" type="button" data-testid="download-pdf-panel">
         <ChromeIcon name="download" />
-        <span data-download-label>Descargar PDF</span>
+        <span data-download-label data-download-idle="Descargar PDF">Descargar PDF</span>
       </button>
     </div>
   </div>

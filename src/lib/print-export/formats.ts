@@ -95,4 +95,30 @@ export function exportFileName(options: {
   return `libro-odontologico-${suffix}`;
 }
 
+/** Entrada PNG dentro del ZIP. `index` es 1-based. */
+export function exportPngEntryName(options: {
+  index: number;
+  format: FormatId;
+  design: DesignSizeId;
+}): string {
+  const nn = String(options.index).padStart(2, '0');
+  const format = getFormat(options.format);
+  return `${nn}-${format.code}-${options.design}-sin-fondo.png`;
+}
+
+/** Nombre del ZIP de PNG para editar. Sin papel ni disposición. */
+export function exportPngZipFileName(options: {
+  formats: readonly FormatId[];
+  design: DesignSizeId;
+}): string {
+  const suffix = `${options.design}-sin-fondo.zip`;
+
+  if (options.formats.length === 1) {
+    const format = getFormat(options.formats[0]!);
+    return `${format.code}-${suffix}`;
+  }
+
+  return `libro-odontologico-${suffix}`;
+}
+
 export { isFormatId };

@@ -2,10 +2,11 @@
 
 Protocolo de control de calidad para los cuatro formatos clínicos (ODO-F01 a ODO-F04). La fidelidad en milímetros, el espacio de pluma y el resultado en fotocopia **no** se cubren con pruebas unitarias: hay que imprimir de verdad.
 
-Hay dos salidas distintas. No las mezcle:
+Hay tres salidas distintas. No las mezcle:
 
 1. **PDF del panel** — captura de las hojas, imposición (1-up, duplicar o cuadernillo) y descarga. La escala 100 % se comprueba **en el visor de PDF**, no en el diálogo de impresión del navegador.
-2. **Imprimir hoja** (`window.print()`) — solo la hoja que está en pantalla, sin pliego impuesto. Sigue siendo la alternativa si la captura falla (sobre todo en Safari).
+2. **PNG para editar** — ZIP de PNG a 300 dpi **sin fondo de hoja** (`--sheet-bg`, incluido el degradado Glass). Un PNG por formato marcado, al tamaño de **Diseño**, 1-up vertical. El papel de salida, la disposición y la orientación **no** entran. Siempre ZIP, aunque haya un solo formato. Los rellenos de paneles, casillas, títulos y odontograma se conservan.
+3. **Imprimir hoja** (`window.print()`) — solo la hoja que está en pantalla, sin pliego impuesto. Sigue siendo la alternativa si la captura falla (sobre todo en Safari).
 
 ## Tamaño de hoja frente a estilo visual
 
@@ -28,7 +29,7 @@ Son ejes independientes. No los mezcle.
 
 - En la barra, elija el **papel** (tamaño de hoja): **Carta** (215,9 × 279,4 mm), **A5** (148 × 210 mm) o **A6** (105 × 148 mm). La previsualización en pantalla cambia de tamaño. El valor se recuerda entre formatos.
 - En la barra, elija el **estilo visual**: **Normal**, **Rounded** o **Glassmorfismo**. Solo pinta `.sheet`. Puede forzarlo con `?estilo=rounded`, `?estilo=glass` o los alias `redondeado` y `glassmorfismo`. Glass no usa `backdrop-filter`.
-- En **Opciones**, elija el **papel de salida**, la disposición y los formatos. El formato de la página actual parte marcado. La lista no puede quedar vacía.
+- En **Opciones**, elija el **papel de salida**, la disposición y los formatos. El formato de la página actual parte marcado. La lista no puede quedar vacía. **PNG para editar** usa solo **Diseño** (tamaño de cada hoja) y **Formatos** (los marcados, en el orden de la lista); la piel es la del documento vivo.
 - **Duplicar** y **cuadernillo** van siempre en **apaisado** (la orientación del panel queda bloqueada: «Automática (apaisado)»).
 - Una sola hoja clínica por formato. **No imprima el catálogo** (`/`): es la portada de Diente Dientitos y sigue sin imprimirse.
 
@@ -47,7 +48,7 @@ Cada ruta genera exactamente **1/1**. No hay paginación clínica. Puede forzar 
 
 Pruebe cada formato en:
 
-1. **Chromium** (Chrome, Edge u otro basado en Chromium) — PDF del panel e Imprimir hoja.
+1. **Chromium** (Chrome, Edge u otro basado en Chromium) — PDF del panel, PNG para editar e Imprimir hoja.
 2. **Safari** — **a mano**. `html-to-image` puede fallar; el panel muestra una alerta daisyUI y hay que usar **Imprimir hoja**. No hay e2e de Safari en este proyecto.
 
 No suba `@playwright/test` por encima de 1.61.1: Chromium de 1.62 no se instala en macOS 13.
@@ -75,6 +76,22 @@ Haga esta pasada en Chromium. En Safari, si la captura falla, pase al protocolo 
 - [ ] Cuadernillo: dúplex lado corto; al plegar, el orden de lectura es 1-2-3-4.
 - [ ] Sombra de pantalla, barra, selector de papel, selector de estilo visual, **Opciones**, el panel, el pie legal (`.site-footer`) y el aviso de uso (`UsageNotice`) no aparecen en el PDF.
 - [ ] El PDF muestra la piel elegida (Normal / Rounded / Glass) en `.sheet`. Glass no depende de `backdrop-filter`.
+
+## Protocolo PNG para editar
+
+Haga esta pasada en Chromium. El control está en **Opciones** (`PNG para editar`), no en la barra.
+
+1. Abra un formato, elija el **papel** (tamaño de hoja / **Diseño**) y el **estilo visual** en la barra y pulse **Opciones**.
+2. Marque los formatos en el orden deseado. El papel de salida, la disposición y la orientación **no** cambian el ZIP.
+3. Pulse **PNG para editar**. Descomprima el ZIP (un PNG por formato marcado; un solo formato también va en ZIP).
+4. Abra un PNG sobre un **fondo de color**: los paneles, casillas y títulos se ven opacos; los márgenes de la hoja son transparentes. El cromo web (barra, panel, pie legal) no aparece.
+
+### Lista de comprobación (PNG para editar)
+
+- [ ] El ZIP tiene un PNG por formato marcado; los nombres llevan `01-`, `02-`… y `-sin-fondo`.
+- [ ] Cada PNG es el tamaño de **Diseño** (Carta, A5 o A6), 1-up vertical, 300 dpi.
+- [ ] Sobre un fondo de color: márgenes de hoja transparentes; paneles y casillas opacos.
+- [ ] Sombra de pantalla, barra, selector de papel, selector de estilo visual, **Opciones**, el panel, el pie legal y el aviso de uso no aparecen en el PNG.
 
 ## Protocolo Imprimir hoja (cada formato, cada navegador)
 
@@ -118,6 +135,7 @@ No forman parte del QA actual. No implementar ahora:
 - Dos-up secuencial (hojas distintas lado a lado, sin duplicar ni cuadernillo).
 - Creep, marcas de corte y sangrado.
 - PDF vectorial puro (la exportación actual rasteriza a PNG).
+- SDK, Connect o Apps de Canva (el ZIP de PNG para editar es la vía de edición; no hay integración).
 - Quitar `window.print()`.
 - Impresión del catálogo `/`.
 - daisyUI dentro de `.sheet`.

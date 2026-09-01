@@ -62,7 +62,7 @@ export const FAQ_ITEMS = [
   {
     question: '¿Cómo se imprime o descarga un fichero?',
     answer:
-      'Abrir el formato, elegir Carta/A5/A6, Descargar PDF u Imprimir hoja. No imprimir el catálogo.',
+      'Abrir el formato, elegir Carta/A5/A6, Descargar PDF u Imprimir hoja. En Opciones, PNG para editar baja un ZIP de PNG sin fondo de hoja. No imprimir el catálogo.',
   },
 ] as const;
 

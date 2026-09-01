@@ -256,7 +256,13 @@ body.is-print-document .web-chrome {
 
 .web-chrome .export-panel__box .modal-action {
   flex-shrink: 0;
+  flex-wrap: wrap;
+  gap: 0.5rem;
   margin-top: 1rem;
+}
+
+.web-chrome .export-panel__box .modal-action form {
+  margin-inline-end: auto;
 }
 
 .web-chrome .modal-box .fieldset {
@@ -396,5 +402,9 @@ body.is-print-document .web-chrome {
   .web-chrome .modal-action form,
   .web-chrome .modal-action .btn {
     width: 100%;
+  }
+
+  .web-chrome .export-panel__box .modal-action form {
+    margin-inline-end: 0;
   }
 }

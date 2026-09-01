@@ -57,6 +57,14 @@ function downloadButtons(): HTMLButtonElement[] {
   ];
 }
 
+function busyButtons(): HTMLButtonElement[] {
+  return [
+    ...document.querySelectorAll<HTMLButtonElement>(
+      '[data-testid="download-pdf"], [data-testid="download-pdf-panel"], [data-testid="download-png-panel"]',
+    ),
+  ];
+}
+
 function selectedFormatsFromDom(): FormatId[] {
   const inputs = document.querySelectorAll<HTMLInputElement>('[data-testid="export-format"]');
   const selected: FormatId[] = [];
@@ -173,13 +181,14 @@ function paintMoveButtons(): void {
 }
 
 function paintDownload(_settings: ExportSettings): void {
-  for (const button of downloadButtons()) {
+  for (const button of busyButtons()) {
     button.disabled = false;
     button.setAttribute('aria-busy', String(busy));
     button.classList.toggle('is-exporting', busy);
     const label = button.querySelector('[data-download-label]');
     if (label instanceof HTMLElement) {
-      label.textContent = busy ? 'Descargando…' : 'Descargar PDF';
+      const idle = label.dataset.downloadIdle ?? '';
+      label.textContent = busy ? 'Descargando…' : idle;
     }
   }
 }
@@ -279,7 +288,12 @@ export function showExportError(detail: string): boolean {
   return true;
 }
 
-export function bindExportPanel(download: () => Promise<unknown>): void {
+export type ExportPanelDownloads = {
+  downloadPdf: () => Promise<unknown>;
+  downloadPngZip: () => Promise<unknown>;
+};
+
+export function bindExportPanel(downloads: ExportPanelDownloads): void {
   draft = loadDraft();
   orderFormatRows(draft.formats);
   paint(draft);
@@ -393,7 +407,7 @@ export function bindExportPanel(download: () => Promise<unknown>): void {
     });
   }
 
-  const runDownload = () => {
+  const runExport = (action: () => Promise<unknown>) => {
     if (!draft || busy) {
       return;
     }
@@ -408,7 +422,7 @@ export function bindExportPanel(download: () => Promise<unknown>): void {
     void (async () => {
       await yieldForPaint();
       try {
-        await download();
+        await action();
       } catch {
         /* el error ya se mostró en el panel o con alert */
       } finally {
@@ -421,7 +435,12 @@ export function bindExportPanel(download: () => Promise<unknown>): void {
   };
 
   for (const button of downloadButtons()) {
-    button.addEventListener('click', runDownload);
+    button.addEventListener('click', () => runExport(downloads.downloadPdf));
+  }
+
+  const pngButton = document.querySelector<HTMLButtonElement>('[data-testid="download-png-panel"]');
+  if (pngButton) {
+    pngButton.addEventListener('click', () => runExport(downloads.downloadPngZip));
   }
 }
 

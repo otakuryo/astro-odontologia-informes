@@ -17,6 +17,7 @@
     "@tailwindcss/vite": "^4.3.3",
     "astro": "^7.2.9",
     "daisyui": "^5.7.22",
+    "fflate": "^0.8.3",
     "html-to-image": "^1.11.13",
     "pdf-lib": "^1.17.1",
     "tailwindcss": "^4.3.3"
