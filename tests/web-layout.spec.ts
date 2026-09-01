@@ -347,7 +347,12 @@ test.describe('Cromo web en viewport estrecho (390×844)', () => {
     assertNoHorizontalClip(page, await modalBox.boundingBox());
     assertNoVerticalClip(page, await modalBox.boundingBox());
     await expect(page.getByTestId('download-pdf-panel')).toBeInViewport();
-    await expect(page.getByRole('button', { name: 'Cerrar' }).first()).toBeInViewport();
+    await expect(page.getByRole('button', { name: 'Cerrar', exact: true })).toBeInViewport();
+
+    const backdrop = page.locator('.modal-backdrop button');
+    await expect(backdrop).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+    await expect(backdrop).toHaveCSS('color', 'rgba(0, 0, 0, 0)');
+    await expect(page.getByTestId('export-panel')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
   });
 });
 

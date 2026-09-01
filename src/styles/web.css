@@ -193,9 +193,48 @@ body.is-print-document .web-chrome {
   overscroll-behavior: contain;
   align-items: center;
   justify-items: center;
+  background-color: transparent;
+}
+
+.web-chrome .modal[open] {
+  background-color: transparent;
+}
+
+.web-chrome .modal::backdrop {
+  background-color: transparent;
+}
+
+.web-chrome .modal-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: block;
+  width: auto;
+  height: auto;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: transparent;
+}
+
+.web-chrome .modal-backdrop button {
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: transparent;
+  font-size: 0;
+  cursor: pointer;
 }
 
 .web-chrome .export-panel__box {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   min-width: 0;
