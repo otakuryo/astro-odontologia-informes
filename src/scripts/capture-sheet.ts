@@ -3,7 +3,7 @@
  * La ruta actual se toma del DOM vivo; otras rutas, de un iframe del mismo origen.
  */
 import { toPng } from 'html-to-image';
-import type { DesignSizeId } from '../lib/print-export/types';
+import type { DesignSizeId, GutterSideId } from '../lib/print-export/types';
 import { normalizeVisualTheme, sheetCaptureUrl } from '../lib/visual-theme';
 
 /** 1 CSS px = 1/96 in; pixelRatio = dpi de captura / 96. */
@@ -333,15 +333,16 @@ function iframeHost(): HTMLElement {
 }
 
 /**
- * Carga `url?papel=<diseño>&estilo=<piel>` en un iframe del mismo origen, captura su `.sheet` y destruye el iframe.
+ * Carga `url?papel=<diseño>&estilo=<piel>` (y `anillado`/`lomo` si hay gutter) en un iframe del mismo origen, captura su `.sheet` y destruye el iframe.
  */
 export async function captureFormatByUrl(
   url: string,
   design: DesignSizeId,
   options?: CaptureSheetOptions,
+  gutter?: { mm: number; side: GutterSideId },
 ): Promise<Uint8Array> {
   const theme = normalizeVisualTheme(document.documentElement.dataset.visualTheme);
-  const frameUrl = new URL(sheetCaptureUrl(url, design, theme), window.location.origin);
+  const frameUrl = new URL(sheetCaptureUrl(url, design, theme, gutter), window.location.origin);
 
   const iframe = document.createElement('iframe');
   iframe.title = 'Captura de formato';

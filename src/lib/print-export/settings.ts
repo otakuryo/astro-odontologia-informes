@@ -1,4 +1,5 @@
 import { selectKnownFormats } from './formats';
+import { normalizeGutterMm, normalizeGutterSide } from './gutter';
 import { availableLayouts, resolveOrientation } from './paper';
 import {
   isFormatId,
@@ -14,6 +15,8 @@ import {
 
 export const PRINT_EXPORT_STORAGE_KEY = 'odo-print-export';
 export const PAPER_SIZE_STORAGE_KEY = 'odo-paper-size';
+export const GUTTER_MM_STORAGE_KEY = 'odo-gutter-mm';
+export const GUTTER_SIDE_STORAGE_KEY = 'odo-gutter-side';
 
 export type StorageLike = {
   getItem(key: string): string | null;
@@ -93,6 +96,8 @@ export function normalizeExportSettings(input: unknown, currentFormat: FormatId)
     layout: resolved.layout,
     orientation: resolveOrientation(resolved.layout, preferredOrientation),
     formats: selectKnownFormats(record.formats, fallbackFormat),
+    gutterMm: normalizeGutterMm(record.gutterMm),
+    gutterSide: normalizeGutterSide(record.gutterSide),
   };
 }
 
@@ -153,6 +158,8 @@ export function writeExportSettings(settings: ExportSettings, storage?: StorageL
   try {
     store.setItem(PRINT_EXPORT_STORAGE_KEY, JSON.stringify(normalized));
     store.setItem(PAPER_SIZE_STORAGE_KEY, normalized.design);
+    store.setItem(GUTTER_MM_STORAGE_KEY, String(normalized.gutterMm));
+    store.setItem(GUTTER_SIDE_STORAGE_KEY, normalized.gutterSide);
   } catch {
     /* modo privado o almacenamiento bloqueado: queda el valor en memoria */
   }

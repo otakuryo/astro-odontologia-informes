@@ -83,9 +83,14 @@ export function exportFileName(options: {
   design: DesignSizeId;
   paper: PaperSizeId;
   layout: PrintLayoutId;
+  gutterMm?: number;
 }): string {
   const layoutSlug = LAYOUT_FILE_SLUG[options.layout];
-  const suffix = `${options.design}-sobre-${options.paper}-${layoutSlug}.pdf`;
+  const gutterSlug =
+    typeof options.gutterMm === 'number' && options.gutterMm > 0
+      ? `-anillado${options.gutterMm}mm`
+      : '';
+  const suffix = `${options.design}-sobre-${options.paper}-${layoutSlug}${gutterSlug}.pdf`;
 
   if (options.formats.length === 1) {
     const format = getFormat(options.formats[0]!);

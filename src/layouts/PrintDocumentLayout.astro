@@ -70,6 +70,54 @@ const { title, description, documentTitle, code, revision = 'REV. 01', page = '1
         document.documentElement.setAttribute('data-visual-theme', theme || 'normal');
       })();
     </script>
+    <script is:inline>
+      (function () {
+        function clampMm(raw) {
+          if (raw == null || String(raw).trim() === '') return 0;
+          var n = Number(String(raw).trim());
+          if (!isFinite(n) || n < 0) return 0;
+          n = Math.round(n);
+          if (n === 0) return 0;
+          if (n < 10) return 10;
+          if (n > 15) return 15;
+          return n;
+        }
+        function sideOf(raw) {
+          if (!raw) return '';
+          raw = String(raw).toLowerCase();
+          if (raw === 'right' || raw === 'derecha') return 'right';
+          if (raw === 'left' || raw === 'izquierda') return 'left';
+          return '';
+        }
+        var params = new URLSearchParams(location.search);
+        var mmParam = params.get('anillado');
+        var mm = 0;
+        if (mmParam !== null) {
+          mm = clampMm(mmParam);
+        } else {
+          try {
+            var storedMm = localStorage.getItem('odo-gutter-mm');
+            if (storedMm != null) mm = clampMm(storedMm);
+          } catch (e) {}
+        }
+        var side = sideOf(params.get('lomo'));
+        if (!side) {
+          try {
+            var storedSide = localStorage.getItem('odo-gutter-side');
+            side = sideOf(storedSide) || 'left';
+          } catch (e) {
+            side = 'left';
+          }
+        }
+        var html = document.documentElement;
+        if (mm > 0) {
+          html.setAttribute('data-gutter-mm', String(mm));
+        } else {
+          html.removeAttribute('data-gutter-mm');
+        }
+        html.setAttribute('data-gutter-side', side || 'left');
+      })();
+    </script>
     <SeoHead
       title={title}
       description={description}
@@ -91,6 +139,7 @@ const { title, description, documentTitle, code, revision = 'REV. 01', page = '1
             </main>
             <DocumentFooter code={code} revision={revision} page={page} />
           </div>
+          <div class="sheet__gutter-guide" data-print-hide aria-hidden="true"></div>
         </div>
       </div>
     </div>

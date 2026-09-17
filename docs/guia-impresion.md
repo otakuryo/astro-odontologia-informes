@@ -25,11 +25,24 @@ Son ejes independientes. No los mezcle.
 - **Nunca se escala.** Solo hay disposición si el diseño y el papel coinciden (1-up) o si hay un anidamiento ISO de un escalón: A5 sobre A4, o A6 sobre A5 (duplicar y cuadernillo). Carta×A4 y A6×A4 (4-up) no están disponibles.
 - **Descargar PDF** permanece habilitado. Si el papel de salida del panel deja de ser imponible (al cambiar **Papel** en la barra o al pulsar descargar), se realinea al diseño en 1-up. El panel sigue alertando en cruces imposibles elegidos ahí, sin apagar el botón.
 
+## Margen de anillado
+
+Hueco extra de lomo para anillar o encuadernar. No se escala la hoja: `.sheet` conserva Carta / A5 / A6 y el contenido refluye (más `padding` en `.sheet__inner`).
+
+- El rango es un entero de **10 a 15 mm**, o **0** (apagado). Al activar el interruptor en **Opciones** se propone **12 mm**.
+- El lado del lomo es configurable (**Izquierda** o **Derecha**). En pantalla, **Imprimir hoja** y el PDF 1-up de un solo formato usan ese lado.
+- **Espejo dúplex (1-up con varios formatos):** la página impar (1-indexada) lleva el lomo en el lado configurado; la par, en el contrario. No se emite cada formato dos veces. Con un solo formato no hay alternancia.
+- **Cuadernillo:** el lomo va siempre hacia el pliegue (slot izquierdo → lomo derecho; slot derecho → lomo izquierdo). El lado del panel se ignora; el panel muestra «Hacia el pliegue, automático» y bloquea los radios. Los huecos `blank` no se capturan.
+- **Duplicar:** ambas mitades usan el lado configurado (basta una captura por formato).
+- **1-up apaisado:** la captura ya se rota 90° horario, así que el lomo izquierdo pasa a ser el borde superior del papel apaisado.
+- **PNG para editar** ignora el anillado (captura a 0 mm).
+- Puede forzarse con `?anillado=12` y `?lomo=izquierda` o `?lomo=derecha` (`html[data-gutter-mm]`, `html[data-gutter-side]`). La guía discontinua del lomo es solo de pantalla: no sale en el PDF ni en el papel.
+
 ## Antes de imprimir
 
 - En la barra, elija el **papel** (tamaño de hoja): **Carta** (215,9 × 279,4 mm), **A5** (148 × 210 mm) o **A6** (105 × 148 mm). La previsualización en pantalla cambia de tamaño. El valor se recuerda entre formatos.
 - En la barra, elija el **estilo visual**: **Normal**, **Rounded** o **Glassmorfismo**. Solo pinta `.sheet`. Puede forzarlo con `?estilo=rounded`, `?estilo=glass` o los alias `redondeado` y `glassmorfismo`. Glass no usa `backdrop-filter`.
-- En **Opciones**, elija el **papel de salida**, la disposición y los formatos. El formato de la página actual parte marcado. La lista no puede quedar vacía. **PNG para editar** usa solo **Diseño** (tamaño de cada hoja) y **Formatos** (los marcados, en el orden de la lista); la piel es la del documento vivo.
+- En **Opciones**, elija el **papel de salida**, la disposición, el **anillado** (si hace falta) y los formatos. El formato de la página actual parte marcado. La lista no puede quedar vacía. **PNG para editar** usa solo **Diseño** (tamaño de cada hoja) y **Formatos** (los marcados, en el orden de la lista); la piel es la del documento vivo. El anillado **no** entra en el PNG.
 - **Duplicar** y **cuadernillo** van siempre en **apaisado** (la orientación del panel queda bloqueada: «Automática (apaisado)»).
 - Una sola hoja clínica por formato. **No imprima el catálogo** (`/`): es la portada de Diente Dientitos y sigue sin imprimirse.
 
@@ -42,7 +55,7 @@ Son ejes independientes. No los mezcle.
 | ODO-F03 | `/formatos/eventos/` | Cuatro paneles de evento |
 | ODO-F04 | `/formatos/paciente-imagen/` | Diagrama dental vectorial, leyenda R/A/V/O y notas |
 
-Cada ruta genera exactamente **1/1**. No hay paginación clínica. Puede forzar el tamaño de hoja con `?papel=a5`, `?papel=a6` o `?papel=carta`, y el estilo visual con `?estilo=rounded`, `?estilo=glass` o `?estilo=normal` (`html[data-visual-theme]`, tipo `VisualThemeId`).
+Cada ruta genera exactamente **1/1**. No hay paginación clínica. Puede forzar el tamaño de hoja con `?papel=a5`, `?papel=a6` o `?papel=carta`, el estilo visual con `?estilo=rounded`, `?estilo=glass` o `?estilo=normal` (`html[data-visual-theme]`, tipo `VisualThemeId`), y el anillado con `?anillado=12` y `?lomo=derecha`.
 
 ## Navegadores de QA
 
@@ -58,14 +71,15 @@ No suba `@playwright/test` por encima de 1.61.1: Chromium de 1.62 no se instala 
 Haga esta pasada en Chromium. En Safari, si la captura falla, pase al protocolo de **Imprimir hoja**.
 
 1. Abra un formato, elija el **papel** (tamaño de hoja) y el **estilo visual** en la barra y pulse **Opciones**.
-2. Elija **papel**, **disposición** y **formatos**. Combinaciones habituales de QA:
+2. Elija **papel**, **disposición**, **anillado** (si procede) y **formatos**. Combinaciones habituales de QA:
    - Mismo tamaño: diseño A5, papel A5, 1-up vertical → una página A5.
    - **Duplicar**: diseño A5, papel A4, duplicar → una página A4 apaisada con la misma hoja a izquierda y derecha.
    - **Cuadernillo**: diseño A5, papel A4, los cuatro formatos en orden de catálogo → dos páginas A4 apaisadas (un pliego, cara y dorso).
 3. Pulse **Descargar PDF**. Abra el fichero en el visor.
 4. Imprima desde el **visor de PDF** (no desde el diálogo web del sitio). Escala **100 %**. No use «ajustar a la página» ni el zoom del visor como si fuera escala de impresión.
-5. **Cuadernillo y duplicar**: dúplex, **voltear por el lado corto**. El pliego es apaisado; el lado corto es el lomo al plegar.
-6. Compruebe el recuento de páginas y el tamaño (Carta, A4, A5 o A6) en las propiedades del PDF.
+5. **1-up vertical con anillado:** dúplex, **voltear por el lado largo**, para que el lomo de las páginas pares quede al lado contrario.
+6. **Cuadernillo y duplicar**: dúplex, **voltear por el lado corto**. El pliego es apaisado; el lado corto es el lomo al plegar. El cuadernillo no cambia de lado de volteo aunque lleve anillado.
+7. Compruebe el recuento de páginas y el tamaño (Carta, A4, A5 o A6) en las propiedades del PDF.
 
 ### Lista de comprobación (PDF)
 
@@ -76,13 +90,16 @@ Haga esta pasada en Chromium. En Safari, si la captura falla, pase al protocolo 
 - [ ] Cuadernillo: dúplex lado corto; al plegar, el orden de lectura es 1-2-3-4.
 - [ ] Sombra de pantalla, barra, selector de papel, selector de estilo visual, **Opciones**, el panel, el pie legal (`.site-footer`) y el aviso de uso (`UsageNotice`) no aparecen en el PDF.
 - [ ] El PDF muestra la piel elegida (Normal / Rounded / Glass) en `.sheet`. Glass no depende de `backdrop-filter`.
+- [ ] Con anillado a 15 mm ningún panel desborda en A6.
+- [ ] Páginas pares con lomo al lado opuesto tras imprimir a doble cara (1-up vertical, dúplex lado largo).
+- [ ] La guía discontinua no aparece en PDF ni papel.
 
 ## Protocolo PNG para editar
 
 Haga esta pasada en Chromium. El control está en **Opciones** (`PNG para editar`), no en la barra.
 
 1. Abra un formato, elija el **papel** (tamaño de hoja / **Diseño**) y el **estilo visual** en la barra y pulse **Opciones**.
-2. Marque los formatos en el orden deseado. El papel de salida, la disposición y la orientación **no** cambian el ZIP.
+2. Marque los formatos en el orden deseado. El papel de salida, la disposición, la orientación y el **anillado** **no** cambian el ZIP.
 3. Pulse **PNG para editar**. Descomprima el ZIP (un PNG por formato marcado; un solo formato también va en ZIP).
 4. Abra un PNG sobre un **fondo de color**: los paneles, casillas y títulos se ven opacos; los márgenes de la hoja son transparentes. El cromo web (barra, panel, pie legal) no aparece.
 
@@ -100,7 +117,7 @@ Solo la hoja en pantalla. No impone pliego. Haga las dos pasadas, en este orden:
 1. **PDF del navegador** — Imprimir → Guardar como PDF (o «Abrir en Vista Previa» en Safari). Abra el PDF y compruebe que hay **una sola página** del **diseño** elegido (Carta, A5 o A6).
 2. **Impresora real** — La misma hoja, primero a **color** y después a **escala de grises** (o fotocopia monocroma del PDF).
 
-En el diálogo del navegador: el **mismo tamaño de papel** que el diseño, orientación **vertical**, escala **100 %**, **sin** cabeceras ni pies automáticos, margen mínimo o «ninguno».
+En el diálogo del navegador: el **mismo tamaño de papel** que el diseño, orientación **vertical**, escala **100 %**, **sin** cabeceras ni pies automáticos, margen mínimo o «ninguno». Si la vista tiene anillado (`?anillado=` o el control del panel), **Imprimir hoja** respeta ese lomo; no hay espejo dúplex porque solo sale la hoja en pantalla.
 
 ### Lista de comprobación (Imprimir hoja)
 
@@ -114,6 +131,8 @@ En el diálogo del navegador: el **mismo tamaño de papel** que el diseño, orie
 - [ ] En ODO-F04, la leyenda se distingue **sin color**: **R** sólido, **A** rayado diagonal, **V** puntos, **O** círculo vacío, más las siglas. El color es un refuerzo, no el único canal.
 - [ ] En ODO-F04, los 52 numerales FDI del diagrama dental son legibles en el PDF.
 - [ ] Sombra de pantalla, selector de papel, selector de estilo visual, «Descargar PDF», «Imprimir hoja», «Opciones», el pie legal (`.site-footer`) y el aviso de uso (`UsageNotice`) no aparecen en el papel ni en el PDF.
+- [ ] Con anillado a 15 mm ningún panel desborda en A6.
+- [ ] La guía discontinua no aparece en PDF ni papel.
 
 ## Revisión médica
 
@@ -134,6 +153,7 @@ No forman parte del QA actual. No implementar ahora:
 - Media Carta.
 - Dos-up secuencial (hojas distintas lado a lado, sin duplicar ni cuadernillo).
 - Creep, marcas de corte y sangrado.
+- Cara y dorso del mismo formato.
 - PDF vectorial puro (la exportación actual rasteriza a PNG).
 - SDK, Connect o Apps de Canva (el ZIP de PNG para editar es la vía de edición; no hay integración).
 - Quitar `window.print()`.

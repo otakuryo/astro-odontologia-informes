@@ -3,9 +3,9 @@
  */
 import { zip } from 'fflate';
 import { exportPngEntryName, exportPngZipFileName } from '../lib/print-export/formats';
-import { normalizeExportSettings, readExportSettings } from '../lib/print-export/settings';
-import { captureFormats, currentDesignId, currentFormatId } from './export-pdf';
-import { showExportError } from './export-panel';
+import { captureJobKey } from '../lib/print-export/gutter';
+import { captureFormats, currentFormatId } from './export-pdf';
+import { currentExportDraft, showExportError } from './export-panel';
 
 function asPngBytes(input: Uint8Array | ArrayLike<number>): Uint8Array {
   return input instanceof Uint8Array ? input : Uint8Array.from(input);
@@ -51,21 +51,19 @@ function zipPngEntries(files: Record<string, Uint8Array>): Promise<Uint8Array> {
 
 /** Descarga ZIP con los ajustes del panel (diseño + formatos). Fondo de hoja transparente. */
 export async function downloadConfiguredPngZip(): Promise<Uint8Array> {
-  const formatId = currentFormatId();
-  const stored = readExportSettings(formatId);
-  const settings = normalizeExportSettings({ ...stored, design: currentDesignId() }, formatId);
+  const settings = { ...currentExportDraft(), gutterMm: 0 };
 
   try {
     const captures = await captureFormats(
       settings,
       document.querySelector<HTMLElement>('.sheet'),
-      formatId,
+      currentFormatId(),
       { background: 'transparent' },
     );
 
     const files: Record<string, Uint8Array> = {};
     for (const [offset, id] of settings.formats.entries()) {
-      const bytes = captures[offset];
+      const bytes = captures.get(captureJobKey({ format: id, gutterMm: 0, gutterSide: 'left' }));
       if (!bytes) {
         throw new Error('Falta una captura para el ZIP de PNG.');
       }

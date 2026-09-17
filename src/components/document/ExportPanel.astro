@@ -1,5 +1,6 @@
 ---
 import { FORMATS } from '../../lib/print-export/formats';
+import { GUTTER_DEFAULT_MM, GUTTER_MAX_MM, GUTTER_MIN_MM } from '../../lib/print-export/types';
 import ChromeIcon from '../web/ChromeIcon.astro';
 
 const designOptions = [
@@ -111,6 +112,59 @@ const layoutOptions = [
             <span>Apaisado</span>
           </label>
           <p class="export-panel__hint hidden" data-orientation-auto>Automática (apaisado)</p>
+        </div>
+      </fieldset>
+
+      <fieldset class="fieldset" data-testid="export-gutter">
+        <legend class="fieldset-legend">Anillado</legend>
+        <div class="export-panel__fields">
+          <label class="export-panel__choice">
+            <input
+              class="checkbox checkbox-sm checkbox-primary"
+              type="checkbox"
+              data-export-gutter-enabled
+            />
+            <span>Activar</span>
+          </label>
+          <label class="export-panel__gutter-mm">
+            <input
+              class="range range-sm range-primary"
+              type="range"
+              min={GUTTER_MIN_MM}
+              max={GUTTER_MAX_MM}
+              step="1"
+              value={GUTTER_DEFAULT_MM}
+              data-export-gutter-mm
+              aria-label="Milímetros de anillado"
+            />
+            <output data-export-gutter-value>{GUTTER_DEFAULT_MM} mm</output>
+          </label>
+          <label class="export-panel__choice">
+            <input
+              class="radio radio-sm radio-primary"
+              type="radio"
+              name="export-gutter-side"
+              value="left"
+            />
+            <span>Izquierda</span>
+          </label>
+          <label class="export-panel__choice">
+            <input
+              class="radio radio-sm radio-primary"
+              type="radio"
+              name="export-gutter-side"
+              value="right"
+            />
+            <span>Derecha</span>
+          </label>
+          <p class="export-panel__hint hidden" data-gutter-booklet-auto>
+            Hacia el pliegue, automático
+          </p>
+          <p class="fieldset-label">
+            A doble cara: en 1-up con varios formatos las páginas pares llevan el lomo al lado
+            contrario. También aplica a Imprimir hoja y a la vista en pantalla. No aplica a PNG
+            para editar.
+          </p>
         </div>
       </fieldset>
 

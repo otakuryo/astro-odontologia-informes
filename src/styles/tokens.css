@@ -98,6 +98,26 @@
   --panel-shadow: none;
   --cell-bg: var(--paper);
   --cell-border-color: var(--ink);
+
+  /* Anillado: hueco de lomo por reflujo (no escala --page-width). */
+  --gutter-mm: 0mm;
+  --gutter-left: 0mm;
+  --gutter-right: 0mm;
+}
+
+html[data-gutter-mm='10'] { --gutter-mm: 10mm; }
+html[data-gutter-mm='11'] { --gutter-mm: 11mm; }
+html[data-gutter-mm='12'] { --gutter-mm: 12mm; }
+html[data-gutter-mm='13'] { --gutter-mm: 13mm; }
+html[data-gutter-mm='14'] { --gutter-mm: 14mm; }
+html[data-gutter-mm='15'] { --gutter-mm: 15mm; }
+
+html[data-gutter-side='left'] {
+  --gutter-left: var(--gutter-mm);
+}
+
+html[data-gutter-side='right'] {
+  --gutter-right: var(--gutter-mm);
 }
 
 /* A5: 148 × 210 mm. Tipografía menos comprimida que el espacio; cabecera en 2 × 2. */

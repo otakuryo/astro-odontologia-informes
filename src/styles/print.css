@@ -58,6 +58,10 @@ html {
     display: none !important;
   }
 
+  .sheet__gutter-guide {
+    display: none !important;
+  }
+
   .sheet {
     box-shadow: none !important;
     margin: 0;

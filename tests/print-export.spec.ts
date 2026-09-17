@@ -112,6 +112,8 @@ test.describe('Exportación PDF', () => {
       layout: 'duplicate',
       orientation: 'landscape',
       formats: ['expedientes'],
+      gutterMm: 0,
+      gutterSide: 'left',
     });
 
     expect(pdf.getPageCount()).toBe(1);
@@ -128,6 +130,8 @@ test.describe('Exportación PDF', () => {
       layout: 'booklet',
       orientation: 'landscape',
       formats: ['expedientes'],
+      gutterMm: 0,
+      gutterSide: 'left',
     });
 
     expect(pdf.getPageCount()).toBe(2);
@@ -254,6 +258,8 @@ test.describe('Exportación PDF', () => {
       layout: 'booklet',
       orientation: 'landscape',
       formats: ['expedientes'],
+      gutterMm: 0,
+      gutterSide: 'left',
     };
 
     await page.addInitScript(

@@ -1,9 +1,12 @@
 import { FORMATS } from '../lib/print-export/formats';
+import { normalizeGutterMm } from '../lib/print-export/gutter';
 import { availableLayouts, resolveOrientation } from '../lib/print-export/paper';
 import { normalizeExportSettings, readExportSettings, writeExportSettings } from '../lib/print-export/settings';
 import {
+  GUTTER_DEFAULT_MM,
   isDesignSizeId,
   isFormatId,
+  isGutterSideId,
   isOrientationId,
   isPaperSizeId,
   isPrintLayoutId,
@@ -13,6 +16,7 @@ import {
   type OrientationId,
 } from '../lib/print-export/types';
 import { yieldForPaint } from './capture-sheet';
+import { applyGutter, getGutterFromDocument, isTransientGutterApply } from './gutter';
 import { applyPaperSize, getPaperSizeFromDocument, normalizePaperSize } from './paper-size';
 
 const COMBO_ALERT =
@@ -23,6 +27,13 @@ let preferredOrientation: OrientationId = 'portrait';
 let captureError: string | null = null;
 let busy = false;
 let paperObserver: MutationObserver | null = null;
+let lastGutterMm = GUTTER_DEFAULT_MM;
+
+function rememberGutterMm(mm: number): void {
+  if (mm > 0) {
+    lastGutterMm = mm;
+  }
+}
 
 function currentFormat(): FormatId {
   const pathname = window.location.pathname;
@@ -99,9 +110,21 @@ function reconcileLayout(settings: ExportSettings): ExportSettings {
 function loadDraft(): ExportSettings {
   const formatId = currentFormat();
   const stored = readExportSettings(formatId);
-  const merged = normalizeExportSettings({ ...stored, design: currentDesign() }, formatId);
+  const live = getGutterFromDocument();
+  const merged = normalizeExportSettings(
+    { ...stored, design: currentDesign(), gutterMm: live.mm, gutterSide: live.side },
+    formatId,
+  );
   preferredOrientation = merged.layout === '1up' ? merged.orientation : preferredOrientation;
+  rememberGutterMm(merged.gutterMm);
   return merged;
+}
+
+export function currentExportDraft(): ExportSettings {
+  if (!draft) {
+    draft = loadDraft();
+  }
+  return normalizeExportSettings({ ...draft, design: currentDesign() }, currentFormat());
 }
 
 function persistIfValid(settings: ExportSettings): void {
@@ -250,9 +273,49 @@ function paint(settings: ExportSettings): void {
     input.checked = selected.has(input.dataset.formatId);
   }
 
+  paintGutter(dialog, settings);
   paintMoveButtons();
   paintAlert(settings);
   paintDownload(settings);
+}
+
+function paintGutter(dialog: HTMLElement, settings: ExportSettings): void {
+  const enabled = settings.gutterMm > 0;
+  const mm = enabled ? settings.gutterMm : lastGutterMm;
+  const booklet = settings.layout === 'booklet';
+
+  const checkbox = dialog.querySelector<HTMLInputElement>('[data-export-gutter-enabled]');
+  if (checkbox) {
+    checkbox.checked = enabled;
+  }
+
+  const range = dialog.querySelector<HTMLInputElement>('[data-export-gutter-mm]');
+  if (range) {
+    range.value = String(mm);
+    range.disabled = !enabled;
+  }
+
+  const output = dialog.querySelector('[data-export-gutter-value]');
+  if (output instanceof HTMLElement) {
+    output.textContent = `${mm} mm`;
+  }
+
+  for (const input of dialog.querySelectorAll<HTMLInputElement>('[name="export-gutter-side"]')) {
+    input.disabled = booklet;
+    if (isGutterSideId(input.value)) {
+      input.checked = settings.gutterSide === input.value;
+    }
+  }
+
+  const hint = dialog.querySelector('[data-gutter-booklet-auto]');
+  if (hint instanceof HTMLElement) {
+    hint.classList.toggle('hidden', !booklet);
+  }
+}
+
+function applyDraftGutter(settings: ExportSettings): void {
+  rememberGutterMm(settings.gutterMm);
+  applyGutter(settings.gutterMm, settings.gutterSide);
 }
 
 function setDraft(next: ExportSettings): void {
@@ -270,6 +333,29 @@ function onDesignFromToolbar(): void {
     return;
   }
   setDraft(normalizeExportSettings({ ...draft, design }, currentFormat()));
+}
+
+function onGutterFromDocument(): void {
+  if (!draft || isTransientGutterApply()) {
+    return;
+  }
+  const live = getGutterFromDocument();
+  if (live.mm === draft.gutterMm && live.side === draft.gutterSide) {
+    return;
+  }
+  rememberGutterMm(live.mm);
+  setDraft({ ...draft, gutterMm: live.mm, gutterSide: live.side });
+}
+
+function commitGutterMm(mm: unknown): void {
+  if (!draft) {
+    return;
+  }
+  const gutterMm = normalizeGutterMm(mm);
+  rememberGutterMm(gutterMm);
+  const next = { ...draft, gutterMm };
+  setDraft(next);
+  applyDraftGutter(next);
 }
 
 export function showExportError(detail: string): boolean {
@@ -383,7 +469,45 @@ export function bindExportPanel(downloads: ExportPanelDownloads): void {
           formats = selectedFormatsFromDom();
         }
         setDraft({ ...draft, formats });
+        return;
       }
+
+      if (target.matches('[data-export-gutter-enabled]')) {
+        if (target.checked) {
+          commitGutterMm(lastGutterMm > 0 ? lastGutterMm : GUTTER_DEFAULT_MM);
+        } else {
+          rememberGutterMm(draft.gutterMm);
+          const next = { ...draft, gutterMm: 0 };
+          setDraft(next);
+          applyDraftGutter(next);
+        }
+        return;
+      }
+
+      if (target.matches('[data-export-gutter-mm]')) {
+        commitGutterMm(target.value);
+        return;
+      }
+
+      if (target.matches('[name="export-gutter-side"]')) {
+        if (!isGutterSideId(target.value) || draft.layout === 'booklet') {
+          return;
+        }
+        const next = { ...draft, gutterSide: target.value };
+        setDraft(next);
+        applyDraftGutter(next);
+      }
+    });
+
+    dialog.addEventListener('input', (event) => {
+      if (!draft || busy) {
+        return;
+      }
+      const target = event.target;
+      if (!(target instanceof HTMLInputElement) || !target.matches('[data-export-gutter-mm]')) {
+        return;
+      }
+      commitGutterMm(target.value);
     });
 
     dialog.addEventListener('close', () => {
@@ -400,10 +524,11 @@ export function bindExportPanel(downloads: ExportPanelDownloads): void {
   if (!paperObserver) {
     paperObserver = new MutationObserver(() => {
       onDesignFromToolbar();
+      onGutterFromDocument();
     });
     paperObserver.observe(document.documentElement, {
       attributes: true,
-      attributeFilter: ['data-paper-size'],
+      attributeFilter: ['data-paper-size', 'data-gutter-mm', 'data-gutter-side'],
     });
   }
 

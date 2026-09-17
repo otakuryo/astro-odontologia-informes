@@ -331,6 +331,26 @@ body.is-print-document .web-chrome {
   flex-wrap: nowrap;
 }
 
+.web-chrome .export-panel__gutter-mm {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.web-chrome .export-panel__gutter-mm .range {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.web-chrome .export-panel__gutter-mm output {
+  flex: 0 0 auto;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
 .web-chrome .export-panel__choice span {
   min-width: 0;
   overflow-wrap: anywhere;

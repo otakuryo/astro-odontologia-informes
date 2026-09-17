@@ -1,6 +1,6 @@
 ---
 name: diseno-pagina
-description: Guía para páginas de formato clínico y páginas web del libro odontológico. Una ruta nueva bajo src/pages/formatos/ usa PrintDocumentLayout, que ya incluye PrintToolbar, el selector de estilo visual y el script FOUC de html[data-visual-theme] y ?estilo=. Catálogo y legales usan WebPageLayout sin estilo visual. Incluye la receta para un cuarto VisualThemeId (VISUAL_THEMES más CSS). Usar al crear o editar páginas de formato, PrintDocumentLayout, WebPageLayout o al añadir un tema visual.
+description: Guía para páginas de formato clínico y páginas web del libro odontológico. Una ruta nueva bajo src/pages/formatos/ usa PrintDocumentLayout, que ya incluye PrintToolbar, el selector de estilo visual, el FOUC de html[data-visual-theme] y ?estilo=, y el FOUC de anillado (?anillado=/ ?lomo=, html[data-gutter-mm]/[data-gutter-side]) con guía de lomo. Catálogo y legales usan WebPageLayout sin estilo visual. Incluye la receta para un cuarto VisualThemeId (VISUAL_THEMES más CSS). Usar al crear o editar páginas de formato, PrintDocumentLayout, WebPageLayout o al añadir un tema visual.
 ---
 
 # Diseño de página
@@ -14,6 +14,8 @@ Una ruta bajo `src/pages/formatos/` es **una sola hoja**. Envuélvela en `PrintD
 - `html` con `data-paper-size` y `data-visual-theme` (valores iniciales `letter` y `normal`)
 - Script inline FOUC de `?papel=` / `odo-paper-size`
 - Script inline FOUC de `?estilo=` / `odo-visual-theme` (el query gana sobre `localStorage`)
+- Script inline FOUC de `?anillado=` / `?lomo=` / `odo-gutter-mm` / `odo-gutter-side` (el query gana sobre `localStorage`; recorte a [10, 15] duplicado a mano). `html[data-gutter-mm]` solo si > 0; `html[data-gutter-side]` siempre
+- Guía de lomo: `<div class="sheet__gutter-guide" data-print-hide aria-hidden="true">` dentro de `.sheet` (solo `@media screen`; oculta en print y en `captureSheet`)
 - `PrintToolbar`: desplegable listbox **Estilo visual** (`VisualThemeId`) y desplegable listbox **Papel** (`DesignSizeId`)
 - Import de `tokens.css`, `visual-themes.css` y `print.css`
 - `.sheet`, cabecera clínica, `slot` y pie documental
@@ -50,7 +52,7 @@ daisyUI solo en `.web-chrome`. No tematiza `.sheet` porque esas páginas no tien
 
 ## Tamaño frente a estilo
 
-No renombres el tamaño de hoja. En la barra se llama **Papel** (`?papel=`, `html[data-paper-size]`, `DesignSizeId`). En el panel de exportación se llama **Diseño**. El estilo visual es otro eje: `VisualThemeId`, query `estilo`, `html[data-visual-theme]`.
+No renombres el tamaño de hoja. En la barra se llama **Papel** (`?papel=`, `html[data-paper-size]`, `DesignSizeId`). En el panel de exportación se llama **Diseño**. El estilo visual es otro eje: `VisualThemeId`, query `estilo`, `html[data-visual-theme]`. El **anillado** es un tercer eje (`?anillado=`, `?lomo=`, `html[data-gutter-mm]`, `html[data-gutter-side]`): el hueco del lomo es reflujo de `.sheet__inner` y **no toca** `--page-width` ni `--page-height`.
 
 | `VisualThemeId` | Etiqueta | Query |
 | --- | --- | --- |

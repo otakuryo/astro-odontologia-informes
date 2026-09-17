@@ -1,4 +1,5 @@
-import type { DesignSizeId } from './print-export/types';
+import { gutterQuery } from './print-export/gutter';
+import type { DesignSizeId, GutterSideId } from './print-export/types';
 
 export const VISUAL_THEME_STORAGE_KEY = 'odo-visual-theme';
 export const VISUAL_THEME_QUERY_PARAM = 'estilo';
@@ -35,9 +36,23 @@ export function normalizeVisualTheme(value: string | null | undefined): VisualTh
 }
 
 /** URL relativa de captura: siempre lleva `papel` (diseño) y `estilo`. */
-export function sheetCaptureUrl(path: string, design: DesignSizeId, theme: VisualThemeId): string {
+export function sheetCaptureUrl(
+  path: string,
+  design: DesignSizeId,
+  theme: VisualThemeId,
+  gutter?: { mm: number; side: GutterSideId },
+): string {
   const url = new URL(path, 'https://libro.local');
   url.searchParams.set('papel', design);
   url.searchParams.set('estilo', theme);
+  if (gutter && gutter.mm > 0) {
+    const query = gutterQuery(gutter.mm, gutter.side);
+    if (query.anillado) {
+      url.searchParams.set('anillado', query.anillado);
+    }
+    if (query.lomo) {
+      url.searchParams.set('lomo', query.lomo);
+    }
+  }
   return `${url.pathname}${url.search}`;
 }

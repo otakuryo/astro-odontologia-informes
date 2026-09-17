@@ -49,3 +49,4 @@ playwright/.cache/
 .cursor/
 graphify-out/
 raw/
+graphify-openrouter-update.sh

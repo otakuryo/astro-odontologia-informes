@@ -91,7 +91,9 @@ test.describe('Modo print', () => {
       await preparePrintSheet(page, format.path);
 
       await expect(page.locator('.print-toolbar')).toBeVisible();
-      const printHide = page.locator('[data-print-hide]');
+      // La guía de anillado también es data-print-hide, pero en pantalla solo
+      // se muestra cuando hay lomo configurado.
+      const printHide = page.locator('[data-print-hide]:not(.sheet__gutter-guide)');
       const printHideCount = await printHide.count();
       expect(printHideCount).toBeGreaterThan(0);
       for (let i = 0; i < printHideCount; i += 1) {

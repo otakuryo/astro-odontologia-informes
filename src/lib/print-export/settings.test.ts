@@ -1,6 +1,15 @@
 import { describe, expect, test } from "bun:test";
 import { exportFileName, exportPngEntryName, exportPngZipFileName } from "./formats";
-import { normalizeExportSettings, PAPER_SIZE_STORAGE_KEY, PRINT_EXPORT_STORAGE_KEY, readExportSettings, writeExportSettings, type StorageLike } from "./settings";
+import {
+  GUTTER_MM_STORAGE_KEY,
+  GUTTER_SIDE_STORAGE_KEY,
+  normalizeExportSettings,
+  PAPER_SIZE_STORAGE_KEY,
+  PRINT_EXPORT_STORAGE_KEY,
+  readExportSettings,
+  writeExportSettings,
+  type StorageLike,
+} from "./settings";
 
 function memoryStorage(initial: Record<string, string> = {}): StorageLike {
   const data = new Map<string, string>(Object.entries(initial));
@@ -40,6 +49,16 @@ describe("normalizeExportSettings", () => {
 
     expect(settings.formats).toEqual(["eventos", "expedientes"]);
   });
+
+  test("ajustes antiguos sin gutterMm normalizan a 0 / left", () => {
+    const settings = normalizeExportSettings(
+      { design: "letter", paper: "letter", layout: "1up", formats: ["expedientes"] },
+      "expedientes",
+    );
+
+    expect(settings.gutterMm).toBe(0);
+    expect(settings.gutterSide).toBe("left");
+  });
 });
 
 describe("persistencia", () => {
@@ -61,6 +80,32 @@ describe("persistencia", () => {
       formats: ["paciente-rx-tx"],
     });
     expect(storage.getItem(PAPER_SIZE_STORAGE_KEY)).toBe("a5");
+    expect(readExportSettings("expedientes", storage)).toEqual(settings);
+  });
+
+  test("escribe las claves espejo odo-gutter-mm y odo-gutter-side", () => {
+    const storage = memoryStorage();
+    const settings = normalizeExportSettings(
+      {
+        design: "a5",
+        paper: "a4",
+        layout: "booklet",
+        formats: ["paciente-rx-tx"],
+        gutterMm: 12,
+        gutterSide: "right",
+      },
+      "expedientes",
+    );
+
+    writeExportSettings(settings, storage);
+
+    const stored = JSON.parse(storage.getItem(PRINT_EXPORT_STORAGE_KEY) ?? "null");
+    expect(stored).toMatchObject({
+      gutterMm: 12,
+      gutterSide: "right",
+    });
+    expect(storage.getItem(GUTTER_MM_STORAGE_KEY)).toBe("12");
+    expect(storage.getItem(GUTTER_SIDE_STORAGE_KEY)).toBe("right");
     expect(readExportSettings("expedientes", storage)).toEqual(settings);
   });
 
@@ -104,6 +149,37 @@ describe("exportFileName", () => {
         layout: "1up",
       }),
     ).toBe("libro-odontologico-letter-sobre-letter-1up.pdf");
+  });
+
+  test("con gutterMm > 0 añade -anillado{mm}mm; sin él no cambia", () => {
+    expect(
+      exportFileName({
+        formats: ["expedientes"],
+        design: "a5",
+        paper: "a5",
+        layout: "1up",
+        gutterMm: 12,
+      }),
+    ).toBe("ODO-F01-a5-sobre-a5-1up-anillado12mm.pdf");
+
+    expect(
+      exportFileName({
+        formats: ["expedientes"],
+        design: "a5",
+        paper: "a5",
+        layout: "1up",
+      }),
+    ).toBe("ODO-F01-a5-sobre-a5-1up.pdf");
+
+    expect(
+      exportFileName({
+        formats: ["expedientes"],
+        design: "a5",
+        paper: "a5",
+        layout: "1up",
+        gutterMm: 0,
+      }),
+    ).toBe("ODO-F01-a5-sobre-a5-1up.pdf");
   });
 });
 

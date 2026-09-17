@@ -59,4 +59,16 @@ describe('registro y captura', () => {
       '/formatos/eventos/?papel=letter&estilo=rounded',
     );
   });
+
+  test('sheetCaptureUrl añade anillado y lomo solo si mm > 0', () => {
+    expect(sheetCaptureUrl('/formatos/expedientes/', 'a5', 'glass', { mm: 12, side: 'left' })).toBe(
+      '/formatos/expedientes/?papel=a5&estilo=glass&anillado=12&lomo=izquierda',
+    );
+    expect(sheetCaptureUrl('/formatos/eventos/', 'letter', 'rounded', { mm: 15, side: 'right' })).toBe(
+      '/formatos/eventos/?papel=letter&estilo=rounded&anillado=15&lomo=derecha',
+    );
+    expect(sheetCaptureUrl('/formatos/expedientes/', 'a5', 'glass', { mm: 0, side: 'right' })).toBe(
+      '/formatos/expedientes/?papel=a5&estilo=glass',
+    );
+  });
 });

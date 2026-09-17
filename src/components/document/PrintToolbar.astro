@@ -50,9 +50,11 @@ const { label = 'Imprimir hoja' } = Astro.props;
 <script>
   import { bindPaperToolbar } from '../../scripts/paper-size';
   import { bindVisualThemeToolbar } from '../../scripts/visual-theme';
+  import { bindGutter } from '../../scripts/gutter';
   import { bindPdfExport } from '../../scripts/export-pdf';
 
   bindPaperToolbar();
   bindVisualThemeToolbar();
+  bindGutter();
   bindPdfExport();
 </script>
