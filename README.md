@@ -4,8 +4,8 @@ Diente Dientitos es un sitio estático en [Astro](https://astro.build) de ficher
 
 ## Requisitos
 
-- [Bun](https://bun.com) 1.3 o superior. Es el **único** gestor de paquetes y ejecutor de este proyecto.
-- No uses `npm`, `npx`, `yarn`, `pnpm` ni `node`.
+- [Bun](https://bun.com) 1.3 o superior. Es el **único** gestor de paquetes (`bun install`) y el ejecutor de tests (`bun test`, `bun run test`).
+- Los scripts `dev`/`build`/`preview`/`check` invocan el binario local `astro` (`node_modules/.bin/astro`), cuyo shebang es Node (`#!/usr/bin/env node`). No uses `bunx`, `npx`, `npm`, `pnpm` ni `yarn` para lanzarlos.
 
 Soporte oficial de Astro con Bun: [Use Bun with Astro](https://docs.astro.build/en/recipes/bun/).
 

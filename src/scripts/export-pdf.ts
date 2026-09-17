@@ -1,7 +1,7 @@
 /**
  * Motor PDF en el cliente: captura → imposición → pdf-lib → Blob + descarga.
  */
-import { PDFDocument, rgb, type PDFImage, type PDFPage } from 'pdf-lib';
+import type { PDFImage, PDFPage } from 'pdf-lib';
 import { exportFileName, FORMATS, getFormat } from '../lib/print-export/formats';
 import {
   buildCapturePlan,
@@ -95,13 +95,18 @@ async function rotatePng90Clockwise(bytes: Uint8Array): Promise<Uint8Array> {
   }
 }
 
-function fillPage(page: PDFPage, width: number, height: number): void {
+function fillPage(
+  page: PDFPage,
+  width: number,
+  height: number,
+  color: NonNullable<NonNullable<Parameters<PDFPage['drawRectangle']>[0]>['color']>,
+): void {
   page.drawRectangle({
     x: 0,
     y: 0,
     width,
     height,
-    color: rgb(1, 1, 1),
+    color,
   });
 }
 
@@ -219,6 +224,7 @@ export async function composePdf(
   settings: ExportSettings,
   captures: PrintExportCaptures,
 ): Promise<Uint8Array> {
+  const { PDFDocument, rgb } = await import('pdf-lib');
   const currentFormat = settings.formats[0] ?? 'expedientes';
   const normalized = normalizeExportSettings(settings, currentFormat);
   const captureMap = asCaptureMap(normalized, captures);
@@ -267,7 +273,7 @@ export async function composePdf(
       const side = gutterSideForPage(normalized.layout, index, normalized.gutterSide);
       const image = await embed(format, side);
       const page = pdf.addPage(pageSize);
-      fillPage(page, pageWidth, pageHeight);
+      fillPage(page, pageWidth, pageHeight, rgb(1, 1, 1));
       page.drawImage(image, {
         x: 0,
         y: 0,
@@ -309,7 +315,7 @@ export async function composePdf(
 
   for (const sheet of sheets) {
     const page = pdf.addPage(pageSize);
-    fillPage(page, pageWidth, pageHeight);
+    fillPage(page, pageWidth, pageHeight, rgb(1, 1, 1));
     drawSlot(page, sheet.left, await slotImage(sheet.left, 'left'), leftX, slotY, slotWidth, slotHeight);
     drawSlot(page, sheet.right, await slotImage(sheet.right, 'right'), rightX, slotY, slotWidth, slotHeight);
   }

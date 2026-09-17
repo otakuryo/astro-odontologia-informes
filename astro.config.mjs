@@ -7,5 +7,8 @@ export default defineConfig({
   trailingSlash: 'always',
   vite: {
     plugins: [tailwindcss()],
+    optimizeDeps: {
+      exclude: ['pdf-lib', 'html-to-image'],
+    },
   },
 });

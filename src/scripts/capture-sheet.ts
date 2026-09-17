@@ -2,7 +2,6 @@
  * Captura de `.sheet` a PNG a 300 dpi con html-to-image.
  * La ruta actual se toma del DOM vivo; otras rutas, de un iframe del mismo origen.
  */
-import { toPng } from 'html-to-image';
 import type { DesignSizeId, GutterSideId } from '../lib/print-export/types';
 import { normalizeVisualTheme, sheetCaptureUrl } from '../lib/visual-theme';
 
@@ -250,6 +249,7 @@ export async function captureSheet(el: HTMLElement, options?: CaptureSheetOption
   const restore = prepareSheetForCapture(el, options);
   try {
     const transparentPaper = isTransparentBackground(options);
+    const { toPng } = await import('html-to-image');
     const dataUrl = await toPng(el, {
       pixelRatio: CAPTURE_PIXEL_RATIO,
       ...(transparentPaper ? {} : { backgroundColor: '#ffffff' }),

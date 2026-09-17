@@ -4,10 +4,10 @@
   "private": true,
   "license": "Apache-2.0",
   "scripts": {
-    "dev": "bunx --bun astro dev",
-    "build": "bunx --bun astro build",
-    "preview": "bunx --bun astro preview",
-    "check": "bunx --bun astro check",
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check",
     "test": "bun test src/lib",
     "test:e2e": "playwright test"
   },
