@@ -206,7 +206,7 @@ test.describe('Anillado (reflujo de lomo)', () => {
     expect(JSON.parse(stored!).gutterMm).toBe(15);
   });
 
-  test('1-up A5 con 4 formatos y anillado 12: PDF de 4 páginas y plan L,R,L,R', async ({
+  test('1-up A5 con 5 formatos y anillado 12: PDF de 5 páginas y plan L,R,L,R,L', async ({
     page,
   }) => {
     test.setTimeout(120_000);
@@ -231,7 +231,7 @@ test.describe('Anillado (reflujo de lomo)', () => {
       return api.buildCapturePlan(exportSettings);
     }, settings);
 
-    expect(plan.map((job) => job.gutterSide)).toEqual(['left', 'right', 'left', 'right']);
+    expect(plan.map((job) => job.gutterSide)).toEqual(['left', 'right', 'left', 'right', 'left']);
 
     const downloadPromise = page.waitForEvent('download');
     await page.evaluate(async (exportSettings) => {
@@ -248,8 +248,8 @@ test.describe('Anillado (reflujo de lomo)', () => {
     const filePath = await download.path();
     expect(filePath).toBeTruthy();
     const pdf = await PDFDocument.load(await readFile(filePath!));
-    expect(pdf.getPageCount()).toBe(4);
-    for (let index = 0; index < 4; index += 1) {
+    expect(pdf.getPageCount()).toBe(5);
+    for (let index = 0; index < 5; index += 1) {
       assertPageSize(pdf.getPage(index), A5_PORTRAIT_PT);
     }
   });
@@ -343,7 +343,7 @@ test.describe('Anillado (reflujo de lomo)', () => {
     ).toBeTruthy();
   });
 
-  test('cuadernillo A5 sobre A4 de 4 formatos con anillado: 2 páginas A4 y plan hacia el pliegue', async ({
+  test('cuadernillo A5 sobre A4 de 5 formatos con anillado: 4 páginas A4 y plan hacia el pliegue', async ({
     page,
   }) => {
     test.setTimeout(120_000);
@@ -368,8 +368,8 @@ test.describe('Anillado (reflujo de lomo)', () => {
       return api.buildCapturePlan(exportSettings);
     }, settings);
 
-    expect(plan).toHaveLength(4);
-    expect(plan.map((job) => job.gutterSide)).toEqual(['left', 'right', 'left', 'right']);
+    expect(plan).toHaveLength(5);
+    expect(plan.map((job) => job.gutterSide)).toEqual(['left', 'right', 'left', 'right', 'left']);
     expect(plan.every((job) => job.gutterMm === 12)).toBeTruthy();
 
     const downloadPromise = page.waitForEvent('download');
@@ -385,9 +385,11 @@ test.describe('Anillado (reflujo de lomo)', () => {
     const filePath = await download.path();
     expect(filePath).toBeTruthy();
     const pdf = await PDFDocument.load(await readFile(filePath!));
-    expect(pdf.getPageCount()).toBe(2);
+    expect(pdf.getPageCount()).toBe(4);
     assertPageSize(pdf.getPage(0), A4_LANDSCAPE_PT);
     assertPageSize(pdf.getPage(1), A4_LANDSCAPE_PT);
+    assertPageSize(pdf.getPage(2), A4_LANDSCAPE_PT);
+    assertPageSize(pdf.getPage(3), A4_LANDSCAPE_PT);
   });
 
   test('PNG para editar con anillado activo ignora el lomo y no pone anillado en el iframe', async ({

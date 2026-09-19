@@ -1,0 +1,14 @@
+---
+import PrintDocumentLayout from '../../layouts/PrintDocumentLayout.astro';
+import PeriodontogramaFormat from '../../components/formats/PeriodontogramaFormat.astro';
+import { seoForFormat } from '../../lib/site';
+---
+
+<PrintDocumentLayout
+  title="Periodontograma · ODO-F05"
+  description={seoForFormat('ODO-F05')}
+  documentTitle="PERIODONTOGRAMA"
+  code="ODO-F05"
+>
+  <PeriodontogramaFormat />
+</PrintDocumentLayout>

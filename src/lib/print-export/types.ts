@@ -10,7 +10,7 @@ export type PrintLayoutId = '1up' | 'duplicate' | 'booklet';
 /** Orientación del papel de salida. El diseño clínico permanece vertical. */
 export type OrientationId = 'portrait' | 'landscape';
 
-export type FormatId = 'expedientes' | 'paciente-rx-tx' | 'eventos' | 'paciente-imagen';
+export type FormatId = 'expedientes' | 'paciente-rx-tx' | 'eventos' | 'paciente-imagen' | 'periodontograma';
 
 /** Lado del margen de anillado (lomo). */
 export type GutterSideId = 'left' | 'right';
@@ -34,7 +34,7 @@ export const DESIGN_SIZE_IDS = ['letter', 'a5', 'a6'] as const;
 export const PAPER_SIZE_IDS = ['letter', 'a4', 'a5', 'a6'] as const;
 export const PRINT_LAYOUT_IDS = ['1up', 'duplicate', 'booklet'] as const;
 export const ORIENTATION_IDS = ['portrait', 'landscape'] as const;
-export const FORMAT_IDS = ['expedientes', 'paciente-rx-tx', 'eventos', 'paciente-imagen'] as const;
+export const FORMAT_IDS = ['expedientes', 'paciente-rx-tx', 'eventos', 'paciente-imagen', 'periodontograma'] as const;
 export const GUTTER_SIDE_IDS = ['left', 'right'] as const;
 export const GUTTER_MIN_MM = 10;
 export const GUTTER_MAX_MM = 15;

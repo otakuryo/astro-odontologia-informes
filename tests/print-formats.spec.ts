@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { OCCLUSION_CELLS, OCCLUSION_LABELS } from '../src/lib/periodontogram';
 import { SITE_TITLE } from '../src/lib/site';
 
 const LETTER = { width: 816, height: 1056 };
@@ -24,6 +25,11 @@ const FORMATS = [
     title: 'Paciente imagen · ODO-F04',
     code: 'ODO-F04',
   },
+  {
+    path: '/formatos/periodontograma/',
+    title: 'Periodontograma · ODO-F05',
+    code: 'ODO-F05',
+  },
 ] as const;
 
 const SHARED_FIELDS = [
@@ -38,7 +44,6 @@ const FORBIDDEN_COPY = [
   'elemento inferior',
   'círculos conectados',
   'circulos conectados',
-  'odontograma',
   'pendiente de validación',
   'pendiente de validacion',
 ];
@@ -100,6 +105,516 @@ async function assertNoSheetOverflow(page: Page) {
   expect(metrics.contained).toBe(true);
 }
 
+const OCCLUSION_PAPERS = [
+  { id: 'letter', query: '' },
+  { id: 'a5', query: '?papel=a5' },
+  { id: 'a6', query: '?papel=a6' },
+] as const;
+
+type OcclusionMetrics = {
+  groupCount: number;
+  midCount: number;
+  labels: string[];
+  rowsPerGroup: number[];
+  cellsPerRow: number[][];
+  digits: string[][][];
+  columns: number;
+  rows: number;
+  overlaps: Array<{ a: number; b: number }>;
+  clipped: string[];
+  mids: Array<{
+    continuous: boolean;
+    betweenOnes: boolean;
+    height: number;
+    rowsHeight: number;
+  }>;
+  layout: Array<{
+    label: string;
+    left: number;
+    right: number;
+    top: number;
+    bottom: number;
+    width: number;
+    height: number;
+  }>;
+};
+
+async function measureOcclusion(page: Page): Promise<OcclusionMetrics | null> {
+  return page.evaluate(() => {
+    const root = document.querySelector('.perio-occlusion');
+    const sheet = document.querySelector('.sheet');
+    const groups = [...document.querySelectorAll('[data-testid="perio-occlusion-group"]')];
+    if (!(root instanceof HTMLElement) || !(sheet instanceof HTMLElement) || groups.length === 0) {
+      return null;
+    }
+
+    const toBox = (rect: DOMRect) => ({
+      left: rect.left,
+      right: rect.right,
+      top: rect.top,
+      bottom: rect.bottom,
+      width: rect.width,
+      height: rect.height,
+    });
+
+    const contained = (inner: DOMRect, outer: DOMRect, slop = 1.5) =>
+      inner.left >= outer.left - slop &&
+      inner.top >= outer.top - slop &&
+      inner.right <= outer.right + slop &&
+      inner.bottom <= outer.bottom + slop;
+
+    const overlaps = (a: DOMRect, b: DOMRect) =>
+      a.left < b.right - 0.5 && b.left < a.right - 0.5 && a.top < b.bottom - 0.5 && b.top < a.bottom - 0.5;
+
+    const textBox = (el: Element) => {
+      const range = document.createRange();
+      range.selectNodeContents(el);
+      return range.getBoundingClientRect();
+    };
+
+    const styles = getComputedStyle(root);
+    const clipped: string[] = [];
+    const sheetBox = sheet.getBoundingClientRect();
+    const rootBox = root.getBoundingClientRect();
+
+    if (!contained(rootBox, sheetBox)) {
+      clipped.push('root');
+    }
+
+    const rowsPerGroup: number[] = [];
+    const cellsPerRow: number[][] = [];
+    const digits: string[][][] = [];
+    const mids: Array<{
+      continuous: boolean;
+      betweenOnes: boolean;
+      height: number;
+      rowsHeight: number;
+    }> = [];
+    const layout: Array<ReturnType<typeof toBox> & { label: string }> = [];
+
+    for (const [groupIndex, group] of groups.entries()) {
+      if (!(group instanceof HTMLElement)) {
+        continue;
+      }
+
+      const groupBox = group.getBoundingClientRect();
+      const label = group.querySelector('.perio-occlusion__label');
+      const block = group.querySelector('.perio-occlusion__block');
+      const rowsRoot = group.querySelector('.perio-occlusion__rows');
+      const mid = group.querySelector('[data-testid="perio-occlusion-mid"]');
+      const rows = [...group.querySelectorAll('[data-testid="perio-occlusion-row"]')];
+      const lines = [...group.querySelectorAll('.perio-occlusion__line')];
+
+      layout.push({
+        ...toBox(groupBox),
+        label: group.getAttribute('data-label') ?? '',
+      });
+
+      if (!contained(groupBox, rootBox) || !contained(groupBox, sheetBox)) {
+        clipped.push(`group-${groupIndex}`);
+      }
+
+      if (label instanceof HTMLElement) {
+        const labelBox = label.getBoundingClientRect();
+        const labelText = textBox(label);
+        if (
+          !contained(labelBox, groupBox) ||
+          !contained(labelText, rootBox) ||
+          !contained(labelText, sheetBox) ||
+          label.scrollWidth > label.clientWidth + 1.5
+        ) {
+          clipped.push(`label-${groupIndex}`);
+        }
+        if (block instanceof HTMLElement && labelText.right > block.getBoundingClientRect().left + 1.5) {
+          clipped.push(`label-overlap-${groupIndex}`);
+        }
+      }
+
+      if (block instanceof HTMLElement && !contained(block.getBoundingClientRect(), groupBox)) {
+        clipped.push(`block-${groupIndex}`);
+      }
+
+      rowsPerGroup.push(rows.length);
+      const groupDigits: string[][] = [];
+      const groupCells: number[] = [];
+
+      for (const [rowIndex, row] of rows.entries()) {
+        if (!(row instanceof HTMLElement)) {
+          continue;
+        }
+
+        const cells = [...row.querySelectorAll('.perio-occlusion__cell')];
+        groupCells.push(cells.length);
+        groupDigits.push(cells.map((cell) => (cell.textContent ?? '').trim()));
+
+        if (!contained(row.getBoundingClientRect(), groupBox)) {
+          clipped.push(`row-${groupIndex}-${rowIndex}`);
+        }
+
+        for (const [cellIndex, cell] of cells.entries()) {
+          if (!(cell instanceof HTMLElement)) {
+            continue;
+          }
+          const cellBox = cell.getBoundingClientRect();
+          const cellText = textBox(cell);
+          if (
+            !contained(cellBox, groupBox) ||
+            !contained(cellText, rootBox) ||
+            !contained(cellText, sheetBox) ||
+            cell.scrollWidth > cell.clientWidth + 1.5
+          ) {
+            clipped.push(`cell-${groupIndex}-${rowIndex}-${cellIndex}`);
+          }
+        }
+      }
+
+      cellsPerRow.push(groupCells);
+      digits.push(groupDigits);
+
+      for (const [lineIndex, line] of lines.entries()) {
+        if (!(line instanceof HTMLElement)) {
+          continue;
+        }
+        const lineBox = line.getBoundingClientRect();
+        if (lineBox.width < 2 || lineBox.height < 0.2 || !contained(lineBox, groupBox)) {
+          clipped.push(`line-${groupIndex}-${lineIndex}`);
+        }
+      }
+
+      if (mid instanceof HTMLElement && rowsRoot instanceof HTMLElement) {
+        const midBox = mid.getBoundingClientRect();
+        const rowsBox = rowsRoot.getBoundingClientRect();
+        const firstRow = rows[0];
+        const firstCells =
+          firstRow instanceof HTMLElement ? [...firstRow.querySelectorAll('.perio-occlusion__cell')] : [];
+        const leftOne = firstCells[7]?.getBoundingClientRect();
+        const rightOne = firstCells[8]?.getBoundingClientRect();
+        const midCx = midBox.left + midBox.width / 2;
+
+        if (!contained(midBox, groupBox) || midBox.height < 2) {
+          clipped.push(`mid-${groupIndex}`);
+        }
+
+        mids.push({
+          continuous:
+            Math.abs(midBox.top - rowsBox.top) <= 1.5 &&
+            Math.abs(midBox.bottom - rowsBox.bottom) <= 1.5 &&
+            midBox.height >= rowsBox.height - 2,
+          betweenOnes: Boolean(
+            leftOne && rightOne && leftOne.right <= midCx + 2 && rightOne.left >= midCx - 2,
+          ),
+          height: midBox.height,
+          rowsHeight: rowsBox.height,
+        });
+      }
+    }
+
+    const overlapPairs: Array<{ a: number; b: number }> = [];
+    for (let i = 0; i < groups.length; i++) {
+      const a = groups[i];
+      if (!(a instanceof HTMLElement)) {
+        continue;
+      }
+      const aBox = a.getBoundingClientRect();
+      for (let j = i + 1; j < groups.length; j++) {
+        const b = groups[j];
+        if (!(b instanceof HTMLElement)) {
+          continue;
+        }
+        if (overlaps(aBox, b.getBoundingClientRect())) {
+          overlapPairs.push({ a: i, b: j });
+        }
+      }
+    }
+
+    return {
+      groupCount: groups.length,
+      midCount: document.querySelectorAll('[data-testid="perio-occlusion-mid"]').length,
+      labels: groups.map((group) => group.getAttribute('data-label') ?? ''),
+      rowsPerGroup,
+      cellsPerRow,
+      digits,
+      columns: styles.gridTemplateColumns.split(' ').filter(Boolean).length,
+      rows: styles.gridTemplateRows.split(' ').filter(Boolean).length,
+      overlaps: overlapPairs,
+      clipped,
+      mids,
+      layout,
+    };
+  });
+}
+
+async function assertPerioOcclusion(page: Page, paper: string) {
+  const metrics = await measureOcclusion(page);
+  expect(metrics, `oclusión medible en ${paper}`).not.toBeNull();
+
+  const occlusion = metrics!;
+  const cells = [...OCCLUSION_CELLS];
+
+  expect(occlusion.groupCount, `cuatro grupos en ${paper}`).toBe(4);
+  expect(occlusion.midCount, `cuatro ejes medios en ${paper}`).toBe(4);
+  expect(occlusion.labels).toEqual([...OCCLUSION_LABELS]);
+  expect(occlusion.columns, `retícula 2 columnas en ${paper}`).toBe(2);
+  expect(occlusion.rows, `retícula 2 filas en ${paper}`).toBe(2);
+  expect(occlusion.overlaps, `sin solapes en ${paper}`).toEqual([]);
+  expect(occlusion.clipped, `sin recortes en ${paper}`).toEqual([]);
+
+  expect(occlusion.rowsPerGroup).toEqual([2, 2, 2, 2]);
+  expect(occlusion.mids).toHaveLength(4);
+
+  for (const [groupIndex, groupDigits] of occlusion.digits.entries()) {
+    expect(occlusion.cellsPerRow[groupIndex], `16 cifras por fila en ${paper} #${groupIndex}`).toEqual([
+      16, 16,
+    ]);
+    expect(groupDigits, `secuencias 8…1 | 1…8 en ${paper} #${groupIndex}`).toEqual([cells, cells]);
+  }
+
+  for (const mid of occlusion.mids) {
+    expect(mid.continuous, `eje continuo en ${paper}`).toBe(true);
+    expect(mid.betweenOnes, `eje entre 1 | 1 en ${paper}`).toBe(true);
+  }
+
+  const [topLeft, topRight, bottomLeft, bottomRight] = occlusion.layout;
+  expect(topLeft, `grupo superior izquierdo en ${paper}`).toBeTruthy();
+  expect(topRight, `grupo superior derecho en ${paper}`).toBeTruthy();
+  expect(bottomLeft, `grupo inferior izquierdo en ${paper}`).toBeTruthy();
+  expect(bottomRight, `grupo inferior derecho en ${paper}`).toBeTruthy();
+
+  expect(topLeft!.right).toBeLessThanOrEqual(topRight!.left + 0.5);
+  expect(bottomLeft!.right).toBeLessThanOrEqual(bottomRight!.left + 0.5);
+  expect(topLeft!.bottom).toBeLessThanOrEqual(bottomLeft!.top + 0.5);
+  expect(topRight!.bottom).toBeLessThanOrEqual(bottomRight!.top + 0.5);
+  expect(Math.abs(topLeft!.left - bottomLeft!.left)).toBeLessThanOrEqual(2);
+  expect(Math.abs(topRight!.left - bottomRight!.left)).toBeLessThanOrEqual(2);
+  expect(Math.abs(topLeft!.top - topRight!.top)).toBeLessThanOrEqual(2);
+  expect(Math.abs(bottomLeft!.top - bottomRight!.top)).toBeLessThanOrEqual(2);
+}
+
+type PerioNotesMetrics = {
+  hallazgoCount: number;
+  midCount: number;
+  notesCounts: string[];
+  labelTexts: string[];
+  clipped: string[];
+  mids: Array<{
+    ownedByLine: boolean;
+    centered: boolean;
+    crossesRule: boolean;
+    shorterThanPanel: boolean;
+  }>;
+};
+
+const HALLAZGO_LABELS = [
+  'P. ósea horizontal',
+  'R. ósea vertical',
+  'Ensanchamiento de espacio del lig. perio.',
+  'Hallazgos Rx.',
+] as const;
+
+async function measurePerioNotes(page: Page): Promise<PerioNotesMetrics | null> {
+  return page.evaluate(() => {
+    const hallazgoRows = [...document.querySelectorAll('[data-testid="perio-hallazgo"]')];
+    const hallazgoLines = [...document.querySelectorAll('[data-testid="perio-hallazgo-line"]')];
+    const midNodes = [...document.querySelectorAll('[data-testid="perio-hallazgo-mid"]')];
+
+    if (hallazgoLines.length === 0) {
+      return null;
+    }
+
+    const notesCounts = [...document.querySelectorAll('.perio-notes')].map(
+      (node) => node.getAttribute('data-count') ?? '',
+    );
+
+    const contained = (inner: DOMRect, outer: DOMRect, slop = 1.5) =>
+      inner.left >= outer.left - slop &&
+      inner.top >= outer.top - slop &&
+      inner.right <= outer.right + slop &&
+      inner.bottom <= outer.bottom + slop;
+
+    const textBox = (el: Element) => {
+      const range = document.createRange();
+      range.selectNodeContents(el);
+      return range.getBoundingClientRect();
+    };
+
+    const clipped: string[] = [];
+    const labelTexts: string[] = [];
+    const mids: Array<{
+      ownedByLine: boolean;
+      centered: boolean;
+      crossesRule: boolean;
+      shorterThanPanel: boolean;
+    }> = [];
+
+    const rows = hallazgoRows.length > 0 ? hallazgoRows : hallazgoLines.map((line) => line.closest('.perio-hallazgo') ?? line);
+
+    for (const [index, row] of rows.entries()) {
+      if (!(row instanceof HTMLElement)) {
+        clipped.push(`row-${index}`);
+        continue;
+      }
+
+      const line = row.querySelector('[data-testid="perio-hallazgo-line"]') ?? hallazgoLines[index];
+      const mid = row.querySelector('[data-testid="perio-hallazgo-mid"]') ?? midNodes[index];
+      const label = row.querySelector('.perio-hallazgo__label');
+      const panel = row.closest('[data-testid="perio-panel"]');
+      const frame = row.closest('.outlined-panel');
+      const body = row.closest('.outlined-panel__body');
+
+      if (
+        !(line instanceof HTMLElement) ||
+        !(mid instanceof HTMLElement) ||
+        !(label instanceof HTMLElement) ||
+        !(panel instanceof HTMLElement) ||
+        !(frame instanceof HTMLElement) ||
+        !(body instanceof HTMLElement)
+      ) {
+        clipped.push(`row-missing-${index}`);
+        continue;
+      }
+
+      const rowBox = row.getBoundingClientRect();
+      const lineBox = line.getBoundingClientRect();
+      const midBox = mid.getBoundingClientRect();
+      const labelBox = label.getBoundingClientRect();
+      const labelText = textBox(label);
+      const panelBox = panel.getBoundingClientRect();
+      const frameBox = frame.getBoundingClientRect();
+      const bodyBox = body.getBoundingClientRect();
+      const border = Number.parseFloat(getComputedStyle(line).borderBottomWidth);
+      const ruleY = lineBox.bottom - border / 2;
+      const midCx = midBox.left + midBox.width / 2;
+      const midCy = midBox.top + midBox.height / 2;
+      const lineCx = lineBox.left + lineBox.width / 2;
+
+      labelTexts.push((label.textContent ?? '').trim());
+
+      const shells = [
+        ['body', bodyBox],
+        ['frame', frameBox],
+        ['panel', panelBox],
+      ] as const;
+
+      for (const [shellName, shellBox] of shells) {
+        if (!contained(rowBox, shellBox)) {
+          clipped.push(`row-${index}-${shellName}`);
+        }
+        if (!contained(labelBox, shellBox) || !contained(labelText, shellBox) || labelText.height < 1) {
+          clipped.push(`label-${index}-${shellName}`);
+        }
+        if (lineBox.width < 2 || lineBox.height < 0.15 || !contained(lineBox, shellBox)) {
+          clipped.push(`line-${index}-${shellName}`);
+        }
+        if (midBox.height < 1 || !contained(midBox, shellBox)) {
+          clipped.push(`mid-${index}-${shellName}`);
+        }
+      }
+
+        if (label.scrollHeight > label.clientHeight + 1.5) {
+          clipped.push(`label-${index}-overflow`);
+        }
+
+      mids.push({
+        ownedByLine: line.contains(mid),
+        centered: Math.abs(midCx - lineCx) <= 1.5,
+        crossesRule: midBox.top < ruleY - 0.4 && midBox.bottom > ruleY + 0.4 && Math.abs(midCy - ruleY) <= 2,
+        shorterThanPanel: midBox.height > 1 && midBox.height < panelBox.height * 0.35,
+      });
+    }
+
+    return {
+      hallazgoCount: hallazgoLines.length,
+      midCount: midNodes.length,
+      notesCounts,
+      labelTexts,
+      clipped,
+      mids,
+    };
+  });
+}
+
+async function assertPerioNotes(page: Page, paper: string) {
+  await page.locator('.sheet').waitFor();
+  await page.evaluate(() => document.fonts.ready);
+  const metrics = await measurePerioNotes(page);
+  expect(metrics, `renglones de paneles medibles en ${paper}`).not.toBeNull();
+
+  const notes = metrics!;
+  expect(notes.hallazgoCount, `cuatro hallazgos en ${paper}`).toBe(4);
+  expect(notes.midCount, `cuatro divisores en ${paper}`).toBe(4);
+  expect(notes.notesCounts).toEqual(['4']);
+  expect(notes.labelTexts, `cuatro etiquetas de hallazgos en ${paper}`).toEqual([...HALLAZGO_LABELS]);
+  expect(notes.mids).toHaveLength(4);
+  expect(notes.clipped, `hallazgos contenidos en el cuerpo en ${paper}`).toEqual([]);
+
+  for (const mid of notes.mids) {
+    expect(mid.ownedByLine, `el divisor pertenece al renglón en ${paper}`).toBe(true);
+    expect(mid.centered, `el divisor está centrado en ${paper}`).toBe(true);
+    expect(mid.crossesRule, `el divisor cruza la regla en ${paper}`).toBe(true);
+    expect(mid.shorterThanPanel, `el divisor no recorre el panel en ${paper}`).toBe(true);
+  }
+}
+
+async function assertPerioSymbology(page: Page, paper: string, expectedColumns: number) {
+  const metrics = await page.evaluate(() => {
+    const root = document.querySelector('[data-testid="perio-symbology"]');
+    const items = [...document.querySelectorAll('[data-testid="perio-symbology-item"]')];
+    const body = root?.closest('.outlined-panel__body');
+    if (!(root instanceof HTMLElement) || !(body instanceof HTMLElement) || items.length === 0) {
+      return null;
+    }
+
+    const bodyBox = body.getBoundingClientRect();
+    const boxes = items.map((item) => item.getBoundingClientRect());
+    const labels = items.map((item) => item.querySelector('.perio-symbology__label'));
+    const labelBoxes = labels.map((label) => {
+      if (!(label instanceof HTMLElement)) {
+        return null;
+      }
+      const range = document.createRange();
+      range.selectNodeContents(label);
+      return range.getBoundingClientRect();
+    });
+    const contained = (box: DOMRect, outer: DOMRect, slop = 1.5) =>
+      box.left >= outer.left - slop &&
+      box.top >= outer.top - slop &&
+      box.right <= outer.right + slop &&
+      box.bottom <= outer.bottom + slop;
+
+    const hasOverlaps = (rects: DOMRect[]) =>
+      rects.some((box, index) =>
+        rects.slice(index + 1).some((other) => {
+          const width = Math.min(box.right, other.right) - Math.max(box.left, other.left);
+          const height = Math.min(box.bottom, other.bottom) - Math.max(box.top, other.top);
+          return width > 0.5 && height > 0.5;
+        }),
+      );
+
+    const overlaps =
+      hasOverlaps(boxes) ||
+      hasOverlaps(labelBoxes.filter((box): box is DOMRect => box !== null));
+
+    return {
+      columns: getComputedStyle(root).gridTemplateColumns.split(' ').filter(Boolean).length,
+      itemCount: items.length,
+      contained: boxes.every((box) => contained(box, bodyBox)),
+      labelsContained: labelBoxes.every(
+        (box) => box !== null && box.width > 1 && box.height > 1 && contained(box, bodyBox),
+      ),
+      overlaps,
+    };
+  });
+
+  expect(metrics, `simbología medible en ${paper}`).not.toBeNull();
+  expect(metrics!.columns, `columnas de simbología en ${paper}`).toBe(expectedColumns);
+  expect(metrics!.itemCount).toBe(9);
+  expect(metrics!.contained, `ítems contenidos en ${paper}`).toBe(true);
+  expect(metrics!.labelsContained, `etiquetas contenidas en ${paper}`).toBe(true);
+  if (paper === 'a5') {
+    expect(metrics!.overlaps, `ítems sin solaparse en ${paper}`).toBe(false);
+  }
+}
+
 test.describe('Rutas HTTP y títulos', () => {
   test('el catálogo responde 200', async ({ page }) => {
     const response = await page.goto('/');
@@ -142,6 +657,7 @@ test.describe('Documentos de formato', () => {
       for (const phrase of FORBIDDEN_COPY) {
         expect(bodyText, `no debe aparecer «${phrase}»`).not.toContain(phrase);
       }
+      expect(bodyText, 'no debe aparecer «odontograma» como palabra').not.toMatch(/\bodontograma\b/);
 
       await assertNoSheetOverflow(page);
     });
@@ -245,6 +761,104 @@ test.describe('Documentos de formato', () => {
     await expect(page.locator('svg[data-testid="odontogram"]')).toBeVisible();
     await expect(page.locator('[data-testid="tooth"]')).toHaveCount(52);
     await expect(page.locator('[data-testid="imagen-notas"]')).toHaveCount(1);
+  });
+
+  test('ODO-F05 periodontograma: arcos, oclusión, paneles y textos', async ({ page }) => {
+    await page.goto('/formatos/periodontograma/');
+
+    await expect(page.locator('[data-testid="perio-arch"]')).toHaveCount(2);
+
+    const arches = page.locator('[data-testid="perio-arch"]');
+    await expect(arches.nth(0).locator('[data-testid="perio-tooth"]')).toHaveCount(32);
+    await expect(arches.nth(1).locator('[data-testid="perio-tooth"]')).toHaveCount(32);
+
+    await expect(page.locator('[data-testid="perio-occlusion-group"]')).toHaveCount(4);
+    await expect(page.locator('[data-testid="perio-occlusion-mid"]')).toHaveCount(4);
+    await expect(page.locator('[data-testid="perio-panel"]')).toHaveCount(2);
+
+    await expect(page.getByText('SIMBOLOGÍA', { exact: true })).toBeVisible();
+    await expect(page.getByText('EXAMEN RADIOGRÁFICO', { exact: true })).toBeVisible();
+    await expect(page.getByText('HIGIENE ORAL / NOTAS', { exact: true })).toHaveCount(0);
+    await expect(page.getByText('OTROS / OBSERVACIONES', { exact: true })).toHaveCount(0);
+    await expect(page.getByText('Facial', { exact: true })).toHaveCount(2);
+    await expect(page.getByText('Lingual', { exact: true })).toHaveCount(2);
+
+    await expect(page.locator('[data-testid="odontogram"]')).toHaveCount(0);
+
+    await expect(page.locator('[data-testid="perio-hallazgo-line"]')).toHaveCount(4);
+    await expect(page.locator('[data-testid="perio-hallazgo-mid"]')).toHaveCount(4);
+    await expect(page.locator('[data-testid="perio-hallazgo"]')).toHaveCount(4);
+    await expect(page.locator('[data-testid="perio-higiene-line"]')).toHaveCount(0);
+    await expect(page.locator('[data-testid="perio-otros-line"]')).toHaveCount(0);
+
+    const notes = page.locator('.perio-notes');
+    await expect(notes).toHaveCount(1);
+    await expect(notes).toHaveAttribute('data-count', '4');
+
+    const panelWidths = await page.locator('[data-testid="perio-panel"]').evaluateAll((panels) =>
+      panels.map((panel) => panel.getBoundingClientRect().width),
+    );
+    expect(panelWidths).toHaveLength(2);
+    expect(panelWidths[1]).toBeGreaterThan(panelWidths[0] * 3.5);
+
+    await assertPerioNotes(page, 'letter');
+
+    const geometry = await page.evaluate(() => {
+      const format = document.querySelector('[data-format="ODO-F05"]');
+      const arches = [...document.querySelectorAll('[data-testid="perio-arch"]')];
+      if (!(format instanceof HTMLElement) || arches.length !== 2) {
+        return null;
+      }
+      const formatBox = format.getBoundingClientRect();
+      return arches.map((node) => {
+        const box = node.getBoundingClientRect();
+        return {
+          widthRatio: box.width / formatBox.width,
+          aspect: box.width / box.height,
+        };
+      });
+    });
+
+    expect(geometry, 'geometría de arcadas medible').not.toBeNull();
+    for (const arch of geometry!) {
+      expect(arch.widthRatio).toBeGreaterThan(0.85);
+      expect(arch.aspect).toBeGreaterThan(2.3);
+      expect(arch.aspect).toBeLessThan(2.6);
+    }
+
+    for (const paper of OCCLUSION_PAPERS) {
+      await page.goto(`/formatos/periodontograma/${paper.query}`);
+      await expect(page.locator('html')).toHaveAttribute('data-paper-size', paper.id);
+      await expect(page.locator('[data-testid="perio-occlusion-group"]')).toHaveCount(4);
+
+      const panelTitles = page.locator('[data-testid="perio-panel"] .outlined-panel__title');
+      await expect(panelTitles).toHaveCount(2);
+      const titleMetrics = await panelTitles.evaluateAll((titles) =>
+        titles.map((title) => {
+          const box = title.getBoundingClientRect();
+          const styles = getComputedStyle(title);
+          return {
+            height: box.height,
+            fontSize: styles.fontSize,
+            paddingTop: styles.paddingTop,
+            paddingBottom: styles.paddingBottom,
+          };
+        }),
+      );
+      expect(
+        Math.abs(titleMetrics[0].height - titleMetrics[1].height),
+        `títulos de panel con la misma altura en ${paper.id}`,
+      ).toBeLessThanOrEqual(0.5);
+      expect(titleMetrics[1]).toMatchObject({
+        fontSize: titleMetrics[0].fontSize,
+        paddingTop: titleMetrics[0].paddingTop,
+        paddingBottom: titleMetrics[0].paddingBottom,
+      });
+
+      await assertPerioOcclusion(page, paper.id);
+      await assertPerioNotes(page, paper.id);
+      await assertPerioSymbology(page, paper.id, paper.id === 'letter' ? 1 : 2);
+    }
   });
 
   test('ODO-F04 dispone el diagrama dental (pasillo, homólogos, labels)', async ({

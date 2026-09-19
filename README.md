@@ -1,6 +1,6 @@
 # Diente Dientitos
 
-Diente Dientitos es un sitio estático en [Astro](https://astro.build) de ficheros odontológicos imprimibles (expedientes, Rx/Tx, eventos y diagrama dental) para rellenar a mano o descargar en PDF. El catálogo (`/`) es la portada de marca y no se imprime: cada formato sale en una sola hoja. Antes de elegir formato, el catálogo muestra un aviso de plantilla no homologada (`UsageNotice`); ese aviso no entra en la hoja clínica ni en el PDF. daisyUI solo se usa en la navegación y la configuración en pantalla; no forma parte de las hojas clínicas.
+Diente Dientitos es un sitio estático en [Astro](https://astro.build) de ficheros odontológicos imprimibles (expedientes, Rx/Tx, eventos, diagrama dental y periodontograma) para rellenar a mano o descargar en PDF. El catálogo (`/`) es la portada de marca y no se imprime: cada formato sale en una sola hoja. Antes de elegir formato, el catálogo muestra un aviso de plantilla no homologada (`UsageNotice`); ese aviso no entra en la hoja clínica ni en el PDF. daisyUI solo se usa en la navegación y la configuración en pantalla; no forma parte de las hojas clínicas.
 
 ## Requisitos
 
@@ -34,6 +34,7 @@ bun install
 | `/formatos/paciente-rx-tx/` | Paciente · Rx / Tx / Notas | `ODO-F02` |
 | `/formatos/eventos/` | Eventos | `ODO-F03` |
 | `/formatos/paciente-imagen/` | Paciente · diagrama dental, leyenda y notas | `ODO-F04` |
+| `/formatos/periodontograma/` | Periodontograma | `ODO-F05` |
 
 Cada ruta de formato es **una sola hoja vertical**. En la barra hay dos selectores independientes: **Papel** elige el tamaño de hoja (**Carta** 215,9 × 279,4 mm, predeterminado; **A5** 148 × 210 mm; **A6** 105 × 148 mm; `?papel=`, `html[data-paper-size]`) y **Estilo visual** elige la piel de `.sheet` (**Normal**, **Rounded**, **Glassmorfismo**; `VisualThemeId`, `?estilo=`, `html[data-visual-theme]`). El panel de exportación sigue llamando **Diseño** al tamaño de hoja. El margen seguro se reduce de forma proporcional (12 mm en Carta, 8 mm en A5, 5,5 mm en A6). A4 no es un tamaño de hoja en pantalla: es un **papel de salida** del PDF (Opciones → duplicar o cuadernillo, p. ej. A5 sobre A4). **Anillado** (Opciones, 10–15 mm) deja un hueco de lomo por reflujo, sin escalar la hoja; aplica al PDF, a Imprimir hoja y a la vista (`?anillado=`, `?lomo=`), no al PNG para editar. Glass no usa `backdrop-filter`. **Descargar PDF** usa esos ajustes; **PNG para editar** (en Opciones) baja un ZIP de PNG a 300 dpi sin fondo de hoja, con el **Diseño** y los **Formatos** marcados (papel, disposición, orientación y anillado no entran). **Imprimir hoja** sigue imprimiendo solo la hoja en pantalla.
 

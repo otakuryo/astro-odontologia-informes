@@ -86,6 +86,27 @@
   --dot-clear: 0.5mm;
   --dot-cell: 1.7mm;
   --dot-pos: 0.4mm;
+  --perio-arch-h: calc(var(--content-width) * 397 / 975);
+  --perio-occlusion-h: 15mm;
+  --perio-occlusion-label-w: 34mm;
+  --perio-occlusion-label-fs: var(--fs-label);
+  --perio-occlusion-fs: var(--fs-meta);
+  --perio-occlusion-row-gap: 0.8mm;
+  --perio-occlusion-pad-y: 0.4mm;
+  --perio-panels-h: 42mm;
+  --perio-panel-columns: minmax(0, 0.8fr) minmax(0, 3.2fr);
+  --perio-symbology-columns: minmax(0, 1fr);
+  --perio-symbology-column-gap: 0mm;
+  --perio-symbology-fs: var(--fs-meta);
+  --perio-symbology-icon-size: var(--fs-meta);
+  --perio-grid-gutter: 6.05%;
+  --perio-line-gap: 1.8mm;
+  --perio-hallazgo-fs: var(--fs-meta);
+  --perio-hallazgo-tracking: 0.04em;
+  --perio-hallazgo-gap: 0.8mm;
+  --perio-hallazgo-row-gap: 0.7mm;
+  --perio-hallazgo-mid-h: 2.2mm;
+  --perio-hallazgo-pad-y: var(--space-2);
 
   /* Piel visual de la hoja (Normal: radio 0, fondos opacos). */
   --radius-sheet: 0;
@@ -182,6 +203,27 @@ html[data-paper-size="a5"] {
   --dot-clear: 0.42mm;
   --dot-cell: 1.4mm;
   --dot-pos: 0.32mm;
+  --perio-arch-h: calc(var(--content-width) * 397 / 975);
+  --perio-occlusion-h: 12mm;
+  --perio-occlusion-label-w: 27mm;
+  --perio-occlusion-label-fs: var(--fs-label);
+  --perio-occlusion-fs: var(--fs-meta);
+  --perio-occlusion-row-gap: 0.5mm;
+  --perio-occlusion-pad-y: 0.35mm;
+  --perio-panels-h: 30mm;
+  --perio-panel-columns: minmax(0, 1.45fr) minmax(0, 2.55fr);
+  --perio-symbology-columns: repeat(2, minmax(0, 1fr));
+  --perio-symbology-column-gap: var(--space-1);
+  --perio-symbology-fs: 1.65mm;
+  --perio-symbology-icon-size: 1.65mm;
+  --perio-grid-gutter: 6.05%;
+  --perio-line-gap: 1.2mm;
+  --perio-hallazgo-fs: 1.65mm;
+  --perio-hallazgo-tracking: 0.02em;
+  --perio-hallazgo-gap: 0.45mm;
+  --perio-hallazgo-row-gap: 0.4mm;
+  --perio-hallazgo-mid-h: 0.7mm;
+  --perio-hallazgo-pad-y: 1.1mm;
 }
 
 /* A6: 105 × 148 mm. Compacto; cabecera en 2 × 2 y casillas Rx sin ratio forzado. */
@@ -246,4 +288,28 @@ html[data-paper-size="a6"] {
   --dot-clear: 0.38mm;
   --dot-cell: 1.15mm;
   --dot-pos: 0.26mm;
+  --perio-arch-h: calc(var(--content-width) * 397 / 975);
+  --perio-occlusion-h: 9mm;
+  --perio-occlusion-label-w: 20mm;
+  --perio-occlusion-label-fs: 1.5mm;
+  --perio-occlusion-fs: 1.3mm;
+  --perio-occlusion-row-gap: 0.3mm;
+  --perio-occlusion-pad-y: 0.25mm;
+  --perio-panels-h: 22mm;
+  --perio-panel-columns: minmax(0, 1.85fr) minmax(0, 2.15fr);
+  --perio-symbology-columns: repeat(2, minmax(0, 1fr));
+  --perio-symbology-column-gap: var(--space-1);
+  --perio-symbology-fs: 1.1mm;
+  --perio-symbology-icon-size: 1.1mm;
+  --perio-panel-title-fs: 1.25mm;
+  --perio-panel-title-pad-y: 0.35mm;
+  --perio-panel-title-tracking: 0.02em;
+  --perio-grid-gutter: 6.05%;
+  --perio-line-gap: 0.8mm;
+  --perio-hallazgo-fs: 1mm;
+  --perio-hallazgo-tracking: 0.02em;
+  --perio-hallazgo-gap: 0.18mm;
+  --perio-hallazgo-row-gap: 0.14mm;
+  --perio-hallazgo-mid-h: 0.5mm;
+  --perio-hallazgo-pad-y: 0.35mm;
 }

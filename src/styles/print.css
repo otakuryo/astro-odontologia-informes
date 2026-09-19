@@ -98,7 +98,10 @@ html {
   .leyenda__item,
   .legend-marker,
   .manual-field,
-  .notas-line {
+  .notas-line,
+  .perio-arch,
+  .perio-occlusion,
+  .perio-panel {
     break-inside: avoid;
     page-break-inside: avoid;
   }

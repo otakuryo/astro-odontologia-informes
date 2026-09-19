@@ -9,6 +9,7 @@ const FORMATS = [
   { path: '/formatos/paciente-rx-tx/', code: 'ODO-F02' },
   { path: '/formatos/eventos/', code: 'ODO-F03' },
   { path: '/formatos/paciente-imagen/', code: 'ODO-F04' },
+  { path: '/formatos/periodontograma/', code: 'ODO-F05' },
 ] as const;
 
 async function preparePrintSheet(page: Page, path: string) {

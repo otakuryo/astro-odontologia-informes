@@ -15,10 +15,11 @@ const FORMAT_PATHS = [
   '/formatos/paciente-rx-tx/',
   '/formatos/eventos/',
   '/formatos/paciente-imagen/',
+  '/formatos/periodontograma/',
 ] as const;
 
 test.describe('Cromo web (daisyUI)', () => {
-  test('el índice tiene 4 enlaces a las rutas de formato', async ({ page }) => {
+  test('el índice tiene 5 enlaces a las rutas de formato', async ({ page }) => {
     await page.goto('/');
 
     await expect(page.locator('.catalog')).toBeVisible();
@@ -29,8 +30,8 @@ test.describe('Cromo web (daisyUI)', () => {
       await expect(page.locator(`.catalog a[href="${path}"]`)).toBeVisible();
     }
 
-    await expect(page.locator('.catalog a[href^="/formatos/"]')).toHaveCount(4);
-    await expect(page.locator('a[href^="/formatos/"]')).toHaveCount(4);
+    await expect(page.locator('.catalog a[href^="/formatos/"]')).toHaveCount(5);
+    await expect(page.locator('a[href^="/formatos/"]')).toHaveCount(5);
   });
 
   test('en un formato: selectores, imprimir y enlace a inicio visibles', async ({ page }) => {

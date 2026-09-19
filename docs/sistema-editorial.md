@@ -1,6 +1,6 @@
 # Sistema editorial
 
-Referencia de tokens, lienzo e impresión, y responsabilidades de los componentes compartidos. Los cuatro formatos clínicos se maquetan en una fase posterior; esta ficha describe el sistema común ya disponible.
+Referencia de tokens, lienzo e impresión, y responsabilidades de los componentes compartidos. Los cinco formatos clínicos se maquetan sobre este sistema común.
 
 ## Lienzo e impresión
 
@@ -121,7 +121,7 @@ Los formatos clínicos y `.sheet` siguen en milímetros: no se remaquetan para m
 
 ## Variante C (encabezado y pie)
 
-Banda superior compacta: título del formato más cuatro campos manuscritos (`Clínica / profesional`, `Paciente`, `Folio / expediente`, `Fecha`). Pie con código (`ODO-F01` … `ODO-F04`), `REV. 01` y `1/1`.
+Banda superior compacta: título del formato más cuatro campos manuscritos (`Clínica / profesional`, `Paciente`, `Folio / expediente`, `Fecha`). Pie con código (`ODO-F01` … `ODO-F05`), `REV. 01` y `1/1`.
 
 Los campos clínicos son **líneas vacías** para pluma. Están prohibidos `<input>` y `<textarea>` en esos campos.
 
@@ -143,8 +143,24 @@ Los campos clínicos son **líneas vacías** para pluma. Están prohibidos `<inp
 | `PrintToolbar` | Compone `SiteNavbar` con los desplegables daisyUI (`dropdown` / `menu`, `listbox`) **Estilo visual** (`VISUAL_THEMES`: Normal / Rounded / Glassmorfismo) y **Papel** (Carta / A5 / A6; no A4), Descargar PDF (`btn-primary`), Imprimir hoja (`btn-ghost`, `window.print()`) y Opciones. Monta `ExportPanel`. Visible solo en pantalla. No se usa en el catálogo. No duplicar este selector en una página de formato. |
 | `ExportPanel` | Diálogo daisyUI (`modal`) de exportación: cuerpo con scroll y acciones fijas; joins de diseño/papel con wrap. Diseño sincronizado con el desplegable **Papel** de la barra, papel de salida, disposición, orientación y lista ordenable de formatos. **Descargar PDF** impone y descarga en el cliente. **PNG para editar** (`btn-ghost`) baja un ZIP (`fflate`) de PNG a 300 dpi sin fondo de hoja (un PNG por formato marcado, siempre ZIP). No redibuja `.sheet`. |
 | `Odontogram` | Diagrama dental vectorial FDI (52 dientes, glifo de círculo + equis) de ODO-F04, con cuadrado NOTAS al pie del panel. SVG estático, sin estado por superficie. |
+| `ToothSprite` | Sprite SVG **inline** de glifos dentales para el periodontograma: un `<symbol>` de contorno y otro `-solid` por diente, generado en `src/lib/tooth-sprite/symbols.generated.ts`, sin PNG ni sprite externo. |
+| `PerioArch` | Retícula de sondaje de una arcada (ODO-F05): 16 columnas FDI, bandas Facial/Lingual y glifos del sprite generado (`<use href="#id">`). Dos instancias, superior e inferior. |
+| `PerioOcclusion` | Bloque central de oclusión entre las dos arcadas: cuatro grupos con numeración 8…1 \| 1…8. |
+| `PerioSymbology` | Leyenda clínica del panel SIMBOLOGÍA (extracción, ausencia, caries, furcación, etc.). |
 
-El catálogo (`src/pages/index.astro`) usa `WebPageLayout` (`isCatalog`): logo, marca, definición, `UsageNotice`, lista desde `CATALOG_FORMATS`, FAQ y `SiteFooter`. Enlaza las cuatro rutas de formato con `btn` daisyUI y no monta `PrintDocumentLayout` ni `PrintToolbar`. Los formatos clínicos y la hoja (`.sheet`) no usan daisyUI.
+### Sprite de dientes
+
+Los glifos del periodontograma se incrustan con `ToothSprite` (`<svg aria-hidden="true" style="display:none">`). Cada entrada produce el contorno (`fill: currentColor`, todos los subpaths) y la capa `-solid` (solo el primer subpath de cada path, para pintar `var(--paper)` debajo). Los paths van envueltos en `<g transform="translate(0,887) scale(0.1,-0.1)">`, el mismo transform del atlas Potrace. No hay `<use href="/sprite.svg#...">`.
+
+`src/lib/tooth-sprite/symbols.generated.ts` es un fichero **generado**: no se edita a mano. Para regenerarlo:
+
+```bash
+bun run sprite:teeth
+```
+
+El script lee el atlas `raw/pagina-periortograma/icons-001.svg` y las cajas `raw/pagina-periortograma/periodontograma-sprite-coordinates.json`, asigna cada path a la caja que lo contiene (tolerancia 2 px) y escribe los 87 símbolos.
+
+El catálogo (`src/pages/index.astro`) usa `WebPageLayout` (`isCatalog`): logo, marca, definición, `UsageNotice`, lista desde `CATALOG_FORMATS`, FAQ y `SiteFooter`. Enlaza las cinco rutas de formato con `btn` daisyUI y no monta `PrintDocumentLayout` ni `PrintToolbar`. Los formatos clínicos y la hoja (`.sheet`) no usan daisyUI.
 
 ## Cromo legal y hoja clínica
 
@@ -158,6 +174,7 @@ El cromo legal (enlaces del pie, `.site-footer`, skip-link y `UsageNotice`) y la
 | `/formatos/paciente-rx-tx/` | `ODO-F02` |
 | `/formatos/eventos/` | `ODO-F03` |
 | `/formatos/paciente-imagen/` | `ODO-F04` |
+| `/formatos/periodontograma/` | `ODO-F05` |
 
 ## Leyenda en escala de grises
 

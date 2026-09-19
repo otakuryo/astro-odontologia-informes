@@ -163,7 +163,7 @@ test.describe('Exportación PDF', () => {
     assertPageSize(pdf.getPage(0), A4_LANDSCAPE_PT);
   });
 
-  test('panel: cuadernillo de 4 formatos A5 sobre A4 son 2 páginas apaisadas', async ({ page }) => {
+  test('panel: cuadernillo de 5 formatos A5 sobre A4 son 4 páginas apaisadas', async ({ page }) => {
     test.setTimeout(120_000);
     await openExpedientesA5(page);
 
@@ -175,7 +175,13 @@ test.describe('Exportación PDF', () => {
     await expect(page.locator('[data-export-layout="booklet"]')).toBeEnabled();
     await page.locator('[data-export-layout="booklet"]').click();
 
-    for (const id of ['expedientes', 'paciente-rx-tx', 'eventos', 'paciente-imagen'] as const) {
+    for (const id of [
+      'expedientes',
+      'paciente-rx-tx',
+      'eventos',
+      'paciente-imagen',
+      'periodontograma',
+    ] as const) {
       await page.locator(`[data-testid="export-format"][data-format-id="${id}"]`).check();
     }
 
@@ -187,9 +193,11 @@ test.describe('Exportación PDF', () => {
     expect(filePath).toBeTruthy();
     const pdf = await PDFDocument.load(await readFile(filePath!));
 
-    expect(pdf.getPageCount()).toBe(2);
+    expect(pdf.getPageCount()).toBe(4);
     assertPageSize(pdf.getPage(0), A4_LANDSCAPE_PT);
     assertPageSize(pdf.getPage(1), A4_LANDSCAPE_PT);
+    assertPageSize(pdf.getPage(2), A4_LANDSCAPE_PT);
+    assertPageSize(pdf.getPage(3), A4_LANDSCAPE_PT);
   });
 
   test('panel: no deja la lista de formatos vacía o deshabilita la descarga', async ({ page }) => {

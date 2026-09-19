@@ -1,0 +1,345 @@
+---
+import {
+  buildArchLayout,
+  type ArchBand,
+  type ArchColumn,
+  type ArchId,
+  type ArchLayout,
+  type GridBand,
+} from '../../lib/periodontogram';
+import { TOOTH_SYMBOLS } from '../../lib/tooth-sprite/symbols.generated';
+
+interface Props {
+  arch: ArchId;
+}
+
+type PtLine = { x1: number; y1: number; x2: number; y2: number };
+
+type GutterLabel = {
+  text: string;
+  x: number;
+  y: number;
+  kind: 'scale' | 'band' | 'occlusal';
+};
+
+type ToothGlyph = {
+  testid: boolean;
+  row: 'profile' | 'occlusal' | 'lingual';
+  fdi: string;
+  solidId: string;
+  outlineId: string;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  transform?: string;
+};
+
+const { arch } = Astro.props;
+const layout = buildArchLayout(arch);
+const viewBox = `0 0 ${layout.viewBox.w} ${layout.viewBox.h}`;
+const ariaLabel = arch === 'upper' ? 'Arcada superior' : 'Arcada inferior';
+const labelSize = {
+  scale: layout.viewBox.h * 0.026,
+  band: layout.viewBox.h * 0.028,
+  occlusal: layout.viewBox.h * 0.052,
+};
+
+function parseSymbolBox(viewBoxValue: string): { w: number; h: number } {
+  const parts = viewBoxValue.split(' ').map(Number);
+  const w = parts[2];
+  const h = parts[3];
+  if (!Number.isFinite(w) || !Number.isFinite(h) || w <= 0 || h <= 0) {
+    throw new Error(`viewBox de símbolo inválido: ${viewBoxValue}`);
+  }
+  return { w, h };
+}
+
+function addLine(seen: Set<string>, list: PtLine[], line: PtLine) {
+  const key = `${line.x1.toFixed(2)}|${line.y1.toFixed(2)}|${line.x2.toFixed(2)}|${line.y2.toFixed(2)}`;
+  if (seen.has(key)) {
+    return;
+  }
+  seen.add(key);
+  list.push(line);
+}
+
+function buildGridLines(source: ArchLayout): { inner: PtLine[]; rule: PtLine[] } {
+  const inner: PtLine[] = [];
+  const rule: PtLine[] = [];
+  const seen = new Set<string>();
+  const x0 = source.content.x;
+  const x1 = source.content.x + source.content.width;
+  const y0 = 0;
+  const y1 = source.viewBox.h;
+
+  const hline = (y: number) => addLine(seen, inner, { x1: x0, y1: y, x2: x1, y2: y });
+  const vline = (x: number, list: PtLine[]) => addLine(seen, list, { x1: x, y1: y0, x2: x, y2: y1 });
+
+  hline(y0);
+  hline(y1);
+
+  for (const band of source.bands) {
+    hline(band.y);
+    hline(band.y + band.height);
+
+    if (band.kind === 'grid') {
+      for (const subrow of band.subrows) {
+        hline(subrow.y);
+      }
+    }
+
+    if (band.kind === 'facial' || band.kind === 'lingual') {
+      for (const y of band.hatchYs) {
+        hline(y);
+      }
+    }
+  }
+
+  for (const column of source.columns) {
+    const isMid = Math.abs(column.x - source.midlineX) < 0.01;
+    vline(column.x, isMid ? rule : inner);
+  }
+  vline(x1, inner);
+
+  return { inner, rule };
+}
+
+function scaleLabels(band: GridBand, archId: ArchId): Array<{ label: string; y: number; height: number }> {
+  const { scale, subrows } = band;
+  if (subrows.length === scale.length) {
+    return subrows.map((subrow, index) => ({
+      label: String(scale[index]),
+      y: subrow.y,
+      height: subrow.height,
+    }));
+  }
+
+  const labeled = archId === 'upper' ? subrows.slice(-scale.length) : subrows.slice(0, scale.length);
+  return labeled.map((subrow, index) => ({
+    label: String(scale[index]),
+    y: subrow.y,
+    height: subrow.height,
+  }));
+}
+
+function requireBand<K extends ArchBand['kind']>(bands: ArchBand[], kind: K): Extract<ArchBand, { kind: K }> {
+  const band = bands.find((entry) => entry.kind === kind);
+  if (!band || band.kind !== kind) {
+    throw new Error(`banda ${kind} ausente en ${arch}`);
+  }
+  return band as Extract<ArchBand, { kind: K }>;
+}
+
+function mirroredFor(column: ArchColumn, symbolId: string): boolean {
+  if (symbolId === column.profile.id) {
+    return column.profile.mirrored;
+  }
+  if (symbolId === column.occlusal.id) {
+    return column.occlusal.mirrored;
+  }
+  return false;
+}
+
+function placedGlyph(
+  column: ArchColumn,
+  band: ArchBand,
+  symbolId: string,
+  row: ToothGlyph['row'],
+  testid: boolean,
+  flipY: boolean,
+): ToothGlyph {
+  const symbol = TOOTH_SYMBOLS[symbolId];
+  if (!symbol) {
+    throw new Error(`símbolo ausente: ${symbolId}`);
+  }
+
+  const box = parseSymbolBox(symbol.viewBox);
+  const padX = column.width * 0.07;
+  const padY = band.height * 0.05;
+  const availW = Math.max(column.width - 2 * padX, 1);
+  const availH = Math.max(band.height - 2 * padY, 1);
+  const scale = Math.min(availW / box.w, availH / box.h);
+  const w = box.w * scale;
+  const h = box.h * scale;
+  const x = column.x + (column.width - w) / 2;
+  const y = band.y + (band.height - h) / 2;
+  const cx = column.cx;
+  const cy = band.y + band.height / 2;
+  const sx = mirroredFor(column, symbolId) ? -1 : 1;
+  const sy = flipY ? -1 : 1;
+  const transform = sx === 1 && sy === 1 ? undefined : `translate(${cx} ${cy}) scale(${sx} ${sy}) translate(${-cx} ${-cy})`;
+
+  return {
+    testid,
+    row,
+    fdi: column.fdi,
+    solidId: `${symbolId}-solid`,
+    outlineId: symbolId,
+    x,
+    y,
+    w,
+    h,
+    transform,
+  };
+}
+
+const grid = buildGridLines(layout);
+const facial = requireBand(layout.bands, 'facial');
+const lingual = requireBand(layout.bands, 'lingual');
+const occlusal = requireBand(layout.bands, 'occlusal');
+const gutterX = layout.gutter.left / 2;
+
+const labels: GutterLabel[] = [];
+for (const band of layout.bands) {
+  if (band.kind === 'facial' || band.kind === 'lingual') {
+    labels.push({
+      text: band.kind === 'facial' ? 'Facial' : 'Lingual',
+      x: gutterX,
+      y: band.y + band.height / 2,
+      kind: 'band',
+    });
+  }
+  if (band.kind === 'occlusal') {
+    labels.push({
+      text: 'D',
+      x: gutterX,
+      y: band.y + band.height / 2,
+      kind: 'occlusal',
+    });
+  }
+  if (band.kind === 'grid') {
+    for (const item of scaleLabels(band, arch)) {
+      labels.push({
+        text: item.label,
+        x: gutterX,
+        y: item.y + item.height / 2,
+        kind: 'scale',
+      });
+    }
+  }
+}
+
+const glyphs: ToothGlyph[] = layout.columns.flatMap((column) => [
+  placedGlyph(column, facial, column.profile.id, 'profile', true, false),
+  placedGlyph(column, occlusal, column.occlusal.id, 'occlusal', true, false),
+  placedGlyph(column, lingual, column.profile.id, 'lingual', false, true),
+]);
+---
+
+<svg
+  class="perio-arch"
+  role="img"
+  aria-label={ariaLabel}
+  data-testid="perio-arch"
+  data-arch={arch}
+  viewBox={viewBox}
+  preserveAspectRatio="xMidYMid meet"
+  style={`aspect-ratio: ${layout.viewBox.w} / ${layout.viewBox.h}`}
+>
+  <g class="perio-arch__grid">
+    {
+      grid.inner.map((line) => (
+        <line x1={line.x1} y1={line.y1} x2={line.x2} y2={line.y2} />
+      ))
+    }
+  </g>
+  <g class="perio-arch__grid is-rule">
+    {
+      grid.rule.map((line) => (
+        <line x1={line.x1} y1={line.y1} x2={line.x2} y2={line.y2} />
+      ))
+    }
+  </g>
+  {
+    glyphs.map((glyph) => (
+      <g
+        data-testid={glyph.testid ? 'perio-tooth' : false}
+        data-fdi={glyph.fdi}
+        data-row={glyph.row}
+        transform={glyph.transform}
+      >
+        <use
+          class="perio-arch__solid"
+          href={`#${glyph.solidId}`}
+          x={glyph.x}
+          y={glyph.y}
+          width={glyph.w}
+          height={glyph.h}
+        />
+        <use
+          href={`#${glyph.outlineId}`}
+          x={glyph.x}
+          y={glyph.y}
+          width={glyph.w}
+          height={glyph.h}
+        />
+      </g>
+    ))
+  }
+  {
+    labels.map((label) => (
+      <text
+        class:list={[
+          'perio-arch__label',
+          label.kind === 'scale' && 'is-scale',
+          label.kind === 'band' && 'is-band',
+          label.kind === 'occlusal' && 'is-occlusal',
+        ]}
+        x={label.x}
+        y={label.y}
+        text-anchor="middle"
+        dominant-baseline="middle"
+        font-size={
+          label.kind === 'occlusal'
+            ? labelSize.occlusal
+            : label.kind === 'band'
+              ? labelSize.band
+              : labelSize.scale
+        }
+        transform={label.kind === 'band' ? `rotate(-90 ${label.x} ${label.y})` : undefined}
+      >
+        {label.text}
+      </text>
+    ))
+  }
+</svg>
+
+<style>
+  .perio-arch {
+    display: block;
+    width: 100%;
+    height: auto;
+    flex: 0 0 auto;
+    max-width: 100%;
+    color: var(--ink);
+    overflow: visible;
+  }
+
+  .perio-arch__grid {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: var(--stroke-inner);
+    vector-effect: non-scaling-stroke;
+  }
+
+  .perio-arch__grid.is-rule {
+    stroke-width: var(--stroke-rule);
+  }
+
+  .perio-arch__solid {
+    color: var(--paper);
+  }
+
+  .perio-arch__label {
+    fill: currentColor;
+    stroke: none;
+    font-family: var(--font-body);
+    font-weight: var(--fw-semibold);
+  }
+
+  .perio-arch__label.is-occlusal {
+    font-family: var(--font-display);
+    font-weight: var(--fw-bold);
+  }
+</style>

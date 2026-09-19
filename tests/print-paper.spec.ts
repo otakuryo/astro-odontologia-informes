@@ -34,6 +34,7 @@ const FORMATS = [
   { path: '/formatos/paciente-rx-tx/', code: 'ODO-F02' },
   { path: '/formatos/eventos/', code: 'ODO-F03' },
   { path: '/formatos/paciente-imagen/', code: 'ODO-F04' },
+  { path: '/formatos/periodontograma/', code: 'ODO-F05' },
 ] as const;
 
 async function assertNoSheetOverflow(page: Page) {
@@ -259,5 +260,29 @@ test.describe('Hojas A5 y A6 (todos los formatos)', () => {
         await assertNoSheetOverflow(page);
       });
     }
+  }
+});
+
+test.describe('ODO-F05 periodontograma: sin desbordes', () => {
+  for (const paper of PAPERS) {
+    test(`no desborda en ${paper.name}`, async ({ page }) => {
+      await page.setViewportSize({
+        width: Math.ceil(paper.width) + 48,
+        height: Math.ceil(paper.height) + 48,
+      });
+      await page.goto(`/formatos/periodontograma/${paper.query}`);
+      await page.locator('.sheet').waitFor();
+      await page.evaluate(() => document.fonts.ready);
+
+      await expect(page.locator('html')).toHaveAttribute('data-paper-size', paper.id);
+      await assertSheetSize(page, paper);
+      await assertNoSheetOverflow(page);
+
+      await page.emulateMedia({ media: 'print' });
+
+      await expect(page.locator('.sheet')).toHaveCount(1);
+      await assertSheetSize(page, paper);
+      await assertNoSheetOverflow(page);
+    });
   }
 });

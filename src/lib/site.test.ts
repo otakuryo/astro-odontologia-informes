@@ -17,7 +17,7 @@ test("SITE_DESCRIPTION tiene entre 150 y 160 caracteres", () => {
   expect(SITE_DESCRIPTION.length).toBeLessThanOrEqual(160);
 });
 
-test("buildLlmsTxt empieza por # Diente Dientitos, incluye blockquote y los cuatro paths", () => {
+test("buildLlmsTxt empieza por # Diente Dientitos, incluye blockquote y los cinco paths", () => {
   const markdown = buildLlmsTxt();
 
   expect(markdown.startsWith("# Diente Dientitos")).toBe(true);
@@ -26,20 +26,22 @@ test("buildLlmsTxt empieza por # Diente Dientitos, incluye blockquote y los cuat
   expect(markdown).toContain("/formatos/paciente-rx-tx/");
   expect(markdown).toContain("/formatos/eventos/");
   expect(markdown).toContain("/formatos/paciente-imagen/");
+  expect(markdown).toContain("/formatos/periodontograma/");
 });
 
-test("seoForFormat cubre F01–F04 y ninguna descripción contiene odontograma", () => {
+test("seoForFormat cubre F01–F05 y ninguna descripción contiene odontograma como palabra", () => {
   expect(CATALOG_FORMATS.map((format) => format.code)).toEqual([
     "ODO-F01",
     "ODO-F02",
     "ODO-F03",
     "ODO-F04",
+    "ODO-F05",
   ]);
 
   for (const format of CATALOG_FORMATS) {
     const description = seoForFormat(format.code);
 
     expect(description.length).toBeGreaterThan(0);
-    expect(description.toLowerCase()).not.toContain("odontograma");
+    expect(description.toLowerCase()).not.toMatch(/\bodontograma\b/);
   }
 });

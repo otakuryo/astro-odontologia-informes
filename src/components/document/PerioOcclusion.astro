@@ -1,0 +1,122 @@
+---
+import { buildOcclusionRows } from '../../lib/periodontogram';
+
+const groups = buildOcclusionRows();
+---
+
+<div class="perio-occlusion">
+  {
+    groups.map((group) => (
+      <section class="perio-occlusion__group" data-testid="perio-occlusion-group" data-label={group.label}>
+        <h3 class="perio-occlusion__label">{group.label}</h3>
+        <div class="perio-occlusion__block">
+          <span class="perio-occlusion__mid" data-testid="perio-occlusion-mid" aria-hidden="true"></span>
+          <div class="perio-occlusion__rows">
+            {group.rows.map((row) => (
+              <div class="perio-occlusion__row" data-testid="perio-occlusion-row">
+                <div class="perio-occlusion__nums">
+                  {row.map((cell) => (
+                    <span class="perio-occlusion__cell">{cell}</span>
+                  ))}
+                </div>
+                <span class="perio-occlusion__line" aria-hidden="true"></span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    ))
+  }
+</div>
+
+<style>
+  .perio-occlusion {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    column-gap: var(--space-4);
+    row-gap: var(--space-1);
+    height: var(--perio-occlusion-h);
+    flex: 0 0 var(--perio-occlusion-h);
+    min-height: 0;
+    min-width: 0;
+    color: var(--ink);
+  }
+
+  .perio-occlusion__group {
+    display: grid;
+    grid-template-columns: var(--perio-occlusion-label-w) minmax(0, 1fr);
+    column-gap: var(--space-2);
+    align-items: center;
+    padding-block: var(--perio-occlusion-pad-y);
+    min-width: 0;
+    min-height: 0;
+  }
+
+  .perio-occlusion__label {
+    margin: 0;
+    min-width: 0;
+    font-family: var(--font-body);
+    font-size: var(--perio-occlusion-label-fs);
+    font-weight: var(--fw-semibold);
+    letter-spacing: var(--tracking-label);
+    color: var(--ink);
+    line-height: var(--lh-tight);
+    white-space: nowrap;
+  }
+
+  .perio-occlusion__block {
+    position: relative;
+    min-width: 0;
+    min-height: 0;
+    justify-self: stretch;
+  }
+
+  .perio-occlusion__rows {
+    display: flex;
+    flex-direction: column;
+    gap: var(--perio-occlusion-row-gap);
+    min-width: 0;
+    min-height: 0;
+  }
+
+  .perio-occlusion__row {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .perio-occlusion__nums {
+    display: grid;
+    grid-template-columns: repeat(16, minmax(0, 1fr));
+    align-items: end;
+    font-family: var(--font-display);
+    font-size: var(--perio-occlusion-fs);
+    font-weight: var(--fw-semibold);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    text-align: center;
+  }
+
+  .perio-occlusion__cell {
+    min-width: 0;
+    white-space: nowrap;
+  }
+
+  .perio-occlusion__mid {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    border-left: var(--stroke-rule) solid var(--ink);
+    transform: translateX(-50%);
+    pointer-events: none;
+  }
+
+  .perio-occlusion__line {
+    display: block;
+    width: 100%;
+    border-bottom: var(--stroke-write) solid var(--ink);
+  }
+</style>

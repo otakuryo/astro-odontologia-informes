@@ -1,0 +1,22 @@
+---
+import { TOOTH_SYMBOLS } from '../../lib/tooth-sprite/symbols.generated';
+
+const symbols = Object.entries(TOOTH_SYMBOLS).flatMap(([id, entry]) => [
+  { id, viewBox: entry.viewBox, paths: entry.outline },
+  { id: `${id}-solid`, viewBox: entry.viewBox, paths: entry.solid },
+]);
+---
+
+<svg aria-hidden="true" width="0" height="0" overflow="hidden" style="position:absolute">
+  {
+    symbols.map((symbol) => (
+      <symbol id={symbol.id} viewBox={symbol.viewBox}>
+        <g transform="translate(0,887) scale(0.1,-0.1)">
+          {symbol.paths.map((pathD) => (
+            <path d={pathD} fill="currentColor" />
+          ))}
+        </g>
+      </symbol>
+    ))
+  }
+</svg>

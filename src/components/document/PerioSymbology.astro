@@ -1,0 +1,123 @@
+---
+const items = [
+  { kind: 'x' as const, label: 'Diente a extraer' },
+  { kind: 'missing' as const, label: 'Falta de diente' },
+  { kind: 'caries' as const, label: 'Caries' },
+  { kind: 'impaction' as const, label: 'Impacto alimenticio' },
+  { kind: 'open-contact' as const, label: 'Contacto abierto' },
+  { kind: 'furcation' as const, label: 'Furcación' },
+  { kind: 'periapical' as const, label: 'Área periapical' },
+  { kind: 'malposition' as const, label: 'Mala posición' },
+  { kind: 'mobility' as const, label: 'Movilidad' },
+];
+---
+
+<ul class="perio-symbology" data-testid="perio-symbology">
+  {
+    items.map((item) => (
+      <li class="perio-symbology__item" data-testid="perio-symbology-item">
+        <svg class="perio-symbology__icon" viewBox="0 0 24 24" aria-hidden="true">
+          {item.kind === 'x' ? (
+            <g>
+              <line x1="6" y1="6" x2="18" y2="18" />
+              <line x1="18" y1="6" x2="6" y2="18" />
+            </g>
+          ) : null}
+          {item.kind === 'missing' ? <line x1="12" y1="4" x2="12" y2="20" /> : null}
+          {item.kind === 'caries' ? <circle cx="12" cy="12" r="7" /> : null}
+          {item.kind === 'impaction' ? <rect x="6" y="6" width="12" height="12" /> : null}
+          {item.kind === 'open-contact' ? (
+            <g>
+              <line x1="9" y1="4" x2="9" y2="20" />
+              <line x1="15" y1="4" x2="15" y2="20" />
+            </g>
+          ) : null}
+          {item.kind === 'furcation' ? (
+            <g>
+              <polygon points="3,20 7,9 11,20" />
+              <polygon points="8,20 12,9 16,20" />
+              <polygon points="13,20 17,9 21,20" />
+            </g>
+          ) : null}
+          {item.kind === 'periapical' ? (
+            <g>
+              <circle cx="12" cy="10" r="6" />
+              <line x1="12" y1="16" x2="12" y2="21" />
+            </g>
+          ) : null}
+          {item.kind === 'malposition' ? (
+            <g>
+              <line x1="6" y1="18" x2="17" y2="7" />
+              <polyline points="11,7 17,7 17,13" />
+            </g>
+          ) : null}
+          {item.kind === 'mobility' ? (
+            <g>
+              <line x1="4" y1="6" x2="4" y2="18" />
+              <line x1="8" y1="6" x2="8" y2="18" />
+              <line x1="12" y1="6" x2="12" y2="18" />
+              <line x1="16" y1="6" x2="16" y2="18" />
+              <line x1="20" y1="6" x2="20" y2="18" />
+            </g>
+          ) : null}
+        </svg>
+        <span class="perio-symbology__label">{item.label}</span>
+      </li>
+    ))
+  }
+</ul>
+
+<style>
+  .perio-symbology {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: var(--perio-symbology-columns);
+    grid-auto-rows: minmax(0, 1fr);
+    column-gap: var(--perio-symbology-column-gap);
+    height: 100%;
+    min-height: 0;
+  }
+
+  .perio-symbology__item {
+    display: grid;
+    grid-template-columns: var(--perio-symbology-icon-size) minmax(0, 1fr);
+    align-items: center;
+    column-gap: var(--space-1);
+    min-width: 0;
+    min-height: 0;
+  }
+
+  .perio-symbology__icon {
+    display: block;
+    width: var(--perio-symbology-icon-size);
+    height: var(--perio-symbology-icon-size);
+    color: var(--ink);
+    overflow: visible;
+  }
+
+  .perio-symbology__icon line,
+  .perio-symbology__icon rect,
+  .perio-symbology__icon circle,
+  .perio-symbology__icon polyline {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: var(--stroke-inner);
+    vector-effect: non-scaling-stroke;
+  }
+
+  .perio-symbology__icon polygon {
+    fill: currentColor;
+    stroke: none;
+  }
+
+  .perio-symbology__label {
+    font-family: var(--font-body);
+    font-size: var(--perio-symbology-fs);
+    font-weight: var(--fw-medium);
+    line-height: 1;
+    color: var(--ink);
+    min-width: 0;
+  }
+</style>
