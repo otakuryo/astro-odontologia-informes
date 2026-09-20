@@ -158,7 +158,15 @@ Los glifos del periodontograma se incrustan con `ToothSprite` (`<svg aria-hidden
 bun run sprite:teeth
 ```
 
-El script lee el atlas `raw/pagina-periortograma/icons-001.svg` y las cajas `raw/pagina-periortograma/periodontograma-sprite-coordinates.json`, asigna cada path a la caja que lo contiene (tolerancia 2 px) y escribe los 87 símbolos.
+El script lee el atlas `raw/pagina-periortograma/icons-001.svg` y las cajas `raw/pagina-periortograma/periodontograma-sprite-coordinates.json`, fusiona el atlas secundario de terceros molares (`icons-002.svg` / `icons-002-coordinates.json`) y asigna cada path a la caja que lo contiene (tolerancia 2 px).
+
+El atlas secundario se recorta de la plantilla y se vectoriza con:
+
+```bash
+bun run scripts/build-m3-atlas.ts
+```
+
+Dependencia de sistema: **`potrace`** (además de ImageMagick `magick` para recorte, umbral y resta del rayado con `-morphology Open Rectangle:15x1`). Sin `potrace` el script no instala nada; avisa el bloqueo y, si puede, escribe un SVG de contorno de reserva que no es salida de potrace. Tras generar `icons-002`, regenera los símbolos con `bun run sprite:teeth`.
 
 El catálogo (`src/pages/index.astro`) usa `WebPageLayout` (`isCatalog`): logo, marca, definición, `UsageNotice`, lista desde `CATALOG_FORMATS`, FAQ y `SiteFooter`. Enlaza las cinco rutas de formato con `btn` daisyUI y no monta `PrintDocumentLayout` ni `PrintToolbar`. Los formatos clínicos y la hoja (`.sheet`) no usan daisyUI.
 

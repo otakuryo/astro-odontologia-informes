@@ -202,7 +202,7 @@ function parseViewBoxX(viewBox: string): number {
 function idsForCategory(category: string): string[] {
   const prefix = `${category}_`;
   const ids = Object.keys(TOOTH_SYMBOLS)
-    .filter((id) => id.startsWith(prefix))
+    .filter((id) => id.startsWith(prefix) && /_\d+$/.test(id))
     .sort((a, b) => {
       const symbolA = TOOTH_SYMBOLS[a];
       const symbolB = TOOTH_SYMBOLS[b];

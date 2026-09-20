@@ -1,4 +1,5 @@
 import { expect, test } from 'bun:test';
+import { isHatchFragment } from '../../../scripts/build-m3-atlas';
 import { atlasToUserSpace, splitSubpaths, subpathBBox } from './path-data';
 import { TOOTH_SYMBOLS } from './symbols.generated';
 
@@ -59,14 +60,20 @@ test('atlasToUserSpace aplica translate(0,887) scale(0.1,-0.1)', () => {
   expect(known.h).toBeCloseTo(bbox.h * 0.1);
 });
 
-test('TOOTH_SYMBOLS tiene 87 entradas alineadas con el JSON', async () => {
+test('isHatchFragment detecta rayas horizontales largas y finas', () => {
+  expect(isHatchFragment({ h: 2, w: 40 })).toBe(true);
+  expect(isHatchFragment({ h: 95, w: 55 })).toBe(false);
+  expect(isHatchFragment({ h: 2, w: 8 })).toBe(false);
+});
+
+test('TOOTH_SYMBOLS alinea las 87 entradas del atlas principal', async () => {
   const coords = (await Bun.file(COORDS_PATH).json()) as {
     elements: Array<{ id: string; rect: [number, number, number, number] }>;
   };
 
   const ids = coords.elements.map((element) => element.id);
   expect(ids).toHaveLength(87);
-  expect(Object.keys(TOOTH_SYMBOLS)).toEqual(ids);
+  expect(Object.keys(TOOTH_SYMBOLS).slice(0, 87)).toEqual(ids);
 
   for (const element of coords.elements) {
     const symbol = TOOTH_SYMBOLS[element.id];
