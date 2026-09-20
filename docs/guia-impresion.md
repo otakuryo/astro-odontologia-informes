@@ -94,6 +94,7 @@ Haga esta pasada en Chromium. En Safari, si la captura falla, pase al protocolo 
 - [ ] Con anillado a 15 mm ningún panel desborda en A6.
 - [ ] Páginas pares con lomo al lado opuesto tras imprimir a doble cara (1-up vertical, dúplex lado largo).
 - [ ] La guía discontinua no aparece en PDF ni papel.
+- [ ] En ODO-F05, el PDF muestra 16 dientes permanentes v003 superiores (18…11 | 21…28) y 16 inferiores (`48…41 | 31,32,23,33,34,36,37,38`); reutiliza el glifo FDI 23 en ambas arcadas; el FDI 35 no se renderiza; no hay clones M3 ni dientes espejados.
 
 ## Protocolo PNG para editar
 
@@ -132,7 +133,11 @@ En el diálogo del navegador: el **mismo tamaño de papel** que el diseño, orie
 - [ ] En ODO-F04, la leyenda se distingue **sin color**: **R** sólido, **A** rayado diagonal, **V** puntos, **O** círculo vacío, más las siglas. El color es un refuerzo, no el único canal.
 - [ ] En ODO-F04, los 52 numerales FDI del diagrama dental son legibles en el PDF.
 - [ ] En ODO-F05, la retícula de sondaje (columnas FDI, bandas Facial/Lingual y números de escala) es legible a 100 %.
-- [ ] En ODO-F05, los contornos de diente del sprite generado se distinguen en ambas arcadas (perfil, oclusal y lingual).
+- [ ] En ODO-F05, la arcada superior conserva 16 columnas FDI (18…11 | 21…28) y la inferior 16 (`48…41 | 31,32,23,33,34,36,37,38`); el FDI 35 no se renderiza.
+- [ ] En ODO-F05, perfil y oclusal usan 16 glifos superiores y 16 inferiores (`permanent_<fdi>_profile` / `permanent_<fdi>_occlusal`); Facial/Lingual reutilizan el perfil del mismo FDI. Superior e inferior comparten el ID 23. No hay IDs `upper_`/`lower_`, clones `*_m3` ni espejos horizontales. Los perfiles inferiores llevan inversión vertical para que la corona mire hacia arriba y la raíz coincida con la zona rayada cubierta por encía.
+- [ ] En ODO-F05, cada diente muestra contorno y relleno `-solid`; los terceros molares (18, 28, 38, 48) son glifos propios, no copias.
+- [ ] En ODO-F05, los contornos de diente del sprite generado se distinguen en ambas arcadas (perfil, oclusal y lingual) a escala 100 %, también en escala de grises.
+- [ ] En ODO-F05, la línea media parte cada arcada entre 11|21 y 41|31; el orden superior/inferior no está invertido.
 - [ ] En ODO-F05, los paneles inferiores (SIMBOLOGÍA, HALLAZGOS RADIOGRÁFICOS, HIGIENE ORAL / NOTAS, OTROS / OBSERVACIONES) caben sin recorte y sus renglones son usables.
 - [ ] Sombra de pantalla, selector de papel, selector de estilo visual, «Descargar PDF», «Imprimir hoja», «Opciones», el pie legal (`.site-footer`) y el aviso de uso (`UsageNotice`) no aparecen en el papel ni en el PDF.
 - [ ] Con anillado a 15 mm ningún panel desborda en A6.

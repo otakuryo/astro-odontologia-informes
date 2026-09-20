@@ -27,15 +27,29 @@ async function assertNoClientAnalyticsScripts(page: Page) {
   }
 }
 
-async function assertLegalChrome(page: Page) {
+async function assertLegalChrome(page: Page, path: (typeof LEGAL_PATHS)[number]) {
   await expect(page.locator('h1')).toHaveCount(1);
   const title = await page.title();
   expect(title.trim().length, 'title').toBeGreaterThan(0);
   const description = await page.locator('meta[name="description"]').getAttribute('content');
   expect(description?.trim().length, 'description').toBeGreaterThan(0);
   await expect(page.getByText(SITE_LEGAL_UPDATED_AT).first()).toBeVisible();
-  await expect(page.getByRole('link', { name: SITE_CONTACT_EMAIL }).first()).toBeVisible();
-  await expect(page.getByText(`Responsable: ${SITE_AUTHOR}`, { exact: true })).toBeVisible();
+
+  if (path === '/preguntas-frecuentes/') {
+    const support = page.locator('.legal-page details').filter({
+      has: page.locator('summary').filter({ hasText: /soporte/i }),
+    });
+    await support.locator('summary').click();
+    await expect(support.getByText(SITE_CONTACT_EMAIL)).toBeVisible();
+  } else {
+    const contact = page.getByRole('link', { name: SITE_CONTACT_EMAIL }).first();
+    await expect(contact).toBeVisible();
+    await expect(contact).toHaveAttribute('href', `mailto:${SITE_CONTACT_EMAIL}`);
+  }
+
+  if (path === '/aviso-legal/' || path === '/politica-de-privacidad/') {
+    await expect(page.getByText(`Responsable: ${SITE_AUTHOR}`)).toBeVisible();
+  }
 
   for (const href of LEGAL_PATHS) {
     expect(await page.locator(`a[href="${href}"]`).count(), href).toBeGreaterThan(0);
@@ -58,7 +72,7 @@ test.describe('Páginas legales', () => {
       await expect(page.locator('.legal-page')).toBeVisible();
       await expect(page.locator('html')).toHaveAttribute('lang', 'es-ES');
       await expect(page.getByRole('link', { name: 'Volver al catálogo' })).toBeVisible();
-      await assertLegalChrome(page);
+      await assertLegalChrome(page, path);
     });
   }
 

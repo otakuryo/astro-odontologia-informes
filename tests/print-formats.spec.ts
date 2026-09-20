@@ -1,5 +1,10 @@
 import { expect, test, type Page } from '@playwright/test';
-import { OCCLUSION_CELLS, OCCLUSION_LABELS } from '../src/lib/periodontogram';
+import {
+  OCCLUSION_CELLS,
+  OCCLUSION_LABELS,
+  PERIO_LOWER_FDI,
+  PERIO_UPPER_FDI,
+} from '../src/lib/periodontogram';
 import { SITE_TITLE } from '../src/lib/site';
 
 const LETTER = { width: 816, height: 1056 };
@@ -615,6 +620,285 @@ async function assertPerioSymbology(page: Page, paper: string, expectedColumns: 
   }
 }
 
+const PERIO_SPRITE_ID = /^permanent_(\d{2})_(profile|occlusal)(-solid)?$/;
+const POTRACE_ATLAS_TRANSFORM = 'translate(0,887) scale(0.1,-0.1)';
+
+type PerioSpriteArchMetrics = {
+  arch: string;
+  fdis: string[];
+  profileIds: string[];
+  occlusalIds: string[];
+  lingualIds: string[];
+  missingSolid: string[];
+  missingOutline: string[];
+  glyphTransforms: string[];
+  flippedRows: string[];
+  useTransforms: string[];
+  midlineCount: number;
+};
+
+type PerioSpriteMetrics = {
+  arches: PerioSpriteArchMetrics[];
+  outlineIds: string[];
+  solidIds: string[];
+  forbiddenSymbolIds: string[];
+  forbiddenHrefs: string[];
+  forbiddenMarkup: string[];
+  atlasTransforms: string[];
+};
+
+function compactFdi(fdi: string): string {
+  return fdi.replaceAll('.', '');
+}
+
+function expectedRowIds(fdis: readonly string[], row: 'profile' | 'occlusal'): string[] {
+  return fdis.map((fdi) => `permanent_${compactFdi(fdi)}_${row}`);
+}
+
+async function measurePerioSprite(page: Page): Promise<PerioSpriteMetrics | null> {
+  return page.evaluate(() => {
+    const format = document.querySelector('[data-format="ODO-F05"]');
+    const arches = [...document.querySelectorAll('[data-testid="perio-arch"]')];
+    if (!(format instanceof HTMLElement) || arches.length === 0) {
+      return null;
+    }
+
+    const hrefId = (node: Element): string => {
+      const raw =
+        node.getAttribute('href') ??
+        node.getAttribute('xlink:href') ??
+        (node instanceof SVGUseElement ? node.href.baseVal : '') ??
+        '';
+      const hash = raw.includes('#') ? raw.slice(raw.lastIndexOf('#') + 1) : raw;
+      return hash.trim();
+    };
+
+    const isForbiddenId = (id: string) =>
+      id.startsWith('upper_') ||
+      id.startsWith('lower_') ||
+      /(^|[_-])m3(?=$|[_-]|-solid)/i.test(id) ||
+      id.includes('_m3');
+
+    const symbols = [...format.querySelectorAll('symbol[id]')];
+    const outlineIds: string[] = [];
+    const solidIds: string[] = [];
+    const forbiddenSymbolIds: string[] = [];
+    const atlasTransforms: string[] = [];
+
+    for (const symbol of symbols) {
+      const id = symbol.getAttribute('id') ?? '';
+      if (id.endsWith('-solid')) {
+        solidIds.push(id);
+      } else {
+        outlineIds.push(id);
+      }
+      if (isForbiddenId(id)) {
+        forbiddenSymbolIds.push(id);
+      }
+      const inner = symbol.querySelector('g[transform]');
+      atlasTransforms.push(inner?.getAttribute('transform') ?? '');
+    }
+
+    const uses = [...format.querySelectorAll('use')];
+    const forbiddenHrefs = uses.map(hrefId).filter((id) => id.length > 0 && isForbiddenId(id));
+
+    const markup = format.innerHTML.replaceAll(/\s+/g, '');
+    const forbiddenMarkup: string[] = [];
+    for (const token of ['scale(-1,1)', 'scale(-1,-1)', 'scale(-1)']) {
+      if (markup.includes(token)) {
+        forbiddenMarkup.push(token);
+      }
+    }
+
+    const archMetrics = arches.map((archNode) => {
+      const glyphs = [...archNode.querySelectorAll('g[data-row]')];
+      const profile: string[] = [];
+      const occlusal: string[] = [];
+      const lingual: string[] = [];
+      const fdis: string[] = [];
+      const missingSolid: string[] = [];
+      const missingOutline: string[] = [];
+      const glyphTransforms: string[] = [];
+      const flippedRows: string[] = [];
+      const useTransforms: string[] = [];
+
+      for (const glyph of glyphs) {
+        const row = glyph.getAttribute('data-row') ?? '';
+        const fdi = glyph.getAttribute('data-fdi') ?? '';
+        const usesInGlyph = [...glyph.querySelectorAll('use')];
+        const ids = usesInGlyph.map(hrefId);
+        const outline = ids.find((id) => !id.endsWith('-solid')) ?? '';
+        const solid = ids.find((id) => id.endsWith('-solid')) ?? '';
+
+        if (row === 'profile' || row === 'occlusal') {
+          fdis.push(fdi);
+        }
+
+        if (!outline) {
+          missingOutline.push(`${fdi}:${row}`);
+        }
+        if (!solid || (outline && solid !== `${outline}-solid`)) {
+          missingSolid.push(`${fdi}:${row}:${solid || '(vacío)'}`);
+        }
+
+        const glyphTransform = glyph.getAttribute('transform');
+        if (glyphTransform) {
+          glyphTransforms.push(`${fdi}:${row}:${glyphTransform}`);
+        }
+        if (glyph.getAttribute('data-flip-y') === 'true') {
+          flippedRows.push(`${fdi}:${row}`);
+        }
+
+        for (const useNode of usesInGlyph) {
+          const useTransform = useNode.getAttribute('transform');
+          if (useTransform) {
+            useTransforms.push(`${fdi}:${row}:${useTransform}`);
+          }
+        }
+
+        if (row === 'profile') {
+          profile.push(outline);
+        } else if (row === 'occlusal') {
+          occlusal.push(outline);
+        } else if (row === 'lingual') {
+          lingual.push(outline);
+        }
+      }
+
+      const uniqueFdis: string[] = [];
+      for (const fdi of fdis) {
+        if (!uniqueFdis.includes(fdi)) {
+          uniqueFdis.push(fdi);
+        }
+      }
+
+      return {
+        arch: archNode.getAttribute('data-arch') ?? '',
+        fdis: uniqueFdis,
+        profileIds: profile,
+        occlusalIds: occlusal,
+        lingualIds: lingual,
+        missingSolid,
+        missingOutline,
+        glyphTransforms,
+        flippedRows,
+        useTransforms,
+        midlineCount: archNode.querySelectorAll('.perio-arch__grid.is-rule line').length,
+      };
+    });
+
+    return {
+      arches: archMetrics,
+      outlineIds,
+      solidIds,
+      forbiddenSymbolIds,
+      forbiddenHrefs,
+      forbiddenMarkup,
+      atlasTransforms,
+    };
+  });
+}
+
+async function assertPerioSpriteContract(page: Page, paper: string) {
+  const metrics = await measurePerioSprite(page);
+  expect(metrics, `sprite v003 medible en ${paper}`).not.toBeNull();
+
+  const sprite = metrics!;
+  const upperExpected = [...PERIO_UPPER_FDI];
+  const lowerExpected = [...PERIO_LOWER_FDI];
+  const upperProfile = expectedRowIds(upperExpected, 'profile');
+  const upperOcclusal = expectedRowIds(upperExpected, 'occlusal');
+  const lowerProfile = expectedRowIds(lowerExpected, 'profile');
+  const lowerOcclusal = expectedRowIds(lowerExpected, 'occlusal');
+
+  expect(sprite.arches, `dos arcadas en ${paper}`).toHaveLength(2);
+
+  const [upper, lower] = sprite.arches;
+  expect(upper?.arch, `arcada superior primero en ${paper}`).toBe('upper');
+  expect(lower?.arch, `arcada inferior después en ${paper}`).toBe('lower');
+
+  expect(upper!.fdis, `16 FDI superiores en ${paper}`).toEqual(upperExpected);
+  expect(lower!.fdis, `16 FDI inferiores en ${paper}`).toEqual(lowerExpected);
+  expect(lower!.fdis.slice(8, 12), `23 entre 32 y 33 en inferior ${paper}`).toEqual([
+    '3.1',
+    '3.2',
+    '2.3',
+    '3.3',
+  ]);
+  expect(lower!.fdis, `FDI 35 ausente en inferior ${paper}`).not.toContain('3.5');
+  expect(new Set(upper!.fdis).size).toBe(upperExpected.length);
+  expect(new Set(lower!.fdis).size).toBe(lowerExpected.length);
+
+  expect(upper!.profileIds, `16 perfiles superiores distintos en ${paper}`).toEqual(upperProfile);
+  expect(upper!.occlusalIds, `16 oclusales superiores distintos en ${paper}`).toEqual(upperOcclusal);
+  expect(lower!.profileIds, `16 perfiles inferiores distintos en ${paper}`).toEqual(lowerProfile);
+  expect(lower!.occlusalIds, `16 oclusales inferiores distintos en ${paper}`).toEqual(lowerOcclusal);
+
+  expect(new Set(upper!.profileIds).size, `perfiles únicos en superior ${paper}`).toBe(upperExpected.length);
+  expect(new Set(upper!.occlusalIds).size, `oclusales únicos en superior ${paper}`).toBe(upperExpected.length);
+  expect(new Set(lower!.profileIds).size, `perfiles únicos en inferior ${paper}`).toBe(lowerExpected.length);
+  expect(new Set(lower!.occlusalIds).size, `oclusales únicos en inferior ${paper}`).toBe(lowerExpected.length);
+  expect(upper!.profileIds).toContain('permanent_23_profile');
+  expect(lower!.profileIds).toContain('permanent_23_profile');
+  expect(new Set([...upper!.profileIds, ...lower!.profileIds]).size).toBe(31);
+  expect(new Set([...upper!.occlusalIds, ...lower!.occlusalIds]).size).toBe(31);
+
+  expect(upper!.lingualIds, `lingual superior reutiliza perfil en ${paper}`).toEqual(upperProfile);
+  expect(lower!.lingualIds, `lingual inferior reutiliza perfil en ${paper}`).toEqual(lowerProfile);
+
+  expect(upper!.missingOutline, `contorno completo en superior ${paper}`).toEqual([]);
+  expect(lower!.missingOutline, `contorno completo en inferior ${paper}`).toEqual([]);
+  expect(upper!.missingSolid, `capa -solid en superior ${paper}`).toEqual([]);
+  expect(lower!.missingSolid, `capa -solid en inferior ${paper}`).toEqual([]);
+  expect(upper!.glyphTransforms, `sin transform en glifos superiores ${paper}`).toEqual([]);
+  expect(upper!.flippedRows, `sin inversión vertical en superior ${paper}`).toEqual([]);
+  expect(lower!.flippedRows, `perfiles inferiores orientados hacia arriba en ${paper}`).toEqual(
+    lowerExpected.flatMap((fdi) => [`${fdi}:profile`, `${fdi}:lingual`]),
+  );
+  expect(lower!.glyphTransforms, `inversión vertical solo en perfiles inferiores ${paper}`).toHaveLength(32);
+  expect(
+    lower!.glyphTransforms.every(
+      (entry) =>
+        (entry.includes(':profile:') || entry.includes(':lingual:')) &&
+        entry.includes('scale(1 -1)'),
+    ),
+  ).toBe(true);
+  expect(upper!.useTransforms, `sin transform de espejo en <use> superiores ${paper}`).toEqual([]);
+  expect(lower!.useTransforms, `sin transform de espejo en <use> inferiores ${paper}`).toEqual([]);
+  expect(upper!.midlineCount, `línea media superior en ${paper}`).toBe(1);
+  expect(lower!.midlineCount, `línea media inferior en ${paper}`).toBe(1);
+
+  for (const id of [
+    ...upper!.profileIds,
+    ...upper!.occlusalIds,
+    ...lower!.profileIds,
+    ...lower!.occlusalIds,
+  ]) {
+    expect(id, `id v003 en ${paper}`).toMatch(PERIO_SPRITE_ID);
+  }
+
+  expect(sprite.outlineIds, `64 contornos ToothSprite en ${paper}`).toHaveLength(64);
+  expect(sprite.solidIds, `64 capas -solid ToothSprite en ${paper}`).toHaveLength(64);
+  expect(sprite.outlineIds.every((id) => PERIO_SPRITE_ID.test(id) && !id.endsWith('-solid'))).toBe(true);
+  expect(sprite.solidIds.every((id) => id.endsWith('-solid') && PERIO_SPRITE_ID.test(id))).toBe(true);
+  expect(
+    sprite.solidIds.slice().sort(),
+    `cada contorno tiene -solid en ${paper}`,
+  ).toEqual(sprite.outlineIds.map((id) => `${id}-solid`).sort());
+
+  expect(sprite.forbiddenSymbolIds, `sin IDs legacy/M3 en symbols ${paper}`).toEqual([]);
+  expect(sprite.forbiddenHrefs, `sin href legacy/M3 en ${paper}`).toEqual([]);
+  expect(sprite.forbiddenMarkup, `sin scale de espejo/inversión en ${paper}`).toEqual([]);
+  expect(sprite.atlasTransforms.every((value) => value === POTRACE_ATLAS_TRANSFORM)).toBe(true);
+
+  for (const fdi of ['18', '28', '38', '48'] as const) {
+    expect(sprite.outlineIds).toContain(`permanent_${fdi}_profile`);
+    expect(sprite.outlineIds).toContain(`permanent_${fdi}_occlusal`);
+    expect(sprite.solidIds).toContain(`permanent_${fdi}_profile-solid`);
+    expect(sprite.solidIds).toContain(`permanent_${fdi}_occlusal-solid`);
+  }
+}
+
 test.describe('Rutas HTTP y títulos', () => {
   test('el catálogo responde 200', async ({ page }) => {
     const response = await page.goto('/');
@@ -858,6 +1142,18 @@ test.describe('Documentos de formato', () => {
       await assertPerioOcclusion(page, paper.id);
       await assertPerioNotes(page, paper.id);
       await assertPerioSymbology(page, paper.id, paper.id === 'letter' ? 1 : 2);
+      await assertPerioSpriteContract(page, paper.id);
+    }
+  });
+
+  test('ODO-F05 periodontograma: 16 dientes superiores, 16 inferiores y perfiles inferiores hacia arriba', async ({
+    page,
+  }) => {
+    for (const paper of OCCLUSION_PAPERS) {
+      await page.goto(`/formatos/periodontograma/${paper.query}`);
+      await expect(page.locator('html')).toHaveAttribute('data-paper-size', paper.id);
+      await expect(page.locator('[data-testid="perio-arch"]')).toHaveCount(2);
+      await assertPerioSpriteContract(page, paper.id);
     }
   });
 

@@ -1,7 +1,6 @@
 ---
 import {
   buildArchLayout,
-  toothFlipY,
   type ArchBand,
   type ArchColumn,
   type ArchId,
@@ -27,13 +26,13 @@ type ToothGlyph = {
   testid: boolean;
   row: 'profile' | 'occlusal' | 'lingual';
   fdi: string;
+  flipY: boolean;
   solidId: string;
   outlineId: string;
   x: number;
   y: number;
   w: number;
   h: number;
-  transform?: string;
 };
 
 const { arch } = Astro.props;
@@ -123,23 +122,12 @@ function requireBand<K extends ArchBand['kind']>(bands: ArchBand[], kind: K): Ex
   return band as Extract<ArchBand, { kind: K }>;
 }
 
-function mirroredFor(column: ArchColumn, symbolId: string): boolean {
-  if (symbolId === column.profile.id) {
-    return column.profile.mirrored;
-  }
-  if (symbolId === column.occlusal.id) {
-    return column.occlusal.mirrored;
-  }
-  return false;
-}
-
 function placedGlyph(
   column: ArchColumn,
   band: ArchBand,
   symbolId: string,
   row: ToothGlyph['row'],
   testid: boolean,
-  flipY: boolean,
 ): ToothGlyph {
   const symbol = TOOTH_SYMBOLS[symbolId];
   if (!symbol) {
@@ -156,23 +144,18 @@ function placedGlyph(
   const h = box.h * scale;
   const x = column.x + (column.width - w) / 2;
   const y = band.y + (band.height - h) / 2;
-  const cx = column.cx;
-  const cy = band.y + band.height / 2;
-  const sx = mirroredFor(column, symbolId) ? -1 : 1;
-  const sy = flipY ? -1 : 1;
-  const transform = sx === 1 && sy === 1 ? undefined : `translate(${cx} ${cy}) scale(${sx} ${sy}) translate(${-cx} ${-cy})`;
 
   return {
     testid,
     row,
     fdi: column.fdi,
+    flipY: arch === 'lower' && row !== 'occlusal',
     solidId: `${symbolId}-solid`,
     outlineId: symbolId,
     x,
     y,
     w,
     h,
-    transform,
   };
 }
 
@@ -180,7 +163,6 @@ const grid = buildGridLines(layout);
 const facial = requireBand(layout.bands, 'facial');
 const lingual = requireBand(layout.bands, 'lingual');
 const occlusal = requireBand(layout.bands, 'occlusal');
-const flipY = toothFlipY(arch);
 const gutterX = layout.gutter.left / 2;
 
 const labels: GutterLabel[] = [];
@@ -214,9 +196,9 @@ for (const band of layout.bands) {
 }
 
 const glyphs: ToothGlyph[] = layout.columns.flatMap((column) => [
-  placedGlyph(column, facial, column.profile.id, 'profile', true, flipY),
-  placedGlyph(column, occlusal, column.occlusal.id, 'occlusal', true, false),
-  placedGlyph(column, lingual, column.profile.id, 'lingual', false, flipY),
+  placedGlyph(column, facial, column.profile.id, 'profile', true),
+  placedGlyph(column, occlusal, column.occlusal.id, 'occlusal', true),
+  placedGlyph(column, lingual, column.profile.id, 'lingual', false),
 ]);
 ---
 
@@ -250,7 +232,8 @@ const glyphs: ToothGlyph[] = layout.columns.flatMap((column) => [
         data-testid={glyph.testid ? 'perio-tooth' : false}
         data-fdi={glyph.fdi}
         data-row={glyph.row}
-        transform={glyph.transform}
+        data-flip-y={glyph.flipY ? 'true' : 'false'}
+        transform={glyph.flipY ? `translate(0 ${2 * glyph.y + glyph.h}) scale(1 -1)` : undefined}
       >
         <use
           class="perio-arch__solid"

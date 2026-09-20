@@ -1,13 +1,12 @@
 import { expect, test } from 'bun:test';
 import {
   OCCLUSION_CELLS,
-  PERIO_COLUMN_COUNT,
+  PERIO_COLUMN_COUNTS,
   PERIO_LOWER_FDI,
   PERIO_UPPER_FDI,
   PERIO_VIEWBOX,
   buildArchLayout,
   buildOcclusionRows,
-  toothFlipY,
   toothSymbolFor,
   type ArchId,
   type ToothRowKind,
@@ -16,9 +15,8 @@ import { TOOTH_SYMBOLS } from './tooth-sprite/symbols';
 
 const ARCHES: ArchId[] = ['upper', 'lower'];
 const ROWS: ToothRowKind[] = ['profile', 'occlusal'];
-const HEMI_END = 8;
 
-test('tiene 16 FDI por arcada, sin repetidos y en orden de hoja', () => {
+test('tiene 16 FDI superiores y 16 inferiores, con 23 entre 32 y 33 y sin repetidos en cada arcada', () => {
   expect(PERIO_UPPER_FDI).toHaveLength(16);
   expect(PERIO_LOWER_FDI).toHaveLength(16);
   expect(new Set(PERIO_UPPER_FDI).size).toBe(16);
@@ -54,52 +52,58 @@ test('tiene 16 FDI por arcada, sin repetidos y en orden de hoja', () => {
     '4.1',
     '3.1',
     '3.2',
+    '2.3',
     '3.3',
     '3.4',
-    '3.5',
     '3.6',
     '3.7',
     '3.8',
   ]);
+  expect(PERIO_LOWER_FDI.indexOf('2.3')).toBe(PERIO_LOWER_FDI.indexOf('3.2') + 1);
+  expect(PERIO_LOWER_FDI.indexOf('3.3')).toBe(PERIO_LOWER_FDI.indexOf('2.3') + 1);
+  expect(PERIO_LOWER_FDI).not.toContain('3.5');
 
   expect(buildArchLayout('upper').columns.map((column) => column.fdi)).toEqual([...PERIO_UPPER_FDI]);
   expect(buildArchLayout('lower').columns.map((column) => column.fdi)).toEqual([...PERIO_LOWER_FDI]);
 });
 
-test('toothSymbolFor: índice 0 es _m3; 16 posiciones espejan 8 ids; 7 y 8 comparten id', () => {
+test('toothSymbolFor resuelve cada FDI a su glifo propio, sin espejo', () => {
   for (const arch of ARCHES) {
     for (const row of ROWS) {
-      const first = toothSymbolFor(arch, row, 0);
-      const last = toothSymbolFor(arch, row, 15);
-      const innerRight = toothSymbolFor(arch, row, 7);
-      const innerLeft = toothSymbolFor(arch, row, 8);
+      const ids: string[] = [];
 
-      expect(first.id.endsWith('_m3')).toBe(true);
-      expect(first.mirrored).toBe(false);
-      expect(last.id).toBe(first.id);
-      expect(last.mirrored).toBe(true);
-
-      expect(innerRight.id).toBe(innerLeft.id);
-      expect(innerRight.mirrored).toBe(false);
-      expect(innerLeft.mirrored).toBe(true);
-
-      for (let index = 0; index < HEMI_END; index++) {
-        expect(toothSymbolFor(arch, row, index).mirrored).toBe(false);
-      }
-      for (let index = HEMI_END; index < PERIO_COLUMN_COUNT; index++) {
-        expect(toothSymbolFor(arch, row, index).mirrored).toBe(true);
+      for (let index = 0; index < PERIO_COLUMN_COUNTS[arch]; index++) {
+        const ref = toothSymbolFor(arch, row, index);
+        const fdi = (arch === 'upper' ? PERIO_UPPER_FDI : PERIO_LOWER_FDI)[index];
+        expect(fdi).toBeDefined();
+        expect(ref).toEqual({ id: `permanent_${fdi!.replaceAll('.', '')}_${row}` });
+        expect(ref).not.toHaveProperty('mirrored');
+        ids.push(ref.id);
       }
 
-      const ids = Array.from({ length: PERIO_COLUMN_COUNT }, (_, index) => toothSymbolFor(arch, row, index).id);
-      expect(new Set(ids).size).toBe(8);
+      expect(ids).toHaveLength(PERIO_COLUMN_COUNTS[arch]);
+      expect(new Set(ids).size).toBe(PERIO_COLUMN_COUNTS[arch]);
     }
   }
+
+  expect(toothSymbolFor('upper', 'profile', 0).id).toBe('permanent_18_profile');
+  expect(toothSymbolFor('upper', 'profile', 15).id).toBe('permanent_28_profile');
+  expect(toothSymbolFor('upper', 'occlusal', 0).id).toBe('permanent_18_occlusal');
+  expect(toothSymbolFor('upper', 'occlusal', 15).id).toBe('permanent_28_occlusal');
+  expect(toothSymbolFor('lower', 'profile', 0).id).toBe('permanent_48_profile');
+  expect(toothSymbolFor('lower', 'profile', 9).id).toBe('permanent_32_profile');
+  expect(toothSymbolFor('lower', 'profile', 10).id).toBe('permanent_23_profile');
+  expect(toothSymbolFor('lower', 'profile', 11).id).toBe('permanent_33_profile');
+  expect(toothSymbolFor('lower', 'profile', 15).id).toBe('permanent_38_profile');
+  expect(toothSymbolFor('lower', 'occlusal', 0).id).toBe('permanent_48_occlusal');
+  expect(toothSymbolFor('lower', 'occlusal', 10).id).toBe('permanent_23_occlusal');
+  expect(toothSymbolFor('lower', 'occlusal', 15).id).toBe('permanent_38_occlusal');
 });
 
 test('todos los ids de toothSymbolFor existen en TOOTH_SYMBOLS', () => {
   for (const arch of ARCHES) {
     for (const row of ROWS) {
-      for (let index = 0; index < PERIO_COLUMN_COUNT; index++) {
+      for (let index = 0; index < PERIO_COLUMN_COUNTS[arch]; index++) {
         const { id } = toothSymbolFor(arch, row, index);
         expect(TOOTH_SYMBOLS[id]).toBeDefined();
       }
@@ -149,12 +153,12 @@ test('el viewBox de la arcada es apaisado (~975×397, ≈2,456:1)', () => {
   }
 });
 
-test('columnas equidistantes y línea media exactamente en el centro del viewBox', () => {
+test('columnas equidistantes y línea media entre 11|21 o 41|31', () => {
   for (const arch of ARCHES) {
     const layout = buildArchLayout(arch);
     const { columns, midlineX, viewBox } = layout;
 
-    expect(columns).toHaveLength(PERIO_COLUMN_COUNT);
+    expect(columns).toHaveLength(PERIO_COLUMN_COUNTS[arch]);
     expect(midlineX).toBe(viewBox.w / 2);
 
     const width = columns[0]?.width;
@@ -173,6 +177,8 @@ test('columnas equidistantes y línea media exactamente en el centro del viewBox
     const ninth = columns[8];
     expect(eighth).toBeDefined();
     expect(ninth).toBeDefined();
+    expect(eighth!.fdi).toBe(arch === 'upper' ? '1.1' : '4.1');
+    expect(ninth!.fdi).toBe(arch === 'upper' ? '2.1' : '3.1');
     expect(eighth!.x + eighth!.width).toBeCloseTo(midlineX, 10);
     expect(ninth!.x).toBeCloseTo(midlineX, 10);
   }
@@ -287,9 +293,42 @@ test('las 6 subfilas de retícula tienen la misma altura (±0,5 %)', () => {
   }
 });
 
-test('toothFlipY es false en upper y true en lower', () => {
-  expect(toothFlipY('upper')).toBe(false);
-  expect(toothFlipY('lower')).toBe(true);
+test('arcadas superior e inferior reutilizan el glifo FDI 23 y omiten 35', () => {
+  const upperProfile = Array.from({ length: PERIO_COLUMN_COUNTS.upper }, (_, index) =>
+    toothSymbolFor('upper', 'profile', index).id,
+  );
+  const lowerProfile = Array.from({ length: PERIO_COLUMN_COUNTS.lower }, (_, index) =>
+    toothSymbolFor('lower', 'profile', index).id,
+  );
+  const upperOcclusal = Array.from({ length: PERIO_COLUMN_COUNTS.upper }, (_, index) =>
+    toothSymbolFor('upper', 'occlusal', index).id,
+  );
+  const lowerOcclusal = Array.from({ length: PERIO_COLUMN_COUNTS.lower }, (_, index) =>
+    toothSymbolFor('lower', 'occlusal', index).id,
+  );
+
+  expect(upperProfile).toHaveLength(16);
+  expect(lowerProfile).toHaveLength(16);
+  expect(new Set([...upperProfile, ...lowerProfile]).size).toBe(31);
+  expect(new Set([...upperOcclusal, ...lowerOcclusal]).size).toBe(31);
+  expect(lowerProfile).not.toContain('permanent_35_profile');
+  expect(lowerOcclusal).not.toContain('permanent_35_occlusal');
+  expect(upperProfile.filter((id) => lowerProfile.includes(id))).toEqual(['permanent_23_profile']);
+  expect(upperOcclusal.filter((id) => lowerOcclusal.includes(id))).toEqual(['permanent_23_occlusal']);
+
+  expect(TOOTH_SYMBOLS['permanent_18_profile']).not.toEqual(TOOTH_SYMBOLS['permanent_48_profile']);
+  expect(TOOTH_SYMBOLS['permanent_28_profile']).not.toEqual(TOOTH_SYMBOLS['permanent_38_profile']);
+  expect(TOOTH_SYMBOLS['permanent_11_profile']).not.toEqual(TOOTH_SYMBOLS['permanent_41_profile']);
+  expect(TOOTH_SYMBOLS['permanent_18_occlusal']).not.toEqual(TOOTH_SYMBOLS['permanent_48_occlusal']);
+
+  for (const column of buildArchLayout('upper').columns) {
+    expect(column.profile).not.toHaveProperty('mirrored');
+    expect(column.occlusal).not.toHaveProperty('mirrored');
+  }
+  for (const column of buildArchLayout('lower').columns) {
+    expect(column.profile).not.toHaveProperty('mirrored');
+    expect(column.occlusal).not.toHaveProperty('mirrored');
+  }
 });
 
 function viewBoxWidth(id: string): number {
@@ -300,24 +339,20 @@ function viewBoxWidth(id: string): number {
   return width;
 }
 
-test('anchos viewBox: decrecen de molar a incisivo lateral; el central puede ensancharse', () => {
+test('cada hemiarcada usa glifos propios: los molares son más anchos que los incisivos', () => {
   for (const arch of ARCHES) {
     for (const row of ROWS) {
-      const widths = Array.from({ length: HEMI_END }, (_, index) =>
+      const widths = Array.from({ length: PERIO_COLUMN_COUNTS[arch] }, (_, index) =>
         viewBoxWidth(toothSymbolFor(arch, row, index).id),
       );
 
-      // De M1 (índice 2) al incisivo lateral (índice 6) el recorte del atlas es no creciente.
-      for (let index = 2; index < 6; index++) {
-        expect(widths[index + 1]!).toBeLessThanOrEqual(widths[index]!);
-      }
+      const rightMolars = [widths[0]!, widths[1]!, widths[2]!];
+      const rightIncisors = [widths[6]!, widths[7]!];
+      const leftIncisors = [widths[8]!, widths[9]!];
+      const leftMolars = widths.slice(-3);
 
-      // El lateral es el más estrecho del tramo molar→lateral; el central (índice 7) puede rebotar.
-      expect(Math.min(...widths.slice(0, 7))).toBe(widths[6]);
-
-      const molarMax = Math.max(widths[0]!, widths[1]!, widths[2]!);
-      expect(molarMax).toBeGreaterThan(Math.max(widths[3]!, widths[4]!));
-      expect(widths[7]!).toBeLessThanOrEqual(molarMax);
+      expect(Math.min(...rightMolars)).toBeGreaterThan(Math.max(...rightIncisors));
+      expect(Math.min(...leftMolars)).toBeGreaterThan(Math.max(...leftIncisors));
     }
   }
 });

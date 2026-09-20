@@ -6,7 +6,7 @@ import { TOOTH_SYMBOLS } from './symbols.generated';
 const KNOWN_PATH =
   'M3590 6922 c0 -12 108 -87 115 -80 3 2 -16 20 -42 39 -63 46 -73 52 -73 41z';
 
-const COORDS_PATH = 'raw/pagina-periortograma/periodontograma-sprite-coordinates.json';
+const COORDS_PATH = 'raw/pagina-periortograma/icons-003-permanent-coordinates.json';
 
 test('splitSubpaths separa subpaths en cada z m', () => {
   const compact = 'M10 10 l5 0 z m 20 0 l5 0 z m 10 5 z';
@@ -66,14 +66,20 @@ test('isHatchFragment detecta rayas horizontales largas y finas', () => {
   expect(isHatchFragment({ h: 2, w: 8 })).toBe(false);
 });
 
-test('TOOTH_SYMBOLS alinea las 87 entradas del atlas principal', async () => {
+test('TOOTH_SYMBOLS alinea las 64 entradas del atlas permanente', async () => {
   const coords = (await Bun.file(COORDS_PATH).json()) as {
     elements: Array<{ id: string; rect: [number, number, number, number] }>;
   };
 
   const ids = coords.elements.map((element) => element.id);
-  expect(ids).toHaveLength(87);
-  expect(Object.keys(TOOTH_SYMBOLS).slice(0, 87)).toEqual(ids);
+  expect(ids).toHaveLength(64);
+  expect(Object.keys(TOOTH_SYMBOLS)).toEqual(ids);
+  expect(new Set(ids.map((id) => /^permanent_(\d{2})_/.exec(id)?.[1])).size).toBe(32);
+
+  for (const fdi of ['18', '28', '38', '48']) {
+    expect(ids).toContain(`permanent_${fdi}_profile`);
+    expect(ids).toContain(`permanent_${fdi}_occlusal`);
+  }
 
   for (const element of coords.elements) {
     const symbol = TOOTH_SYMBOLS[element.id];

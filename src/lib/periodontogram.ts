@@ -3,7 +3,6 @@ import { TOOTH_SYMBOLS } from './tooth-sprite/symbols';
 export type ArchId = 'upper' | 'lower';
 export type ToothRowKind = 'profile' | 'occlusal';
 
-export const PERIO_COLUMN_COUNT = 16;
 export const PERIO_LATERAL_GUTTER = 0.0605;
 /** Caja de arcada apaisada (~975×397 en la hoja de referencia; ≈2,456:1). */
 export const PERIO_VIEWBOX = { w: 975, h: 397 } as const;
@@ -38,13 +37,18 @@ export const PERIO_LOWER_FDI = [
   '4.1',
   '3.1',
   '3.2',
+  '2.3',
   '3.3',
   '3.4',
-  '3.5',
   '3.6',
   '3.7',
   '3.8',
 ] as const;
+
+export const PERIO_COLUMN_COUNTS = {
+  upper: PERIO_UPPER_FDI.length,
+  lower: PERIO_LOWER_FDI.length,
+} as const;
 
 export type PerioUpperFdi = (typeof PERIO_UPPER_FDI)[number];
 export type PerioLowerFdi = (typeof PERIO_LOWER_FDI)[number];
@@ -52,8 +56,6 @@ export type PerioFdi = PerioUpperFdi | PerioLowerFdi;
 
 export type ToothSymbolRef = {
   id: string;
-  /** Si es true, el componente debe aplicar `scale(-1, 1)`. */
-  mirrored: boolean;
 };
 
 export type ArchColumn = {
@@ -136,21 +138,9 @@ export type OcclusionBlock = {
   rows: readonly [readonly string[], readonly string[]];
 };
 
-const HEMIARCH_COUNT = 8;
 const HATCH_LINE_COUNT = 9;
 const GRID_321_SUBROWS = 3;
 const GRID_123_SUBROWS = 3;
-
-const SYMBOL_CATEGORY: Record<ArchId, Record<ToothRowKind, string>> = {
-  upper: {
-    profile: 'upper_tooth_profiles',
-    occlusal: 'upper_occlusal',
-  },
-  lower: {
-    profile: 'lower_tooth_profiles',
-    occlusal: 'lower_occlusal',
-  },
-};
 
 /** Fracciones medidas en la hoja: retícula 3/2/1, facial, oclusal, lingual, retícula 1/2/3.
  *  La retícula 321 queda en 3 filas (misma altura de fila que 123), no en las 4 de la plantilla. */
@@ -203,76 +193,31 @@ const LOWER_BAND_SPECS: readonly BandSpec[] = [
   GRID_123_SPEC,
 ];
 
-function parseViewBoxX(viewBox: string): number {
-  const x = Number.parseFloat(viewBox.split(' ')[0] ?? '');
-  if (!Number.isFinite(x)) {
-    throw new Error(`viewBox inválido: ${viewBox}`);
-  }
-  return x;
-}
-
-function idsForCategory(category: string): string[] {
-  const prefix = `${category}_`;
-  const ids = Object.keys(TOOTH_SYMBOLS)
-    .filter((id) => id.startsWith(prefix) && /_\d+$/.test(id))
-    .sort((a, b) => {
-      const symbolA = TOOTH_SYMBOLS[a];
-      const symbolB = TOOTH_SYMBOLS[b];
-      if (!symbolA || !symbolB) {
-        throw new Error(`símbolo ausente al ordenar ${category}`);
-      }
-      return parseViewBoxX(symbolA.viewBox) - parseViewBoxX(symbolB.viewBox);
-    });
-
-  if (ids.length !== 15) {
-    throw new Error(`${category}: se esperaban 15 símbolos, hay ${ids.length}`);
-  }
-
-  return ids;
-}
-
-function rightHemiarch(category: string): readonly string[] {
-  return [`${category}_m3`, ...idsForCategory(category).slice(0, 7)];
-}
-
-const RIGHT_HEMIARCH: Record<ArchId, Record<ToothRowKind, readonly string[]>> = {
-  upper: {
-    profile: rightHemiarch(SYMBOL_CATEGORY.upper.profile),
-    occlusal: rightHemiarch(SYMBOL_CATEGORY.upper.occlusal),
-  },
-  lower: {
-    profile: rightHemiarch(SYMBOL_CATEGORY.lower.profile),
-    occlusal: rightHemiarch(SYMBOL_CATEGORY.lower.occlusal),
-  },
-};
-
 function fdiList(arch: ArchId): readonly PerioFdi[] {
   return arch === 'upper' ? PERIO_UPPER_FDI : PERIO_LOWER_FDI;
 }
 
-export function toothFlipY(arch: ArchId): boolean {
-  return arch === 'lower';
+function compactFdi(fdi: PerioFdi): string {
+  return fdi.replaceAll('.', '');
 }
 
 export function toothSymbolFor(arch: ArchId, row: ToothRowKind, index: number): ToothSymbolRef {
-  if (!Number.isInteger(index) || index < 0 || index >= PERIO_COLUMN_COUNT) {
+  const fdis = fdiList(arch);
+  if (!Number.isInteger(index) || index < 0 || index >= fdis.length) {
     throw new Error(`índice fuera de rango: ${index}`);
   }
 
-  const hemi = RIGHT_HEMIARCH[arch][row];
-  if (index < HEMIARCH_COUNT) {
-    const id = hemi[index];
-    if (!id) {
-      throw new Error(`símbolo ausente en ${arch}/${row}[${index}]`);
-    }
-    return { id, mirrored: false };
+  const fdi = fdis[index];
+  if (!fdi) {
+    throw new Error(`FDI ausente en ${arch}[${index}]`);
   }
 
-  const id = hemi[PERIO_COLUMN_COUNT - 1 - index];
-  if (!id) {
-    throw new Error(`símbolo ausente en ${arch}/${row}[${index}]`);
+  const id = `permanent_${compactFdi(fdi)}_${row}`;
+  if (!TOOTH_SYMBOLS[id]) {
+    throw new Error(`símbolo ausente: ${id}`);
   }
-  return { id, mirrored: true };
+
+  return { id };
 }
 
 function hatchRangeFor(y: number, height: number, arch: ArchId): { y: number; height: number } {
@@ -353,8 +298,13 @@ export function buildArchLayout(arch: ArchId): ArchLayout {
   const { w, h } = PERIO_VIEWBOX;
   const gutterWidth = w * PERIO_LATERAL_GUTTER;
   const contentWidth = w - 2 * gutterWidth;
-  const columnWidth = contentWidth / PERIO_COLUMN_COUNT;
   const fdis = fdiList(arch);
+  const columnWidth = contentWidth / fdis.length;
+  const leftQuadrant = arch === 'upper' ? '2.' : '3.';
+  const midlineColumnIndex = fdis.findIndex((fdi) => fdi.startsWith(leftQuadrant));
+  if (midlineColumnIndex <= 0) {
+    throw new Error(`línea media ausente en ${arch}`);
+  }
 
   const columns: ArchColumn[] = fdis.map((fdi, index) => {
     const x = gutterWidth + index * columnWidth;
@@ -375,7 +325,7 @@ export function buildArchLayout(arch: ArchId): ArchLayout {
     gutter: { left: gutterWidth, right: gutterWidth },
     content: { x: gutterWidth, width: contentWidth },
     columns,
-    midlineX: w / 2,
+    midlineX: gutterWidth + midlineColumnIndex * columnWidth,
     bands: buildBands(arch, h),
   };
 }
