@@ -7,11 +7,12 @@ import {
   PERIO_VIEWBOX,
   buildArchLayout,
   buildOcclusionRows,
+  toothFlipY,
   toothSymbolFor,
   type ArchId,
   type ToothRowKind,
 } from './periodontogram';
-import { TOOTH_SYMBOLS } from './tooth-sprite/symbols.generated';
+import { TOOTH_SYMBOLS } from './tooth-sprite/symbols';
 
 const ARCHES: ArchId[] = ['upper', 'lower'];
 const ROWS: ToothRowKind[] = ['profile', 'occlusal'];
@@ -65,9 +66,23 @@ test('tiene 16 FDI por arcada, sin repetidos y en orden de hoja', () => {
   expect(buildArchLayout('lower').columns.map((column) => column.fdi)).toEqual([...PERIO_LOWER_FDI]);
 });
 
-test('toothSymbolFor: mirrored false en 0-7, true en 8-15; pares (0,15) y (7,8) comparten id', () => {
+test('toothSymbolFor: índice 0 es _m3; 16 posiciones espejan 8 ids; 7 y 8 comparten id', () => {
   for (const arch of ARCHES) {
     for (const row of ROWS) {
+      const first = toothSymbolFor(arch, row, 0);
+      const last = toothSymbolFor(arch, row, 15);
+      const innerRight = toothSymbolFor(arch, row, 7);
+      const innerLeft = toothSymbolFor(arch, row, 8);
+
+      expect(first.id.endsWith('_m3')).toBe(true);
+      expect(first.mirrored).toBe(false);
+      expect(last.id).toBe(first.id);
+      expect(last.mirrored).toBe(true);
+
+      expect(innerRight.id).toBe(innerLeft.id);
+      expect(innerRight.mirrored).toBe(false);
+      expect(innerLeft.mirrored).toBe(true);
+
       for (let index = 0; index < HEMI_END; index++) {
         expect(toothSymbolFor(arch, row, index).mirrored).toBe(false);
       }
@@ -75,8 +90,8 @@ test('toothSymbolFor: mirrored false en 0-7, true en 8-15; pares (0,15) y (7,8) 
         expect(toothSymbolFor(arch, row, index).mirrored).toBe(true);
       }
 
-      expect(toothSymbolFor(arch, row, 0).id).toBe(toothSymbolFor(arch, row, 15).id);
-      expect(toothSymbolFor(arch, row, 7).id).toBe(toothSymbolFor(arch, row, 8).id);
+      const ids = Array.from({ length: PERIO_COLUMN_COUNT }, (_, index) => toothSymbolFor(arch, row, index).id);
+      expect(new Set(ids).size).toBe(8);
     }
   }
 });
@@ -92,25 +107,29 @@ test('todos los ids de toothSymbolFor existen en TOOTH_SYMBOLS', () => {
   }
 });
 
-test('fracciones de banda suman 1 ± 0,001', () => {
+test('fracciones de banda suman 1 ± 0,001 y no hay bandas gap', () => {
   for (const arch of ARCHES) {
-    const total = buildArchLayout(arch).bands.reduce((sum, band) => sum + band.fraction, 0);
+    const { bands } = buildArchLayout(arch);
+    const total = bands.reduce((sum, band) => sum + band.fraction, 0);
     expect(Math.abs(total - 1)).toBeLessThanOrEqual(0.001);
+    expect(bands.map((band) => band.kind)).not.toContain('gap');
+    expect(bands.map((band) => band.id).some((id) => id.startsWith('gap'))).toBe(false);
   }
 });
 
-test('la arcada inferior invierte el orden de bandas respecto a la superior', () => {
-  const upper = buildArchLayout('upper').bands.map((band) => band.id);
-  const lower = buildArchLayout('lower').bands.map((band) => band.id);
-
-  expect(lower).toEqual([...upper].reverse());
-  expect(upper).toEqual([
+test('orden de bandas: retículas 321/123 fijas; solo se intercambian Facial y Lingual', () => {
+  expect(buildArchLayout('upper').bands.map((band) => band.id)).toEqual([
     'grid-321',
     'facial',
-    'gap-facial-occlusal',
     'occlusal',
-    'gap-occlusal-lingual',
     'lingual',
+    'grid-123',
+  ]);
+  expect(buildArchLayout('lower').bands.map((band) => band.id)).toEqual([
+    'grid-321',
+    'lingual',
+    'occlusal',
+    'facial',
     'grid-123',
   ]);
 });
@@ -159,7 +178,7 @@ test('columnas equidistantes y línea media exactamente en el centro del viewBox
   }
 });
 
-test('retícula 3/2/1 tiene 4 subfilas, 1/2/3 tiene 3, y las bandas rayadas llevan 7 líneas', () => {
+test('retícula 3/2/1 tiene 3 subfilas, 1/2/3 tiene 3, y las bandas rayadas llevan 9 líneas', () => {
   for (const arch of ARCHES) {
     const byId = new Map(buildArchLayout(arch).bands.map((band) => [band.id, band]));
     const grid321 = byId.get('grid-321');
@@ -173,7 +192,7 @@ test('retícula 3/2/1 tiene 4 subfilas, 1/2/3 tiene 3, y las bandas rayadas llev
     expect(lingual?.kind).toBe('lingual');
 
     if (grid321?.kind === 'grid') {
-      expect(grid321.subrows).toHaveLength(4);
+      expect(grid321.subrows).toHaveLength(3);
       expect([...grid321.scale]).toEqual([3, 2, 1]);
     }
     if (grid123?.kind === 'grid') {
@@ -181,10 +200,124 @@ test('retícula 3/2/1 tiene 4 subfilas, 1/2/3 tiene 3, y las bandas rayadas llev
       expect([...grid123.scale]).toEqual([1, 2, 3]);
     }
     if (facial?.kind === 'facial') {
-      expect(facial.hatchYs).toHaveLength(7);
+      expect(facial.hatchYs).toHaveLength(9);
     }
     if (lingual?.kind === 'lingual') {
-      expect(lingual.hatchYs).toHaveLength(7);
+      expect(lingual.hatchYs).toHaveLength(9);
+    }
+  }
+});
+
+test('el rayado de Facial y Lingual queda estrictamente en el lado radicular', () => {
+  for (const arch of ARCHES) {
+    for (const band of buildArchLayout(arch).bands) {
+      if (band.kind !== 'facial' && band.kind !== 'lingual') {
+        continue;
+      }
+
+      const midpoint = band.y + band.height / 2;
+      expect(band.hatchYs).toHaveLength(9);
+
+      for (const y of band.hatchYs) {
+        if (arch === 'upper') {
+          expect(y).toBeLessThan(midpoint);
+        } else {
+          expect(y).toBeGreaterThan(midpoint);
+        }
+      }
+    }
+  }
+});
+
+test('el rayado radicular es equiespaciado y queda dentro de hatchRange', () => {
+  for (const arch of ARCHES) {
+    for (const band of buildArchLayout(arch).bands) {
+      if (band.kind !== 'facial' && band.kind !== 'lingual') {
+        continue;
+      }
+
+      const ys = [...band.hatchYs];
+      expect(ys).toHaveLength(9);
+
+      const first = ys[0];
+      const second = ys[1];
+      const last = ys[ys.length - 1];
+      expect(first).toBeDefined();
+      expect(second).toBeDefined();
+      expect(last).toBeDefined();
+
+      const step = second! - first!;
+      expect(step).toBeGreaterThan(0);
+
+      for (let index = 1; index < ys.length; index++) {
+        expect(Math.abs(ys[index]! - ys[index - 1]! - step)).toBeLessThanOrEqual(0.01);
+      }
+
+      const rangeBottom = band.hatchRange.y + band.hatchRange.height;
+      expect(first!).toBeGreaterThanOrEqual(band.hatchRange.y);
+      expect(first!).toBeLessThanOrEqual(rangeBottom);
+      expect(last!).toBeGreaterThanOrEqual(band.hatchRange.y);
+      expect(last!).toBeLessThanOrEqual(rangeBottom);
+    }
+  }
+});
+
+test('la banda oclusal no expone hatchYs ni hatchRange', () => {
+  for (const arch of ARCHES) {
+    const occlusal = buildArchLayout(arch).bands.find((band) => band.kind === 'occlusal');
+    expect(occlusal).toBeDefined();
+    expect(occlusal?.kind).toBe('occlusal');
+    expect(occlusal).not.toHaveProperty('hatchYs');
+    expect(occlusal).not.toHaveProperty('hatchRange');
+  }
+});
+
+test('las 6 subfilas de retícula tienen la misma altura (±0,5 %)', () => {
+  for (const arch of ARCHES) {
+    const heights = buildArchLayout(arch)
+      .bands.filter((band) => band.kind === 'grid')
+      .flatMap((band) => band.subrows.map((subrow) => subrow.height));
+
+    expect(heights).toHaveLength(6);
+    const reference = heights[0];
+    expect(reference).toBeGreaterThan(0);
+    for (const height of heights) {
+      expect(Math.abs(height - reference!) / reference!).toBeLessThanOrEqual(0.005);
+    }
+  }
+});
+
+test('toothFlipY es false en upper y true en lower', () => {
+  expect(toothFlipY('upper')).toBe(false);
+  expect(toothFlipY('lower')).toBe(true);
+});
+
+function viewBoxWidth(id: string): number {
+  const symbol = TOOTH_SYMBOLS[id];
+  expect(symbol).toBeDefined();
+  const width = Number.parseFloat(symbol!.viewBox.split(/\s+/)[2] ?? '');
+  expect(Number.isFinite(width) && width > 0).toBe(true);
+  return width;
+}
+
+test('anchos viewBox: decrecen de molar a incisivo lateral; el central puede ensancharse', () => {
+  for (const arch of ARCHES) {
+    for (const row of ROWS) {
+      const widths = Array.from({ length: HEMI_END }, (_, index) =>
+        viewBoxWidth(toothSymbolFor(arch, row, index).id),
+      );
+
+      // De M1 (índice 2) al incisivo lateral (índice 6) el recorte del atlas es no creciente.
+      for (let index = 2; index < 6; index++) {
+        expect(widths[index + 1]!).toBeLessThanOrEqual(widths[index]!);
+      }
+
+      // El lateral es el más estrecho del tramo molar→lateral; el central (índice 7) puede rebotar.
+      expect(Math.min(...widths.slice(0, 7))).toBe(widths[6]);
+
+      const molarMax = Math.max(widths[0]!, widths[1]!, widths[2]!);
+      expect(molarMax).toBeGreaterThan(Math.max(widths[3]!, widths[4]!));
+      expect(widths[7]!).toBeLessThanOrEqual(molarMax);
     }
   }
 });

@@ -144,7 +144,7 @@ Los campos clínicos son **líneas vacías** para pluma. Están prohibidos `<inp
 | `ExportPanel` | Diálogo daisyUI (`modal`) de exportación: cuerpo con scroll y acciones fijas; joins de diseño/papel con wrap. Diseño sincronizado con el desplegable **Papel** de la barra, papel de salida, disposición, orientación y lista ordenable de formatos. **Descargar PDF** impone y descarga en el cliente. **PNG para editar** (`btn-ghost`) baja un ZIP (`fflate`) de PNG a 300 dpi sin fondo de hoja (un PNG por formato marcado, siempre ZIP). No redibuja `.sheet`. |
 | `Odontogram` | Diagrama dental vectorial FDI (52 dientes, glifo de círculo + equis) de ODO-F04, con cuadrado NOTAS al pie del panel. SVG estático, sin estado por superficie. |
 | `ToothSprite` | Sprite SVG **inline** de glifos dentales para el periodontograma: un `<symbol>` de contorno y otro `-solid` por diente, generado en `src/lib/tooth-sprite/symbols.generated.ts`, sin PNG ni sprite externo. |
-| `PerioArch` | Retícula de sondaje de una arcada (ODO-F05): 16 columnas FDI, bandas Facial/Lingual y glifos del sprite generado (`<use href="#id">`). Dos instancias, superior e inferior. |
+| `PerioArch` | Retícula de sondaje de una arcada (ODO-F05): 16 columnas FDI, bandas Facial/Lingual y glifos del sprite generado (`<use href="#id">`). Dos instancias, superior e inferior. En Facial/Lingual, **rayado = superficie cubierta por encía; zona limpia = corona visible**. |
 | `PerioOcclusion` | Bloque central de oclusión entre las dos arcadas: cuatro grupos con numeración 8…1 \| 1…8. |
 | `PerioSymbology` | Leyenda clínica del panel SIMBOLOGÍA (extracción, ausencia, caries, furcación, etc.). |
 

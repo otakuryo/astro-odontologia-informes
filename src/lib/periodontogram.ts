@@ -1,4 +1,4 @@
-import { TOOTH_SYMBOLS } from './tooth-sprite/symbols.generated';
+import { TOOTH_SYMBOLS } from './tooth-sprite/symbols';
 
 export type ArchId = 'upper' | 'lower';
 export type ToothRowKind = 'profile' | 'occlusal';
@@ -83,6 +83,7 @@ export type HatchedBand = BandBase & {
   kind: 'facial' | 'lingual';
   id: 'facial' | 'lingual';
   hatchYs: readonly number[];
+  hatchRange: { y: number; height: number };
 };
 
 export type OcclusalBand = BandBase & {
@@ -90,12 +91,7 @@ export type OcclusalBand = BandBase & {
   id: 'occlusal';
 };
 
-export type GapBand = BandBase & {
-  kind: 'gap';
-  id: 'gap-facial-occlusal' | 'gap-occlusal-lingual';
-};
-
-export type ArchBand = GridBand | HatchedBand | OcclusalBand | GapBand;
+export type ArchBand = GridBand | HatchedBand | OcclusalBand;
 
 export type ArchLayout = {
   arch: ArchId;
@@ -141,8 +137,8 @@ export type OcclusionBlock = {
 };
 
 const HEMIARCH_COUNT = 8;
-const HATCH_LINE_COUNT = 7;
-const GRID_321_SUBROWS = 4;
+const HATCH_LINE_COUNT = 9;
+const GRID_321_SUBROWS = 3;
 const GRID_123_SUBROWS = 3;
 
 const SYMBOL_CATEGORY: Record<ArchId, Record<ToothRowKind, string>> = {
@@ -156,39 +152,55 @@ const SYMBOL_CATEGORY: Record<ArchId, Record<ToothRowKind, string>> = {
   },
 };
 
-/** Fracciones medidas en la hoja: retícula 3/2/1, facial, oclusal, lingual, retícula 1/2/3. */
-const MEASURED_GRID_321 = 0.232;
-const MEASURED_FACIAL = 0.212;
-const MEASURED_OCCLUSAL = 0.123;
-const MEASURED_LINGUAL = 0.217;
-const MEASURED_GRID_123 = 0.184;
-const MEASURED_GAP_FACIAL_OCCLUSAL = 0.015;
-const MEASURED_GAP_OCCLUSAL_LINGUAL = 0.02;
+/** Fracciones medidas en la hoja: retícula 3/2/1, facial, oclusal, lingual, retícula 1/2/3.
+ *  La retícula 321 queda en 3 filas (misma altura de fila que 123), no en las 4 de la plantilla. */
+const MEASURED_GRID_321 = 0.1622;
+const MEASURED_FACIAL = 0.2527;
+const MEASURED_OCCLUSAL = 0.1436;
+const MEASURED_LINGUAL = 0.2261;
+const MEASURED_GRID_123 = 0.1622;
 
 const MEASURED_TOTAL =
-  MEASURED_GRID_321 +
-  MEASURED_FACIAL +
-  MEASURED_GAP_FACIAL_OCCLUSAL +
-  MEASURED_OCCLUSAL +
-  MEASURED_GAP_OCCLUSAL_LINGUAL +
-  MEASURED_LINGUAL +
-  MEASURED_GRID_123;
+  MEASURED_GRID_321 + MEASURED_FACIAL + MEASURED_OCCLUSAL + MEASURED_LINGUAL + MEASURED_GRID_123;
 
 type BandSpec =
   | { kind: 'grid'; id: GridBand['id']; measured: number; scale: readonly number[]; subrowCount: number }
   | { kind: 'facial'; id: 'facial'; measured: number }
   | { kind: 'lingual'; id: 'lingual'; measured: number }
-  | { kind: 'occlusal'; id: 'occlusal'; measured: number }
-  | { kind: 'gap'; id: GapBand['id']; measured: number };
+  | { kind: 'occlusal'; id: 'occlusal'; measured: number };
+
+const GRID_321_SPEC = {
+  kind: 'grid',
+  id: 'grid-321',
+  measured: MEASURED_GRID_321,
+  scale: [3, 2, 1],
+  subrowCount: GRID_321_SUBROWS,
+} as const satisfies BandSpec;
+
+const GRID_123_SPEC = {
+  kind: 'grid',
+  id: 'grid-123',
+  measured: MEASURED_GRID_123,
+  scale: [1, 2, 3],
+  subrowCount: GRID_123_SUBROWS,
+} as const satisfies BandSpec;
+
+const OCCLUSAL_SPEC = { kind: 'occlusal', id: 'occlusal', measured: MEASURED_OCCLUSAL } as const satisfies BandSpec;
 
 const UPPER_BAND_SPECS: readonly BandSpec[] = [
-  { kind: 'grid', id: 'grid-321', measured: MEASURED_GRID_321, scale: [3, 2, 1], subrowCount: GRID_321_SUBROWS },
+  GRID_321_SPEC,
   { kind: 'facial', id: 'facial', measured: MEASURED_FACIAL },
-  { kind: 'gap', id: 'gap-facial-occlusal', measured: MEASURED_GAP_FACIAL_OCCLUSAL },
-  { kind: 'occlusal', id: 'occlusal', measured: MEASURED_OCCLUSAL },
-  { kind: 'gap', id: 'gap-occlusal-lingual', measured: MEASURED_GAP_OCCLUSAL_LINGUAL },
+  OCCLUSAL_SPEC,
   { kind: 'lingual', id: 'lingual', measured: MEASURED_LINGUAL },
-  { kind: 'grid', id: 'grid-123', measured: MEASURED_GRID_123, scale: [1, 2, 3], subrowCount: GRID_123_SUBROWS },
+  GRID_123_SPEC,
+];
+
+const LOWER_BAND_SPECS: readonly BandSpec[] = [
+  GRID_321_SPEC,
+  { kind: 'lingual', id: 'lingual', measured: MEASURED_LINGUAL },
+  OCCLUSAL_SPEC,
+  { kind: 'facial', id: 'facial', measured: MEASURED_FACIAL },
+  GRID_123_SPEC,
 ];
 
 function parseViewBoxX(viewBox: string): number {
@@ -216,22 +228,30 @@ function idsForCategory(category: string): string[] {
     throw new Error(`${category}: se esperaban 15 símbolos, hay ${ids.length}`);
   }
 
-  return ids.slice(0, HEMIARCH_COUNT);
+  return ids;
+}
+
+function rightHemiarch(category: string): readonly string[] {
+  return [`${category}_m3`, ...idsForCategory(category).slice(0, 7)];
 }
 
 const RIGHT_HEMIARCH: Record<ArchId, Record<ToothRowKind, readonly string[]>> = {
   upper: {
-    profile: idsForCategory(SYMBOL_CATEGORY.upper.profile),
-    occlusal: idsForCategory(SYMBOL_CATEGORY.upper.occlusal),
+    profile: rightHemiarch(SYMBOL_CATEGORY.upper.profile),
+    occlusal: rightHemiarch(SYMBOL_CATEGORY.upper.occlusal),
   },
   lower: {
-    profile: idsForCategory(SYMBOL_CATEGORY.lower.profile),
-    occlusal: idsForCategory(SYMBOL_CATEGORY.lower.occlusal),
+    profile: rightHemiarch(SYMBOL_CATEGORY.lower.profile),
+    occlusal: rightHemiarch(SYMBOL_CATEGORY.lower.occlusal),
   },
 };
 
 function fdiList(arch: ArchId): readonly PerioFdi[] {
   return arch === 'upper' ? PERIO_UPPER_FDI : PERIO_LOWER_FDI;
+}
+
+export function toothFlipY(arch: ArchId): boolean {
+  return arch === 'lower';
 }
 
 export function toothSymbolFor(arch: ArchId, row: ToothRowKind, index: number): ToothSymbolRef {
@@ -255,8 +275,17 @@ export function toothSymbolFor(arch: ArchId, row: ToothRowKind, index: number): 
   return { id, mirrored: true };
 }
 
-function hatchYs(y: number, height: number): number[] {
-  return Array.from({ length: HATCH_LINE_COUNT }, (_, i) => y + (height * (i + 1)) / (HATCH_LINE_COUNT + 1));
+function hatchRangeFor(y: number, height: number, arch: ArchId): { y: number; height: number } {
+  const rangeHeight = height / 2;
+  return arch === 'upper' ? { y, height: rangeHeight } : { y: y + rangeHeight, height: rangeHeight };
+}
+
+function hatchYs(y: number, height: number, arch: ArchId): number[] {
+  const range = hatchRangeFor(y, height, arch);
+  return Array.from(
+    { length: HATCH_LINE_COUNT },
+    (_, i) => range.y + (range.height * (i + 1)) / (HATCH_LINE_COUNT + 1),
+  );
 }
 
 function gridSubrows(
@@ -272,7 +301,7 @@ function gridSubrows(
   }));
 }
 
-function makeBand(spec: BandSpec, y: number, height: number, fraction: number): ArchBand {
+function makeBand(spec: BandSpec, y: number, height: number, fraction: number, arch: ArchId): ArchBand {
   if (spec.kind === 'grid') {
     return {
       kind: 'grid',
@@ -292,17 +321,8 @@ function makeBand(spec: BandSpec, y: number, height: number, fraction: number): 
       fraction,
       y,
       height,
-      hatchYs: hatchYs(y, height),
-    };
-  }
-
-  if (spec.kind === 'gap') {
-    return {
-      kind: 'gap',
-      id: spec.id,
-      fraction,
-      y,
-      height,
+      hatchRange: hatchRangeFor(y, height, arch),
+      hatchYs: hatchYs(y, height, arch),
     };
   }
 
@@ -316,14 +336,14 @@ function makeBand(spec: BandSpec, y: number, height: number, fraction: number): 
 }
 
 function buildBands(arch: ArchId, viewBoxH: number): ArchBand[] {
-  const specs = arch === 'upper' ? UPPER_BAND_SPECS : [...UPPER_BAND_SPECS].reverse();
+  const specs = arch === 'upper' ? UPPER_BAND_SPECS : LOWER_BAND_SPECS;
   let y = 0;
 
   return specs.map((spec, index) => {
     const isLast = index === specs.length - 1;
     const height = isLast ? viewBoxH - y : (spec.measured / MEASURED_TOTAL) * viewBoxH;
     const fraction = height / viewBoxH;
-    const band = makeBand(spec, y, height, fraction);
+    const band = makeBand(spec, y, height, fraction, arch);
     y += height;
     return band;
   });

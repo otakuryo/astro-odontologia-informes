@@ -1,5 +1,5 @@
 ---
-import { TOOTH_SYMBOLS } from '../../lib/tooth-sprite/symbols.generated';
+import { TOOTH_SYMBOLS } from '../../lib/tooth-sprite/symbols';
 
 const symbols = Object.entries(TOOTH_SYMBOLS).flatMap(([id, entry]) => [
   { id, viewBox: entry.viewBox, paths: entry.outline },

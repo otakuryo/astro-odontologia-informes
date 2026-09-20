@@ -1,13 +1,14 @@
 ---
 import {
   buildArchLayout,
+  toothFlipY,
   type ArchBand,
   type ArchColumn,
   type ArchId,
   type ArchLayout,
   type GridBand,
 } from '../../lib/periodontogram';
-import { TOOTH_SYMBOLS } from '../../lib/tooth-sprite/symbols.generated';
+import { TOOTH_SYMBOLS } from '../../lib/tooth-sprite/symbols';
 
 interface Props {
   arch: ArchId;
@@ -105,18 +106,9 @@ function buildGridLines(source: ArchLayout): { inner: PtLine[]; rule: PtLine[] }
   return { inner, rule };
 }
 
-function scaleLabels(band: GridBand, archId: ArchId): Array<{ label: string; y: number; height: number }> {
+function scaleLabels(band: GridBand): Array<{ label: string; y: number; height: number }> {
   const { scale, subrows } = band;
-  if (subrows.length === scale.length) {
-    return subrows.map((subrow, index) => ({
-      label: String(scale[index]),
-      y: subrow.y,
-      height: subrow.height,
-    }));
-  }
-
-  const labeled = archId === 'upper' ? subrows.slice(-scale.length) : subrows.slice(0, scale.length);
-  return labeled.map((subrow, index) => ({
+  return subrows.slice(0, scale.length).map((subrow, index) => ({
     label: String(scale[index]),
     y: subrow.y,
     height: subrow.height,
@@ -188,6 +180,7 @@ const grid = buildGridLines(layout);
 const facial = requireBand(layout.bands, 'facial');
 const lingual = requireBand(layout.bands, 'lingual');
 const occlusal = requireBand(layout.bands, 'occlusal');
+const flipY = toothFlipY(arch);
 const gutterX = layout.gutter.left / 2;
 
 const labels: GutterLabel[] = [];
@@ -209,7 +202,7 @@ for (const band of layout.bands) {
     });
   }
   if (band.kind === 'grid') {
-    for (const item of scaleLabels(band, arch)) {
+    for (const item of scaleLabels(band)) {
       labels.push({
         text: item.label,
         x: gutterX,
@@ -221,9 +214,9 @@ for (const band of layout.bands) {
 }
 
 const glyphs: ToothGlyph[] = layout.columns.flatMap((column) => [
-  placedGlyph(column, facial, column.profile.id, 'profile', true, false),
+  placedGlyph(column, facial, column.profile.id, 'profile', true, flipY),
   placedGlyph(column, occlusal, column.occlusal.id, 'occlusal', true, false),
-  placedGlyph(column, lingual, column.profile.id, 'lingual', false, true),
+  placedGlyph(column, lingual, column.profile.id, 'lingual', false, flipY),
 ]);
 ---
 
