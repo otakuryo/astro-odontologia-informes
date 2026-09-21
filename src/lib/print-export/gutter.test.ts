@@ -69,8 +69,8 @@ describe("gutterSideForBookletSlot", () => {
 });
 
 describe("buildCapturePlan", () => {
-  test("cuadernillo de 5 formatos: lados hacia el pliegue según imposeBooklet(5)", () => {
-    const sheets = imposeBooklet(5);
+  test("cuadernillo de 6 formatos: lados hacia el pliegue según imposeBooklet(6)", () => {
+    const sheets = imposeBooklet(6);
     expect(sheets).toHaveLength(4);
 
     const settings = normalizeExportSettings(
@@ -86,9 +86,9 @@ describe("buildCapturePlan", () => {
     );
 
     const jobs = buildCapturePlan(settings);
-    expect(jobs).toHaveLength(5);
+    expect(jobs).toHaveLength(6);
     expect(jobs.map((job) => job.format)).toEqual([...FORMAT_IDS]);
-    expect(jobs.map((job) => job.gutterSide)).toEqual(["left", "right", "left", "right", "left"]);
+    expect(jobs.map((job) => job.gutterSide)).toEqual(["left", "right", "left", "right", "left", "right"]);
     expect(jobs.every((job) => job.gutterMm === 12)).toBe(true);
 
     const sideByFormat = Object.fromEntries(jobs.map((job) => [job.format, job.gutterSide]));
@@ -98,6 +98,7 @@ describe("buildCapturePlan", () => {
       3: "left",
       4: "right",
       5: "left",
+      6: "right",
     };
 
     for (const sheet of sheets) {

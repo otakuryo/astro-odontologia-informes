@@ -4,6 +4,14 @@ import ToothSprite from '../document/ToothSprite.astro';
 import PerioArch from '../document/PerioArch.astro';
 import PerioOcclusion from '../document/PerioOcclusion.astro';
 import PerioSymbology from '../document/PerioSymbology.astro';
+import type { DentitionId } from '../../lib/periodontogram';
+
+interface Props {
+  dentition?: DentitionId;
+}
+
+const { dentition = 'permanent' } = Astro.props;
+const formatCode = dentition === 'temporal' ? 'ODO-F06' : 'ODO-F05';
 
 const hallazgoLines = [
   { n: 1, label: 'P. ósea horizontal' },
@@ -13,11 +21,11 @@ const hallazgoLines = [
 ];
 ---
 
-<div class="format" data-format="ODO-F05">
-  <ToothSprite />
-  <PerioArch arch="upper" />
-  <PerioOcclusion />
-  <PerioArch arch="lower" />
+<div class="format" data-format={formatCode} data-dentition={dentition}>
+  <ToothSprite dentition={dentition} />
+  <PerioArch arch="upper" dentition={dentition} />
+  <PerioOcclusion dentition={dentition} />
+  <PerioArch arch="lower" dentition={dentition} />
   <h2 class="perio-exam-title">EXAMEN RADIOGRÁFICO</h2>
   <div class="perio-panels">
     <div class="perio-panel perio-panel--symbology" data-testid="perio-panel">

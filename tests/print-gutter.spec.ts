@@ -3,7 +3,7 @@ import { unzipSync } from 'fflate';
 import { PDFDocument } from 'pdf-lib';
 import { readFile } from 'node:fs/promises';
 import { PRINT_EXPORT_STORAGE_KEY } from '../src/lib/print-export/settings';
-import { FORMAT_IDS, type ExportSettings } from '../src/lib/print-export/types';
+import { type ExportSettings } from '../src/lib/print-export/types';
 import type { PrintExportHook } from '../src/scripts/export-pdf';
 
 declare global {
@@ -22,7 +22,13 @@ const A5_PORTRAIT_PT = { width: 419.53, height: 595.28 };
 const A4_LANDSCAPE_PT = { width: 841.89, height: 595.28 };
 const PT_TOLERANCE = 1;
 const CAPTURE_DPI = 300;
-const ALL_FORMATS = [...FORMAT_IDS] as ExportSettings['formats'];
+const ALL_FORMATS = [
+  'expedientes',
+  'paciente-rx-tx',
+  'eventos',
+  'paciente-imagen',
+  'periodontograma',
+] as ExportSettings['formats'];
 
 async function openExpedientes(page: Page, query: string) {
   page.on('dialog', (dialog) => {

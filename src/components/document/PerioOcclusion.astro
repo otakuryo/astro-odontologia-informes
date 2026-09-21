@@ -1,7 +1,12 @@
 ---
-import { buildOcclusionRows } from '../../lib/periodontogram';
+import { buildOcclusionRows, type DentitionId } from '../../lib/periodontogram';
 
-const groups = buildOcclusionRows();
+interface Props {
+  dentition?: DentitionId;
+}
+
+const { dentition = 'permanent' } = Astro.props;
+const groups = buildOcclusionRows(dentition);
 ---
 
 <div class="perio-occlusion">
@@ -14,7 +19,10 @@ const groups = buildOcclusionRows();
           <div class="perio-occlusion__rows">
             {group.rows.map((row) => (
               <div class="perio-occlusion__row" data-testid="perio-occlusion-row">
-                <div class="perio-occlusion__nums">
+                <div
+                  class="perio-occlusion__nums"
+                  style={`grid-template-columns: repeat(${row.length}, minmax(0, 1fr))`}
+                >
                   {row.map((cell) => (
                     <span class="perio-occlusion__cell">{cell}</span>
                   ))}
@@ -88,7 +96,6 @@ const groups = buildOcclusionRows();
 
   .perio-occlusion__nums {
     display: grid;
-    grid-template-columns: repeat(16, minmax(0, 1fr));
     align-items: end;
     font-family: var(--font-display);
     font-size: var(--perio-occlusion-fs);

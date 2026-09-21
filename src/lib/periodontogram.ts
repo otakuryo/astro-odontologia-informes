@@ -2,6 +2,7 @@ import { TOOTH_SYMBOLS } from './tooth-sprite/symbols';
 
 export type ArchId = 'upper' | 'lower';
 export type ToothRowKind = 'profile' | 'occlusal';
+export type DentitionId = 'permanent' | 'temporal';
 
 export const PERIO_LATERAL_GUTTER = 0.0605;
 /** Caja de arcada apaisada (~975×397 en la hoja de referencia; ≈2,456:1). */
@@ -45,14 +46,48 @@ export const PERIO_LOWER_FDI = [
   '3.8',
 ] as const;
 
+export const PERIO_TEMPORAL_UPPER_FDI = [
+  '5.5',
+  '5.4',
+  '5.3',
+  '5.2',
+  '5.1',
+  '6.1',
+  '6.2',
+  '6.3',
+  '6.4',
+  '6.5',
+] as const;
+
+export const PERIO_TEMPORAL_LOWER_FDI = [
+  '8.5',
+  '8.4',
+  '8.3',
+  '8.2',
+  '8.1',
+  '7.1',
+  '7.2',
+  '7.3',
+  '7.4',
+  '7.5',
+] as const;
+
 export const PERIO_COLUMN_COUNTS = {
-  upper: PERIO_UPPER_FDI.length,
-  lower: PERIO_LOWER_FDI.length,
+  permanent: {
+    upper: PERIO_UPPER_FDI.length,
+    lower: PERIO_LOWER_FDI.length,
+  },
+  temporal: {
+    upper: PERIO_TEMPORAL_UPPER_FDI.length,
+    lower: PERIO_TEMPORAL_LOWER_FDI.length,
+  },
 } as const;
 
 export type PerioUpperFdi = (typeof PERIO_UPPER_FDI)[number];
 export type PerioLowerFdi = (typeof PERIO_LOWER_FDI)[number];
-export type PerioFdi = PerioUpperFdi | PerioLowerFdi;
+export type PerioTemporalUpperFdi = (typeof PERIO_TEMPORAL_UPPER_FDI)[number];
+export type PerioTemporalLowerFdi = (typeof PERIO_TEMPORAL_LOWER_FDI)[number];
+export type PerioFdi = PerioUpperFdi | PerioLowerFdi | PerioTemporalUpperFdi | PerioTemporalLowerFdi;
 
 export type ToothSymbolRef = {
   id: string;
@@ -133,6 +168,8 @@ export const OCCLUSION_CELLS = [
   '8',
 ] as const;
 
+export const OCCLUSION_TEMPORAL_CELLS = ['5', '4', '3', '2', '1', '1', '2', '3', '4', '5'] as const;
+
 export type OcclusionBlock = {
   label: OcclusionLabel;
   rows: readonly [readonly string[], readonly string[]];
@@ -193,7 +230,10 @@ const LOWER_BAND_SPECS: readonly BandSpec[] = [
   GRID_123_SPEC,
 ];
 
-function fdiList(arch: ArchId): readonly PerioFdi[] {
+function fdiList(arch: ArchId, dentition: DentitionId = 'permanent'): readonly PerioFdi[] {
+  if (dentition === 'temporal') {
+    return arch === 'upper' ? PERIO_TEMPORAL_UPPER_FDI : PERIO_TEMPORAL_LOWER_FDI;
+  }
   return arch === 'upper' ? PERIO_UPPER_FDI : PERIO_LOWER_FDI;
 }
 
@@ -201,8 +241,13 @@ function compactFdi(fdi: PerioFdi): string {
   return fdi.replaceAll('.', '');
 }
 
-export function toothSymbolFor(arch: ArchId, row: ToothRowKind, index: number): ToothSymbolRef {
-  const fdis = fdiList(arch);
+export function toothSymbolFor(
+  arch: ArchId,
+  row: ToothRowKind,
+  index: number,
+  dentition: DentitionId = 'permanent',
+): ToothSymbolRef {
+  const fdis = fdiList(arch, dentition);
   if (!Number.isInteger(index) || index < 0 || index >= fdis.length) {
     throw new Error(`índice fuera de rango: ${index}`);
   }
@@ -212,7 +257,7 @@ export function toothSymbolFor(arch: ArchId, row: ToothRowKind, index: number): 
     throw new Error(`FDI ausente en ${arch}[${index}]`);
   }
 
-  const id = `permanent_${compactFdi(fdi)}_${row}`;
+  const id = `${dentition}_${compactFdi(fdi)}_${row}`;
   if (!TOOTH_SYMBOLS[id]) {
     throw new Error(`símbolo ausente: ${id}`);
   }
@@ -294,13 +339,14 @@ function buildBands(arch: ArchId, viewBoxH: number): ArchBand[] {
   });
 }
 
-export function buildArchLayout(arch: ArchId): ArchLayout {
+export function buildArchLayout(arch: ArchId, dentition: DentitionId = 'permanent'): ArchLayout {
   const { w, h } = PERIO_VIEWBOX;
   const gutterWidth = w * PERIO_LATERAL_GUTTER;
   const contentWidth = w - 2 * gutterWidth;
-  const fdis = fdiList(arch);
+  const fdis = fdiList(arch, dentition);
   const columnWidth = contentWidth / fdis.length;
-  const leftQuadrant = arch === 'upper' ? '2.' : '3.';
+  const leftQuadrant =
+    dentition === 'temporal' ? (arch === 'upper' ? '6.' : '7.') : arch === 'upper' ? '2.' : '3.';
   const midlineColumnIndex = fdis.findIndex((fdi) => fdi.startsWith(leftQuadrant));
   if (midlineColumnIndex <= 0) {
     throw new Error(`línea media ausente en ${arch}`);
@@ -314,8 +360,8 @@ export function buildArchLayout(arch: ArchId): ArchLayout {
       x,
       width: columnWidth,
       cx: x + columnWidth / 2,
-      profile: toothSymbolFor(arch, 'profile', index),
-      occlusal: toothSymbolFor(arch, 'occlusal', index),
+      profile: toothSymbolFor(arch, 'profile', index, dentition),
+      occlusal: toothSymbolFor(arch, 'occlusal', index, dentition),
     };
   });
 
@@ -330,8 +376,8 @@ export function buildArchLayout(arch: ArchId): ArchLayout {
   };
 }
 
-export function buildOcclusionRows(): OcclusionBlock[] {
-  const row = [...OCCLUSION_CELLS];
+export function buildOcclusionRows(dentition: DentitionId = 'permanent'): OcclusionBlock[] {
+  const row = [...(dentition === 'temporal' ? OCCLUSION_TEMPORAL_CELLS : OCCLUSION_CELLS)];
   return OCCLUSION_LABELS.map((label) => ({
     label,
     rows: [row, row],

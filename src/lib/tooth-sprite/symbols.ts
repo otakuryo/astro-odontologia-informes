@@ -1,2 +1,2 @@
-/** Sprite público: reexporta el atlas permanente generado (`bun run sprite:teeth`). */
+/** Sprite público: reexporta el atlas generado (`bun run sprite:teeth`). */
 export { TOOTH_SYMBOLS } from './symbols.generated';

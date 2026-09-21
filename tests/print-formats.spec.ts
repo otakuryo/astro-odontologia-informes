@@ -2,7 +2,10 @@ import { expect, test, type Page } from '@playwright/test';
 import {
   OCCLUSION_CELLS,
   OCCLUSION_LABELS,
+  OCCLUSION_TEMPORAL_CELLS,
   PERIO_LOWER_FDI,
+  PERIO_TEMPORAL_LOWER_FDI,
+  PERIO_TEMPORAL_UPPER_FDI,
   PERIO_UPPER_FDI,
 } from '../src/lib/periodontogram';
 import { SITE_TITLE } from '../src/lib/site';
@@ -34,6 +37,11 @@ const FORMATS = [
     path: '/formatos/periodontograma/',
     title: 'Periodontograma · ODO-F05',
     code: 'ODO-F05',
+  },
+  {
+    path: '/formatos/periodontograma-temporal/',
+    title: 'Periodontograma temporal · ODO-F06',
+    code: 'ODO-F06',
   },
 ] as const;
 
@@ -292,8 +300,9 @@ async function measureOcclusion(page: Page): Promise<OcclusionMetrics | null> {
         const firstRow = rows[0];
         const firstCells =
           firstRow instanceof HTMLElement ? [...firstRow.querySelectorAll('.perio-occlusion__cell')] : [];
-        const leftOne = firstCells[7]?.getBoundingClientRect();
-        const rightOne = firstCells[8]?.getBoundingClientRect();
+        const oneCells = firstCells.filter((cell) => (cell.textContent ?? '').trim() === '1');
+        const leftOne = oneCells[0]?.getBoundingClientRect();
+        const rightOne = oneCells[1]?.getBoundingClientRect();
         const midCx = midBox.left + midBox.width / 2;
 
         if (!contained(midBox, groupBox) || midBox.height < 2) {
@@ -349,12 +358,16 @@ async function measureOcclusion(page: Page): Promise<OcclusionMetrics | null> {
   });
 }
 
-async function assertPerioOcclusion(page: Page, paper: string) {
+async function assertPerioOcclusion(
+  page: Page,
+  paper: string,
+  cells: readonly string[] = OCCLUSION_CELLS,
+) {
   const metrics = await measureOcclusion(page);
   expect(metrics, `oclusión medible en ${paper}`).not.toBeNull();
 
   const occlusion = metrics!;
-  const cells = [...OCCLUSION_CELLS];
+  const sequence = [...cells];
 
   expect(occlusion.groupCount, `cuatro grupos en ${paper}`).toBe(4);
   expect(occlusion.midCount, `cuatro ejes medios en ${paper}`).toBe(4);
@@ -368,10 +381,14 @@ async function assertPerioOcclusion(page: Page, paper: string) {
   expect(occlusion.mids).toHaveLength(4);
 
   for (const [groupIndex, groupDigits] of occlusion.digits.entries()) {
-    expect(occlusion.cellsPerRow[groupIndex], `16 cifras por fila en ${paper} #${groupIndex}`).toEqual([
-      16, 16,
+    expect(
+      occlusion.cellsPerRow[groupIndex],
+      `${sequence.length} cifras por fila en ${paper} #${groupIndex}`,
+    ).toEqual([sequence.length, sequence.length]);
+    expect(groupDigits, `secuencias de oclusión en ${paper} #${groupIndex}`).toEqual([
+      sequence,
+      sequence,
     ]);
-    expect(groupDigits, `secuencias 8…1 | 1…8 en ${paper} #${groupIndex}`).toEqual([cells, cells]);
   }
 
   for (const mid of occlusion.mids) {
@@ -620,7 +637,8 @@ async function assertPerioSymbology(page: Page, paper: string, expectedColumns: 
   }
 }
 
-const PERIO_SPRITE_ID = /^permanent_(\d{2})_(profile|occlusal)(-solid)?$/;
+const PERIO_SPRITE_ID = /^(permanent|temporal)_(\d{2})_(profile|occlusal)(-solid)?$/;
+const TEMPORAL_SPRITE_ID = /^temporal_(\d{2})_(profile|occlusal)(-solid)?$/;
 const POTRACE_ATLAS_TRANSFORM = 'translate(0,887) scale(0.1,-0.1)';
 
 type PerioSpriteArchMetrics = {
@@ -655,13 +673,19 @@ function compactFdi(fdi: string): string {
   return fdi.replaceAll('.', '');
 }
 
-function expectedRowIds(fdis: readonly string[], row: 'profile' | 'occlusal'): string[] {
-  return fdis.map((fdi) => `permanent_${compactFdi(fdi)}_${row}`);
+function expectedRowIds(
+  fdis: readonly string[],
+  row: 'profile' | 'occlusal',
+  prefix: 'permanent' | 'temporal' = 'permanent',
+): string[] {
+  return fdis.map((fdi) => `${prefix}_${compactFdi(fdi)}_${row}`);
 }
 
-async function measurePerioSprite(page: Page): Promise<PerioSpriteMetrics | null> {
-  return page.evaluate(() => {
-    const format = document.querySelector('[data-format="ODO-F05"]');
+async function measurePerioSprite(page: Page, formatCode?: string): Promise<PerioSpriteMetrics | null> {
+  return page.evaluate((code) => {
+    const format = code
+      ? document.querySelector(`[data-format="${code}"]`)
+      : document.querySelector('[data-format]');
     const arches = [...document.querySelectorAll('[data-testid="perio-arch"]')];
     if (!(format instanceof HTMLElement) || arches.length === 0) {
       return null;
@@ -845,7 +869,7 @@ async function measurePerioSprite(page: Page): Promise<PerioSpriteMetrics | null
       solidTooDark,
       outlineTooLight,
     };
-  });
+  }, formatCode ?? null);
 }
 
 async function assertPerioSpriteContract(page: Page, paper: string) {
@@ -955,6 +979,168 @@ async function assertPerioSpriteContract(page: Page, paper: string) {
     expect(sprite.outlineIds).toContain(`permanent_${fdi}_occlusal`);
     expect(sprite.solidIds).toContain(`permanent_${fdi}_profile-solid`);
     expect(sprite.solidIds).toContain(`permanent_${fdi}_occlusal-solid`);
+  }
+}
+
+async function assertTemporalPerioSpriteContract(page: Page, paper: string) {
+  const metrics = await measurePerioSprite(page, 'ODO-F06');
+  expect(metrics, `sprite temporal medible en ${paper}`).not.toBeNull();
+
+  const sprite = metrics!;
+  const upperExpected = [...PERIO_TEMPORAL_UPPER_FDI];
+  const lowerExpected = [...PERIO_TEMPORAL_LOWER_FDI];
+  const upperProfile = expectedRowIds(upperExpected, 'profile', 'temporal');
+  const upperOcclusal = expectedRowIds(upperExpected, 'occlusal', 'temporal');
+  const lowerProfile = expectedRowIds(lowerExpected, 'profile', 'temporal');
+  const lowerOcclusal = expectedRowIds(lowerExpected, 'occlusal', 'temporal');
+
+  expect(sprite.arches, `dos arcadas en ${paper}`).toHaveLength(2);
+
+  const [upper, lower] = sprite.arches;
+  expect(upper?.arch, `arcada superior primero en ${paper}`).toBe('upper');
+  expect(lower?.arch, `arcada inferior después en ${paper}`).toBe('lower');
+
+  expect(upper!.fdis, `10 FDI superiores en ${paper}`).toEqual(upperExpected);
+  expect(lower!.fdis, `10 FDI inferiores en ${paper}`).toEqual(lowerExpected);
+  expect(lower!.fdis[0], `columna izquierda inferior es 8.5 en ${paper}`).toBe('8.5');
+  expect(lower!.profileIds[0], `glifo de 8.5 sin remap invertido en ${paper}`).toBe(
+    'temporal_85_profile',
+  );
+  expect(lower!.fdis.slice(0, 5), `85…81 a la izquierda en ${paper}`).toEqual([
+    '8.5',
+    '8.4',
+    '8.3',
+    '8.2',
+    '8.1',
+  ]);
+  expect(lower!.fdis.slice(5), `71…75 a la derecha en ${paper}`).toEqual([
+    '7.1',
+    '7.2',
+    '7.3',
+    '7.4',
+    '7.5',
+  ]);
+  expect(new Set(upper!.fdis).size).toBe(10);
+  expect(new Set(lower!.fdis).size).toBe(10);
+  expect(new Set([...upper!.fdis, ...lower!.fdis]).size).toBe(20);
+
+  expect(upper!.profileIds, `10 perfiles superiores distintos en ${paper}`).toEqual(upperProfile);
+  expect(upper!.occlusalIds, `10 oclusales superiores distintos en ${paper}`).toEqual(upperOcclusal);
+  expect(lower!.profileIds, `10 perfiles inferiores distintos en ${paper}`).toEqual(lowerProfile);
+  expect(lower!.occlusalIds, `10 oclusales inferiores distintos en ${paper}`).toEqual(lowerOcclusal);
+
+  expect(new Set(upper!.profileIds).size).toBe(10);
+  expect(new Set(lower!.profileIds).size).toBe(10);
+  expect(new Set([...upper!.profileIds, ...lower!.profileIds]).size).toBe(20);
+  expect(new Set([...upper!.occlusalIds, ...lower!.occlusalIds]).size).toBe(20);
+
+  expect(upper!.lingualIds, `lingual superior reutiliza perfil en ${paper}`).toEqual(upperProfile);
+  expect(lower!.lingualIds, `lingual inferior reutiliza perfil en ${paper}`).toEqual(lowerProfile);
+
+  expect(upper!.missingOutline, `contorno completo en superior ${paper}`).toEqual([]);
+  expect(lower!.missingOutline, `contorno completo en inferior ${paper}`).toEqual([]);
+  expect(upper!.missingSolid, `capa -solid en superior ${paper}`).toEqual([]);
+  expect(lower!.missingSolid, `capa -solid en inferior ${paper}`).toEqual([]);
+  expect(upper!.glyphTransforms, `sin transform en glifos superiores ${paper}`).toEqual([]);
+  expect(upper!.flippedRows, `sin inversión vertical en superior ${paper}`).toEqual([]);
+  expect(lower!.flippedRows, `perfiles inferiores orientados hacia arriba en ${paper}`).toEqual(
+    lowerExpected.flatMap((fdi) => [`${fdi}:profile`, `${fdi}:lingual`]),
+  );
+  expect(lower!.glyphTransforms, `inversión vertical solo en perfiles inferiores ${paper}`).toHaveLength(
+    20,
+  );
+  expect(
+    lower!.glyphTransforms.every(
+      (entry) =>
+        (entry.includes(':profile:') || entry.includes(':lingual:')) &&
+        entry.includes('scale(1 -1)'),
+    ),
+  ).toBe(true);
+  expect(upper!.useTransforms, `sin transform de espejo en <use> superiores ${paper}`).toEqual([]);
+  expect(lower!.useTransforms, `sin transform de espejo en <use> inferiores ${paper}`).toEqual([]);
+  expect(upper!.midlineCount, `línea media superior en ${paper}`).toBe(1);
+  expect(lower!.midlineCount, `línea media inferior en ${paper}`).toBe(1);
+
+  for (const id of [
+    ...upper!.profileIds,
+    ...upper!.occlusalIds,
+    ...lower!.profileIds,
+    ...lower!.occlusalIds,
+  ]) {
+    expect(id, `id temporal en ${paper}`).toMatch(TEMPORAL_SPRITE_ID);
+  }
+
+  expect(sprite.outlineIds, `40 contornos ToothSprite en ${paper}`).toHaveLength(40);
+  expect(sprite.solidIds, `40 capas -solid ToothSprite en ${paper}`).toHaveLength(40);
+  expect(sprite.outlineIds.every((id) => TEMPORAL_SPRITE_ID.test(id) && !id.endsWith('-solid'))).toBe(
+    true,
+  );
+  expect(sprite.solidIds.every((id) => id.endsWith('-solid') && TEMPORAL_SPRITE_ID.test(id))).toBe(true);
+  expect(sprite.outlineIds.every((id) => id.startsWith('temporal_'))).toBe(true);
+  expect(sprite.outlineIds.some((id) => id.startsWith('permanent_'))).toBe(false);
+  expect(
+    sprite.solidIds.slice().sort(),
+    `cada contorno tiene -solid en ${paper}`,
+  ).toEqual(sprite.outlineIds.map((id) => `${id}-solid`).sort());
+  expect(sprite.solidUseCount, `un <use> sólido por glifo visible en ${paper}`).toBe(60);
+  expect(sprite.outlineUseCount, `un <use> de contorno por glifo visible en ${paper}`).toBe(60);
+  expect(
+    sprite.solidTooDark,
+    `el <use> sólido resuelve a papel claro (luminancia > 230) en ${paper}`,
+  ).toEqual([]);
+  expect(
+    sprite.outlineTooLight,
+    `el <use> de contorno resuelve a tinta oscura (luminancia < 140) en ${paper}`,
+  ).toEqual([]);
+
+  expect(sprite.forbiddenSymbolIds, `sin IDs legacy/M3 en symbols ${paper}`).toEqual([]);
+  expect(sprite.forbiddenHrefs, `sin href legacy/M3 en ${paper}`).toEqual([]);
+  expect(sprite.forbiddenMarkup, `sin scale de espejo/inversión en ${paper}`).toEqual([]);
+  expect(sprite.atlasTransforms.every((value) => value === POTRACE_ATLAS_TRANSFORM)).toBe(true);
+}
+
+async function assertHeaderTitleFits(page: Page, title: string) {
+  const heading = page.getByRole('heading', { level: 1, name: title });
+  await expect(heading).toBeVisible();
+  const metrics = await heading.evaluate((el) => {
+    const rect = el.getBoundingClientRect();
+    const sheet = el.closest('.sheet');
+    const sheetRect = sheet?.getBoundingClientRect();
+    return {
+      scrollWidth: el.scrollWidth,
+      clientWidth: el.clientWidth,
+      right: rect.right,
+      sheetRight: sheetRect?.right ?? 0,
+      height: rect.height,
+    };
+  });
+  expect(metrics.height, `título «${title}» con altura`).toBeGreaterThan(0);
+  expect(metrics.right).toBeLessThanOrEqual(metrics.sheetRight + 1);
+  expect(metrics.scrollWidth).toBeLessThanOrEqual(metrics.clientWidth + 1);
+}
+
+async function assertPerioArchGeometry(page: Page, formatCode: string) {
+  const geometry = await page.evaluate((code) => {
+    const format = document.querySelector(`[data-format="${code}"]`);
+    const arches = [...document.querySelectorAll('[data-testid="perio-arch"]')];
+    if (!(format instanceof HTMLElement) || arches.length !== 2) {
+      return null;
+    }
+    const formatBox = format.getBoundingClientRect();
+    return arches.map((node) => {
+      const box = node.getBoundingClientRect();
+      return {
+        widthRatio: box.width / formatBox.width,
+        aspect: box.width / box.height,
+      };
+    });
+  }, formatCode);
+
+  expect(geometry, `geometría de arcadas medible en ${formatCode}`).not.toBeNull();
+  for (const arch of geometry!) {
+    expect(arch.widthRatio).toBeGreaterThan(0.85);
+    expect(arch.aspect).toBeGreaterThan(2.3);
+    expect(arch.aspect).toBeLessThan(2.6);
   }
 }
 
@@ -1226,6 +1412,101 @@ test.describe('Documentos de formato', () => {
 
     await page.emulateMedia({ media: 'print' });
     await assertPerioSpriteContract(page, 'print');
+  });
+
+  test('ODO-F06 periodontograma temporal: arcos, oclusión, paneles y geometría', async ({ page }) => {
+    await page.goto('/formatos/periodontograma-temporal/');
+
+    await expect(page.locator('[data-format="ODO-F06"][data-dentition="temporal"]')).toHaveCount(1);
+    await expect(page.getByRole('heading', { level: 1, name: 'PERIODONTOGRAMA TEMPORAL' })).toBeVisible();
+    await expect(page.locator('[data-testid="perio-arch"]')).toHaveCount(2);
+
+    const arches = page.locator('[data-testid="perio-arch"]');
+    await expect(arches.nth(0).locator('[data-testid="perio-tooth"]')).toHaveCount(20);
+    await expect(arches.nth(1).locator('[data-testid="perio-tooth"]')).toHaveCount(20);
+
+    await expect(page.locator('[data-testid="perio-occlusion-group"]')).toHaveCount(4);
+    await expect(page.locator('[data-testid="perio-occlusion-mid"]')).toHaveCount(4);
+    await expect(page.locator('[data-testid="perio-panel"]')).toHaveCount(2);
+
+    await expect(page.getByText('SIMBOLOGÍA', { exact: true })).toBeVisible();
+    await expect(page.getByText('EXAMEN RADIOGRÁFICO', { exact: true })).toBeVisible();
+    await expect(page.getByText('Facial', { exact: true })).toHaveCount(2);
+    await expect(page.getByText('Lingual', { exact: true })).toHaveCount(2);
+    await expect(page.locator('[data-testid="odontogram"]')).toHaveCount(0);
+
+    await assertPerioNotes(page, 'letter');
+    await assertPerioArchGeometry(page, 'ODO-F06');
+    await assertHeaderTitleFits(page, 'PERIODONTOGRAMA TEMPORAL');
+
+    const molarVsIncisor = await page.evaluate(() => {
+      const hrefId = (node: Element | null): string => {
+        if (!node) {
+          return '';
+        }
+        const raw =
+          node.getAttribute('href') ??
+          node.getAttribute('xlink:href') ??
+          (node instanceof SVGUseElement ? node.href.baseVal : '') ??
+          '';
+        const hash = raw.includes('#') ? raw.slice(raw.lastIndexOf('#') + 1) : raw;
+        return hash.trim();
+      };
+      const lower = document.querySelector('[data-arch="lower"]');
+      const molar = lower?.querySelector('[data-testid="perio-tooth"][data-fdi="8.5"][data-row="profile"]');
+      const incisor = lower?.querySelector(
+        '[data-testid="perio-tooth"][data-fdi="8.1"][data-row="profile"]',
+      );
+      if (!(molar instanceof SVGGraphicsElement) || !(incisor instanceof SVGGraphicsElement)) {
+        return null;
+      }
+      return {
+        molarWidth: molar.getBBox().width,
+        incisorWidth: incisor.getBBox().width,
+        molarId: hrefId(molar.querySelector('use.perio-arch__outline')),
+      };
+    });
+    expect(molarVsIncisor, 'molar 8.5 medible').not.toBeNull();
+    expect(molarVsIncisor!.molarId).toBe('temporal_85_profile');
+    expect(molarVsIncisor!.molarWidth).toBeGreaterThan(molarVsIncisor!.incisorWidth);
+
+    for (const paper of OCCLUSION_PAPERS) {
+      await page.goto(`/formatos/periodontograma-temporal/${paper.query}`);
+      await expect(page.locator('html')).toHaveAttribute('data-paper-size', paper.id);
+      await expect(page.locator('[data-testid="perio-occlusion-group"]')).toHaveCount(4);
+      await assertHeaderTitleFits(page, 'PERIODONTOGRAMA TEMPORAL');
+      await assertPerioOcclusion(page, paper.id, OCCLUSION_TEMPORAL_CELLS);
+      await assertPerioNotes(page, paper.id);
+      await assertPerioSymbology(page, paper.id, paper.id === 'letter' ? 1 : 2);
+      await assertTemporalPerioSpriteContract(page, paper.id);
+      await assertPerioArchGeometry(page, 'ODO-F06');
+    }
+  });
+
+  test('ODO-F06 periodontograma temporal: 10 dientes por arcada y perfiles inferiores hacia arriba', async ({
+    page,
+  }) => {
+    for (const paper of OCCLUSION_PAPERS) {
+      await page.goto(`/formatos/periodontograma-temporal/${paper.query}`);
+      await expect(page.locator('html')).toHaveAttribute('data-paper-size', paper.id);
+      await expect(page.locator('[data-testid="perio-arch"]')).toHaveCount(2);
+      const arches = page.locator('[data-testid="perio-arch"]');
+      await expect(arches.nth(0).locator('[data-testid="perio-tooth"]')).toHaveCount(20);
+      await expect(arches.nth(1).locator('[data-testid="perio-tooth"]')).toHaveCount(20);
+      await assertTemporalPerioSpriteContract(page, paper.id);
+    }
+  });
+
+  test('ODO-F06 periodontograma temporal: el sólido resuelve a papel claro y el contorno a tinta oscura', async ({
+    page,
+  }) => {
+    await page.goto('/formatos/periodontograma-temporal/');
+    await expect(page.locator('[data-testid="perio-arch"]')).toHaveCount(2);
+
+    await assertTemporalPerioSpriteContract(page, 'pantalla');
+
+    await page.emulateMedia({ media: 'print' });
+    await assertTemporalPerioSpriteContract(page, 'print');
   });
 
   test('ODO-F04 dispone el diagrama dental (pasillo, homólogos, labels)', async ({

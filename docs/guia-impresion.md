@@ -1,6 +1,6 @@
 # Guía de impresión
 
-Protocolo de control de calidad para los cinco formatos clínicos (ODO-F01 a ODO-F05). La fidelidad en milímetros, el espacio de pluma y el resultado en fotocopia **no** se cubren con pruebas unitarias: hay que imprimir de verdad.
+Protocolo de control de calidad para los seis formatos clínicos (ODO-F01 a ODO-F06). La fidelidad en milímetros, el espacio de pluma y el resultado en fotocopia **no** se cubren con pruebas unitarias: hay que imprimir de verdad.
 
 Hay tres salidas distintas. No las mezcle:
 
@@ -55,6 +55,7 @@ Hueco extra de lomo para anillar o encuadernar. No se escala la hoja: `.sheet` c
 | ODO-F03 | `/formatos/eventos/` | Cuatro paneles de evento |
 | ODO-F04 | `/formatos/paciente-imagen/` | Diagrama dental vectorial, leyenda R/A/V/O y notas |
 | ODO-F05 | `/formatos/periodontograma/` | Retícula de sondaje de las dos arcadas, oclusión y hallazgos radiográficos |
+| ODO-F06 | `/formatos/periodontograma-temporal/` | Retícula de sondaje de dentición temporal (20 FDI de `icons-003-temporal.json`), oclusión y hallazgos radiográficos |
 
 Cada ruta genera exactamente **1/1**. No hay paginación clínica. Puede forzar el tamaño de hoja con `?papel=a5`, `?papel=a6` o `?papel=carta`, el estilo visual con `?estilo=rounded`, `?estilo=glass` o `?estilo=normal` (`html[data-visual-theme]`, tipo `VisualThemeId`), y el anillado con `?anillado=12` y `?lomo=derecha`.
 
@@ -75,7 +76,7 @@ Haga esta pasada en Chromium. En Safari, si la captura falla, pase al protocolo 
 2. Elija **papel**, **disposición**, **anillado** (si procede) y **formatos**. Combinaciones habituales de QA:
    - Mismo tamaño: diseño A5, papel A5, 1-up vertical → una página A5.
    - **Duplicar**: diseño A5, papel A4, duplicar → una página A4 apaisada con la misma hoja a izquierda y derecha.
-   - **Cuadernillo**: diseño A5, papel A4, los cinco formatos en orden de catálogo → cuatro páginas A4 apaisadas (dos pliegos, cara y dorso; tres huecos en blanco).
+   - **Cuadernillo**: diseño A5, papel A4, los seis formatos en orden de catálogo → cuatro páginas A4 apaisadas (dos pliegos, cara y dorso; `padPages(6)` rellena a 8 huecos y deja **2** en blanco).
 3. Pulse **Descargar PDF**. Abra el fichero en el visor.
 4. Imprima desde el **visor de PDF** (no desde el diálogo web del sitio). Escala **100 %**. No use «ajustar a la página» ni el zoom del visor como si fuera escala de impresión.
 5. **1-up vertical con anillado:** dúplex, **voltear por el lado largo**, para que el lomo de las páginas pares quede al lado contrario.
@@ -84,17 +85,18 @@ Haga esta pasada en Chromium. En Safari, si la captura falla, pase al protocolo 
 
 ### Lista de comprobación (PDF)
 
-- [ ] El PDF tiene el número de páginas esperado (1-up y duplicar: una por formato; cuadernillo de 5 formatos: 4 páginas).
+- [ ] El PDF tiene el número de páginas esperado (1-up y duplicar: una por formato; cuadernillo de 6 formatos: 4 páginas).
 - [ ] El tamaño de página coincide con el **papel de salida**, no con un «ajustar a A4» del visor.
 - [ ] Escala 100 % en el visor: las hojas clínicas coinciden con el diseño (Carta, A5 o A6) y no están encogidas.
 - [ ] Duplicar: la misma hoja a ambos lados, sin escala.
-- [ ] Cuadernillo: dúplex lado corto; al plegar, el orden de lectura es 1-2-3-4-5 (blancos al final).
+- [ ] Cuadernillo: dúplex lado corto; al plegar, el orden de lectura es 1-2-3-4-5-6 (dos blancos al final).
 - [ ] Sombra de pantalla, barra, selector de papel, selector de estilo visual, **Opciones**, el panel, el pie legal (`.site-footer`) y el aviso de uso (`UsageNotice`) no aparecen en el PDF.
 - [ ] El PDF muestra la piel elegida (Normal / Rounded / Glass) en `.sheet`. Glass no depende de `backdrop-filter`.
 - [ ] Con anillado a 15 mm ningún panel desborda en A6.
 - [ ] Páginas pares con lomo al lado opuesto tras imprimir a doble cara (1-up vertical, dúplex lado largo).
 - [ ] La guía discontinua no aparece en PDF ni papel.
 - [ ] En ODO-F05, el PDF muestra 16 dientes permanentes v003 superiores (18…11 | 21…28) y 16 inferiores (`48…41 | 31,32,23,33,34,36,37,38`); reutiliza el glifo FDI 23 en ambas arcadas; el FDI 35 no se renderiza; no hay clones M3 ni dientes espejados.
+- [ ] En ODO-F06, el PDF muestra 20 FDI de `icons-003-temporal.json`: superior 55…51 \| 61…65 e inferior 85…81 \| 71…75; la columna izquierda inferior es `8.5` (molar de tres raíces, sin remap invertido); no hay clones M3 ni dientes espejados.
 
 ## Protocolo PNG para editar
 
@@ -129,7 +131,7 @@ En el diálogo del navegador: el **mismo tamaño de papel** que el diseño, orie
 - [ ] Margen seguro respetado en los cuatro lados; nada de trazo ni texto pegado al borde del papel. El margen seguro va dibujado en la hoja (12 mm en Carta, 8 mm en A5, 5,5 mm en A6).
 - [ ] Bordes de paneles, casillas y marcadores visibles; no recortados.
 - [ ] Líneas de escritura con espacio de pluma suficiente (campos de cabecera, folios, notas, equivalencias). En A6 el renglón es más corto: compruebe que sigue siendo usable.
-- [ ] Códigos `ODO-F01` … `ODO-F05`, `REV. 01` y `1/1` legibles en el pie.
+- [ ] Códigos `ODO-F01` … `ODO-F06`, `REV. 01` y `1/1` legibles en el pie.
 - [ ] En ODO-F04, la leyenda se distingue **sin color**: **R** sólido, **A** rayado diagonal, **V** puntos, **O** círculo vacío, más las siglas. El color es un refuerzo, no el único canal.
 - [ ] En ODO-F04, los 52 numerales FDI del diagrama dental son legibles en el PDF.
 - [ ] En ODO-F05, la retícula de sondaje (columnas FDI, bandas Facial/Lingual y números de escala) es legible a 100 %.
@@ -139,6 +141,14 @@ En el diálogo del navegador: el **mismo tamaño de papel** que el diseño, orie
 - [ ] En ODO-F05, los contornos de diente del sprite generado se distinguen en ambas arcadas (perfil, oclusal y lingual) a escala 100 %, también en escala de grises.
 - [ ] En ODO-F05, la línea media parte cada arcada entre 11|21 y 41|31; el orden superior/inferior no está invertido.
 - [ ] En ODO-F05, los paneles inferiores (SIMBOLOGÍA, HALLAZGOS RADIOGRÁFICOS, HIGIENE ORAL / NOTAS, OTROS / OBSERVACIONES) caben sin recorte y sus renglones son usables.
+- [ ] En ODO-F06, la retícula de sondaje (10 columnas FDI, bandas Facial/Lingual y números de escala) es legible a 100 %.
+- [ ] En ODO-F06, la arcada superior conserva 10 columnas FDI (55…51 | 61…65) y la inferior 10 (`85…81 | 71…75`) según `icons-003-temporal.json`; no hay remap invertido.
+- [ ] En ODO-F06, perfil y oclusal usan 10 glifos superiores y 10 inferiores (`temporal_<fdi>_profile` / `temporal_<fdi>_occlusal`); Facial/Lingual reutilizan el perfil del mismo FDI. No hay IDs `upper_`/`lower_`, clones `*_m3` ni espejos horizontales. Los perfiles inferiores llevan inversión vertical (`scale(1 -1)`).
+- [ ] En ODO-F06, cada diente muestra contorno y relleno `-solid`; la columna izquierda inferior es `8.5` con el glifo de molar de tres raíces.
+- [ ] En ODO-F06, los contornos de diente del sprite generado se distinguen en ambas arcadas (perfil, oclusal y lingual) a escala 100 %, también en escala de grises.
+- [ ] En ODO-F06, la línea media parte cada arcada entre 51|61 y 81|71; el orden superior/inferior no está invertido.
+- [ ] En ODO-F06, los paneles inferiores (SIMBOLOGÍA, HALLAZGOS RADIOGRÁFICOS) caben sin recorte y sus renglones son usables.
+- [ ] En ODO-F06, el título de cabecera `PERIODONTOGRAMA TEMPORAL` es visible en Carta, A5 y A6 y el `<h1>` no desborda.
 - [ ] Sombra de pantalla, selector de papel, selector de estilo visual, «Descargar PDF», «Imprimir hoja», «Opciones», el pie legal (`.site-footer`) y el aviso de uso (`UsageNotice`) no aparecen en el papel ni en el PDF.
 - [ ] Con anillado a 15 mm ningún panel desborda en A6.
 - [ ] La guía discontinua no aparece en PDF ni papel.

@@ -73,7 +73,7 @@ test('TOOTH_SYMBOLS alinea las 64 entradas del atlas permanente', async () => {
 
   const ids = coords.elements.map((element) => element.id);
   expect(ids).toHaveLength(64);
-  expect(Object.keys(TOOTH_SYMBOLS)).toEqual(ids);
+  expect(Object.keys(TOOTH_SYMBOLS).filter((id) => id.startsWith('permanent_'))).toEqual(ids);
   expect(new Set(ids.map((id) => /^permanent_(\d{2})_/.exec(id)?.[1])).size).toBe(32);
 
   for (const fdi of ['18', '28', '38', '48']) {

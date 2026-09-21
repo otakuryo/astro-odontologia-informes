@@ -1,0 +1,14 @@
+---
+import PrintDocumentLayout from '../../layouts/PrintDocumentLayout.astro';
+import PeriodontogramaFormat from '../../components/formats/PeriodontogramaFormat.astro';
+import { seoForFormat } from '../../lib/site';
+---
+
+<PrintDocumentLayout
+  title="Periodontograma temporal · ODO-F06"
+  description={seoForFormat('ODO-F06')}
+  documentTitle="PERIODONTOGRAMA TEMPORAL"
+  code="ODO-F06"
+>
+  <PeriodontogramaFormat dentition="temporal" />
+</PrintDocumentLayout>

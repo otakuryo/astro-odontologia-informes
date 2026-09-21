@@ -1,6 +1,6 @@
 # Sistema editorial
 
-Referencia de tokens, lienzo e impresión, y responsabilidades de los componentes compartidos. Los cinco formatos clínicos se maquetan sobre este sistema común.
+Referencia de tokens, lienzo e impresión, y responsabilidades de los componentes compartidos. Los seis formatos clínicos se maquetan sobre este sistema común.
 
 ## Lienzo e impresión
 
@@ -121,7 +121,7 @@ Los formatos clínicos y `.sheet` siguen en milímetros: no se remaquetan para m
 
 ## Variante C (encabezado y pie)
 
-Banda superior compacta: título del formato más cuatro campos manuscritos (`Clínica / profesional`, `Paciente`, `Folio / expediente`, `Fecha`). Pie con código (`ODO-F01` … `ODO-F05`), `REV. 01` y `1/1`.
+Banda superior compacta: título del formato más cuatro campos manuscritos (`Clínica / profesional`, `Paciente`, `Folio / expediente`, `Fecha`). Pie con código (`ODO-F01` … `ODO-F06`), `REV. 01` y `1/1`.
 
 Los campos clínicos son **líneas vacías** para pluma. Están prohibidos `<input>` y `<textarea>` en esos campos.
 
@@ -143,14 +143,14 @@ Los campos clínicos son **líneas vacías** para pluma. Están prohibidos `<inp
 | `PrintToolbar` | Compone `SiteNavbar` con los desplegables daisyUI (`dropdown` / `menu`, `listbox`) **Estilo visual** (`VISUAL_THEMES`: Normal / Rounded / Glassmorfismo) y **Papel** (Carta / A5 / A6; no A4), Descargar PDF (`btn-primary`), Imprimir hoja (`btn-ghost`, `window.print()`) y Opciones. Monta `ExportPanel`. Visible solo en pantalla. No se usa en el catálogo. No duplicar este selector en una página de formato. |
 | `ExportPanel` | Diálogo daisyUI (`modal`) de exportación: cuerpo con scroll y acciones fijas; joins de diseño/papel con wrap. Diseño sincronizado con el desplegable **Papel** de la barra, papel de salida, disposición, orientación y lista ordenable de formatos. **Descargar PDF** impone y descarga en el cliente. **PNG para editar** (`btn-ghost`) baja un ZIP (`fflate`) de PNG a 300 dpi sin fondo de hoja (un PNG por formato marcado, siempre ZIP). No redibuja `.sheet`. |
 | `Odontogram` | Diagrama dental vectorial FDI (52 dientes, glifo de círculo + equis) de ODO-F04, con cuadrado NOTAS al pie del panel. SVG estático, sin estado por superficie. |
-| `ToothSprite` | Sprite SVG **inline** de glifos dentales para el periodontograma: un `<symbol>` de contorno y otro `-solid` por diente, generado en `src/lib/tooth-sprite/symbols.generated.ts`, sin PNG ni sprite externo. |
-| `PerioArch` | Retícula de sondaje de una arcada (ODO-F05): 16 columnas FDI superiores y 16 inferiores (`48…41 | 31,32,23,33,34,36,37,38`; se omite 35 y se reutiliza el glifo FDI 23), bandas Facial/Lingual y glifos del sprite generado (`<use href="#id">`). En Facial/Lingual, **rayado = superficie cubierta por encía; zona limpia = corona visible**. |
-| `PerioOcclusion` | Bloque central de oclusión entre las dos arcadas: cuatro grupos con numeración 8…1 \| 1…8. |
+| `ToothSprite` | Sprite SVG **inline** de glifos dentales para el periodontograma: un `<symbol>` de contorno y otro `-solid` por diente, generado en `src/lib/tooth-sprite/symbols.generated.ts` (104 símbolos: 64 permanentes + 40 temporales). Cada hoja filtra por prefijo `permanent_` o `temporal_` según `DentitionId`. Sin PNG ni sprite externo. |
+| `PerioArch` | Retícula de sondaje de una arcada. ODO-F05 (permanente): 16 columnas FDI superiores y 16 inferiores (`48…41 | 31,32,23,33,34,36,37,38`; se omite 35 y se reutiliza el glifo FDI 23). ODO-F06 (temporal): 10+10 FDI de `icons-003-temporal.json` (`55…51 | 61…65` y `85…81 | 71…75`). Bandas Facial/Lingual y glifos del sprite (`<use href="#id">`). En Facial/Lingual, **rayado = superficie cubierta por encía; zona limpia = corona visible**. |
+| `PerioOcclusion` | Bloque central de oclusión entre las dos arcadas: cuatro grupos. Permanente 8…1 \| 1…8 (16 columnas); temporal 5…1 \| 1…5 (10 columnas). |
 | `PerioSymbology` | Leyenda clínica del panel SIMBOLOGÍA (extracción, ausencia, caries, furcación, etc.). |
 
 ### Sprite de dientes
 
-Los glifos del periodontograma se incrustan con `ToothSprite` (`<svg aria-hidden="true" style="display:none">`). Cada entrada produce el contorno (`fill: currentColor`, todos los subpaths) y la capa `-solid` (solo el primer subpath de cada path, para pintar `var(--paper)` debajo). Los paths van envueltos en `<g transform="translate(0,887) scale(0.1,-0.1)">`, el mismo transform del atlas Potrace. No hay `<use href="/sprite.svg#...">`.
+Los glifos del periodontograma se incrustan con `ToothSprite` (`<svg aria-hidden="true" style="display:none">`). Cada entrada produce el contorno (`fill: currentColor`, todos los subpaths) y la capa `-solid` (solo el primer subpath de cada path, para pintar `var(--paper)` debajo). Los paths van envueltos en `<g transform="translate(0,887) scale(0.1,-0.1)">`, el mismo transform del atlas Potrace. No hay `<use href="/sprite.svg#...">`. Cada formato emite solo el prefijo de su dentición (`permanent_` en ODO-F05, `temporal_` en ODO-F06).
 
 `src/lib/tooth-sprite/symbols.generated.ts` es un fichero **generado**: no se edita a mano. `src/lib/tooth-sprite/symbols.ts` es solo una fachada de ese generado. Para regenerarlo:
 
@@ -158,16 +158,18 @@ Los glifos del periodontograma se incrustan con `ToothSprite` (`<svg aria-hidden
 bun run sprite:teeth
 ```
 
-El script lee **únicamente** el atlas permanente canónico:
+El script lee los dos atlas canónicos:
 
 - `raw/pagina-periortograma/icons-003-permanent.svg`
 - `raw/pagina-periortograma/icons-003-permanent-coordinates.json`
+- `raw/pagina-periortograma/icons-003-temporal.svg`
+- `raw/pagina-periortograma/icons-003-temporal-coordinates.json`
 
-Asigna cada path a la caja que lo contiene (tolerancia 2 px) con `assignAtlas`. Si hay cajas vacías o un path cae en varias cajas, falla **antes de escribir**. La salida tiene exactamente 64 entradas: `permanent_<fdi>_profile` y `permanent_<fdi>_occlusal` para los 32 FDI permanentes (superior 18…11 | 21…28; inferior 48…41 | 31…38).
+Asigna cada path a la caja que lo contiene (tolerancia 2 px) con `assignAtlas`. Si hay cajas vacías o un path cae en varias cajas, falla **antes de escribir**. La salida tiene exactamente 104 entradas: 64 permanentes (`permanent_<fdi>_profile` / `permanent_<fdi>_occlusal` para 32 FDI; superior 18…11 | 21…28; inferior 48…41 | 31…38) y 40 temporales (`temporal_<fdi>_profile` / `temporal_<fdi>_occlusal` para 20 FDI de `icons-003-temporal.json`; superior 55…51 | 61…65; inferior 85…81 | 71…75).
 
 Cada FDI usa su glifo propio. `periodontogram.ts` resuelve la columna a esos IDs de forma directa: no se espejan hemiarcadas ni se clonan terceros molares. Facial y Lingual reutilizan el perfil canónico del mismo FDI. Como el atlas fuente dibuja todos los perfiles con la raíz hacia arriba, `PerioArch` aplica `scale(1 -1)` únicamente a los perfiles Facial/Lingual de la arcada inferior: así la corona mira hacia arriba y la raíz queda abajo, dentro de la mitad rayada que representa la superficie cubierta por encía. La vista oclusal no se invierte.
 
-El atlas mantiene los 32 FDI canónicos y sus 64 símbolos, pero ODO-F05 no renderiza el FDI 35: la arcada superior conserva 16 columnas y la inferior también usa 16 (`48…41 | 31,32,23,33,34,36,37,38`), reutilizando el mismo glifo FDI 23 en ambas arcadas.
+El atlas permanente mantiene los 32 FDI canónicos y sus 64 símbolos, pero ODO-F05 no renderiza el FDI 35: la arcada superior conserva 16 columnas y la inferior también usa 16 (`48…41 | 31,32,23,33,34,36,37,38`), reutilizando el mismo glifo FDI 23 en ambas arcadas. ODO-F06 no remapea: la columna izquierda inferior es `8.5` (`temporal_85_profile`).
 
 Los originales `icons-001` / `icons-002` (atlas y clones M3) no alimentan este flujo.
 
@@ -194,7 +196,7 @@ Criterio canónico de selección (el original duplica glifos y etiqueta mal el 2
 
 El atlas conserva solo dentición permanente, en el orden clínico de `icons-003-disposicion.json`: superior 18…11 \| 21…28 e inferior 48…41 \| 31…38. No se espejan hemiarcadas ni se clonan terceros molares; la corrección vertical inferior se aplica al render, no al atlas. Cada columna se parte en caja de perfil y caja oclusal, ampliadas para no recortar raíces ni oclusales. El SVG limpio omite cabeceras, números FDI, dentición temporal, símbolos auxiliares y los cuatro glifos sobrantes.
 
-El catálogo (`src/pages/index.astro`) usa `WebPageLayout` (`isCatalog`): logo, marca, definición, `UsageNotice`, lista desde `CATALOG_FORMATS`, FAQ y `SiteFooter`. Enlaza las cinco rutas de formato con `btn` daisyUI y no monta `PrintDocumentLayout` ni `PrintToolbar`. Los formatos clínicos y la hoja (`.sheet`) no usan daisyUI.
+El catálogo (`src/pages/index.astro`) usa `WebPageLayout` (`isCatalog`): logo, marca, definición, `UsageNotice`, lista desde `CATALOG_FORMATS`, FAQ y `SiteFooter`. Enlaza las seis rutas de formato con `btn` daisyUI y no monta `PrintDocumentLayout` ni `PrintToolbar`. Los formatos clínicos y la hoja (`.sheet`) no usan daisyUI.
 
 ## Cromo legal y hoja clínica
 
@@ -209,6 +211,7 @@ El cromo legal (enlaces del pie, `.site-footer`, skip-link y `UsageNotice`) y la
 | `/formatos/eventos/` | `ODO-F03` |
 | `/formatos/paciente-imagen/` | `ODO-F04` |
 | `/formatos/periodontograma/` | `ODO-F05` |
+| `/formatos/periodontograma-temporal/` | `ODO-F06` |
 
 ## Leyenda en escala de grises
 

@@ -45,6 +45,12 @@ export const FORMATS: readonly FormatDefinition[] = [
     path: '/formatos/periodontograma/',
     title: 'Periodontograma · ODO-F05',
   },
+  {
+    id: 'periodontograma-temporal',
+    code: 'ODO-F06',
+    path: '/formatos/periodontograma-temporal/',
+    title: 'Periodontograma temporal · ODO-F06',
+  },
 ];
 
 const FORMAT_BY_ID = Object.fromEntries(FORMATS.map((format) => [format.id, format])) as Record<

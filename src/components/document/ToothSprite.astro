@@ -1,10 +1,19 @@
 ---
+import type { DentitionId } from '../../lib/periodontogram';
 import { TOOTH_SYMBOLS } from '../../lib/tooth-sprite/symbols';
 
-const symbols = Object.entries(TOOTH_SYMBOLS).flatMap(([id, entry]) => [
-  { id, viewBox: entry.viewBox, paths: entry.outline },
-  { id: `${id}-solid`, viewBox: entry.viewBox, paths: entry.solid },
-]);
+interface Props {
+  dentition?: DentitionId;
+}
+
+const { dentition = 'permanent' } = Astro.props;
+const prefix = `${dentition}_`;
+const symbols = Object.entries(TOOTH_SYMBOLS)
+  .filter(([id]) => id.startsWith(prefix))
+  .flatMap(([id, entry]) => [
+    { id, viewBox: entry.viewBox, paths: entry.outline },
+    { id: `${id}-solid`, viewBox: entry.viewBox, paths: entry.solid },
+  ]);
 ---
 
 <svg aria-hidden="true" width="0" height="0" overflow="hidden" style="position:absolute">

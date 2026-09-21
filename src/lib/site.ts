@@ -3,10 +3,10 @@ export const SITE_DESCRIPTOR = 'Ficheros odontológicos';
 export const SITE_ALTERNATE_NAME = 'Diente Dientitos - Ficheros odontológicos';
 export const SITE_TITLE = 'Diente Dientitos | Ficheros odontológicos imprimibles';
 export const SITE_DESCRIPTION =
-  'Diente Dientitos ofrece ficheros odontológicos imprimibles: expedientes, Rx/Tx, eventos, diagrama dental y periodontograma. Elige Carta, A5 o A6, PDF o a mano.';
+  'Diente Dientitos ofrece ficheros odontológicos imprimibles: expedientes, Rx/Tx, eventos, diagrama dental y periodontogramas. Elige Carta, A5 o A6, PDF o a mano.';
 export const SITE_H1 = 'Diente Dientitos — Ficheros odontológicos';
 export const SITE_DEFINITION =
-  'Diente Dientitos es un sitio de ficheros odontológicos imprimibles para consulta: expedientes, Rx/Tx, eventos y diagrama dental. Cada formato es una hoja en blanco (Carta, A5 o A6) para rellenar a mano o descargar en PDF. El catálogo no se imprime ni sustituye un historial digital.';
+  'Diente Dientitos es un sitio de ficheros odontológicos imprimibles para consulta: expedientes, Rx/Tx, eventos, diagrama dental y periodontogramas. Cada formato es una hoja en blanco (Carta, A5 o A6) para rellenar a mano o descargar en PDF. El catálogo no se imprime ni sustituye un historial digital.';
 
 export const CATALOG_FORMATS = [
   {
@@ -39,6 +39,12 @@ export const CATALOG_FORMATS = [
     title: 'Periodontograma',
     lead: 'Retícula de sondaje de las dos arcadas, oclusión y hallazgos radiográficos.',
   },
+  {
+    href: '/formatos/periodontograma-temporal/',
+    code: 'ODO-F06',
+    title: 'Periodontograma temporal',
+    lead: 'Retícula de sondaje de dentición temporal, oclusión y hallazgos radiográficos.',
+  },
 ] as const;
 
 export type CatalogFormat = (typeof CATALOG_FORMATS)[number];
@@ -55,6 +61,8 @@ const FORMAT_DESCRIPTIONS: Record<FormatCode, string> = {
     'Fichero de paciente con diagrama dental, leyenda Rojo, Azul, Verde y Otro, y notas (ODO-F04). Imprimible o PDF.',
   'ODO-F05':
     'Fichero de periodontograma para evaluar al paciente que tiene periodontitis (ODO-F05). Formato imprimible o PDF en Diente Dientitos.',
+  'ODO-F06':
+    'Fichero de periodontograma de dentición temporal (ODO-F06). Formato imprimible o PDF en Diente Dientitos.',
 };
 
 export const FAQ_ITEMS = [
@@ -65,7 +73,7 @@ export const FAQ_ITEMS = [
   {
     question: '¿Para qué sirve cada formato?',
     answer:
-      'ODO-F01 expedientes/folios; ODO-F02 paciente Rx/Tx/notas; ODO-F03 eventos 2×2; ODO-F04 diagrama dental, leyenda y notas; ODO-F05 periodontograma. Una hoja por ruta.',
+      'ODO-F01 expedientes/folios; ODO-F02 paciente Rx/Tx/notas; ODO-F03 eventos 2×2; ODO-F04 diagrama dental, leyenda y notas; ODO-F05 periodontograma; ODO-F06 periodontograma temporal. Una hoja por ruta.',
   },
   {
     question: '¿Cómo se imprime o descarga un fichero?',

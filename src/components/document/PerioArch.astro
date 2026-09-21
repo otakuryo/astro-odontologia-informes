@@ -5,12 +5,14 @@ import {
   type ArchColumn,
   type ArchId,
   type ArchLayout,
+  type DentitionId,
   type GridBand,
 } from '../../lib/periodontogram';
 import { TOOTH_SYMBOLS } from '../../lib/tooth-sprite/symbols';
 
 interface Props {
   arch: ArchId;
+  dentition?: DentitionId;
 }
 
 type PtLine = { x1: number; y1: number; x2: number; y2: number };
@@ -35,8 +37,8 @@ type ToothGlyph = {
   h: number;
 };
 
-const { arch } = Astro.props;
-const layout = buildArchLayout(arch);
+const { arch, dentition = 'permanent' } = Astro.props;
+const layout = buildArchLayout(arch, dentition);
 const viewBox = `0 0 ${layout.viewBox.w} ${layout.viewBox.h}`;
 const ariaLabel = arch === 'upper' ? 'Arcada superior' : 'Arcada inferior';
 const labelSize = {
