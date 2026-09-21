@@ -389,4 +389,132 @@ test.describe('Exportación PDF', () => {
     expect(samples.legendFill.r, `swatch rojo ${JSON.stringify(samples.legendFill)}`).toBeGreaterThan(150);
     expect(samples.legendFill.r).toBeGreaterThan(samples.legendFill.g);
   });
+
+  test('ODO-F05 captureSheet: el perfil FDI 1.1 tiene interior de papel, contorno de tinta y más contraste en el interior', async ({
+    page,
+  }) => {
+    test.setTimeout(90_000);
+    page.on('dialog', (dialog) => {
+      throw new Error(`Diálogo nativo: ${dialog.message()}`);
+    });
+    await page.goto('/formatos/periodontograma/?papel=a5');
+    await page.locator('.sheet').waitFor();
+    await page.locator('[data-testid="perio-tooth"][data-fdi="1.1"][data-row="profile"]').waitFor();
+    await page.evaluate(() => document.fonts.ready);
+    await page.waitForFunction(() => Boolean(window.__odoPrintExport));
+
+    /* La misma PNG que composePdf() embebe; se valida el ráster, no el binario PDF. */
+    const samples = await page.evaluate(async () => {
+      const api = window.__odoPrintExport;
+      const sheet = document.querySelector('.sheet');
+      const tooth = document.querySelector(
+        '[data-testid="perio-tooth"][data-fdi="1.1"][data-row="profile"]',
+      );
+      if (!api || !(sheet instanceof HTMLElement) || !(tooth instanceof Element)) {
+        throw new Error('Falta captura o el perfil FDI 1.1');
+      }
+
+      const png = await api.captureSheet(sheet);
+      const blob = new Blob([png.slice()], { type: 'image/png' });
+      const bitmap = await createImageBitmap(blob);
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = bitmap.width;
+        canvas.height = bitmap.height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          throw new Error('No hay canvas 2d');
+        }
+        ctx.drawImage(bitmap, 0, 0);
+
+        const sheetRect = sheet.getBoundingClientRect();
+        const toCanvas = (cssX: number, cssY: number) => ({
+          x: Math.round(((cssX - sheetRect.left) / sheetRect.width) * canvas.width),
+          y: Math.round(((cssY - sheetRect.top) / sheetRect.height) * canvas.height),
+        });
+        const pixel = (x: number, y: number) => {
+          const px = Math.min(canvas.width - 1, Math.max(0, x));
+          const py = Math.min(canvas.height - 1, Math.max(0, y));
+          const [r = 0, g = 0, b = 0, a = 0] = ctx.getImageData(px, py, 1, 1).data;
+          return { r, g, b, a, luma: (r + g + b) / 3 };
+        };
+
+        const isPaper = (sample: { luma: number; a: number }) => sample.luma > 230 && sample.a === 255;
+        const box = tooth.getBoundingClientRect();
+        const y0 = toCanvas(box.left, box.top).y;
+        const y1 = toCanvas(box.left, box.top + box.height).y;
+        const minRun = Math.max(8, Math.round((y1 - y0) * 0.2));
+
+        let best = {
+          length: 0,
+          interior: pixel(0, 0),
+          outline: pixel(0, 0),
+        };
+        for (const fx of [0.4, 0.5, 0.6]) {
+          const x = toCanvas(box.left + box.width * fx, box.top).x;
+          let runStart = -1;
+          const consider = (start: number, end: number) => {
+            const length = end - start + 1;
+            if (length <= best.length) {
+              return;
+            }
+            const mid = pixel(x, start + Math.floor(length / 2));
+            const darkestOutward = (fromY: number, dir: number) => {
+              let ink = pixel(x, fromY);
+              for (let i = 0; i <= 4; i += 1) {
+                const sample = pixel(x, fromY + dir * i);
+                if (sample.luma < ink.luma) {
+                  ink = sample;
+                }
+              }
+              return ink;
+            };
+            const top = darkestOutward(Math.max(y0, start - 1), -1);
+            const bot = darkestOutward(Math.min(y1, end + 1), 1);
+            best = {
+              length,
+              interior: mid,
+              outline: top.luma <= bot.luma ? top : bot,
+            };
+          };
+          for (let y = y0; y <= y1; y += 1) {
+            if (isPaper(pixel(x, y))) {
+              if (runStart < 0) {
+                runStart = y;
+              }
+            } else if (runStart >= 0) {
+              consider(runStart, y - 1);
+              runStart = -1;
+            }
+          }
+          if (runStart >= 0) {
+            consider(runStart, y1);
+          }
+        }
+
+        if (best.length < minRun) {
+          throw new Error(
+            `no hay interior de papel continuo en el perfil FDI 1.1 (racha ${best.length} px, mínimo ${minRun})`,
+          );
+        }
+
+        return { interior: best.interior, outline: best.outline };
+      } finally {
+        bitmap.close();
+      }
+    });
+
+    expect(
+      samples.interior.luma,
+      `píxel interior del perfil FDI 1.1 debe ser papel claro ${JSON.stringify(samples.interior)}`,
+    ).toBeGreaterThan(230);
+    expect(
+      samples.outline.luma,
+      `borde del perfil FDI 1.1 debe ser tinta oscura ${JSON.stringify(samples.outline)}`,
+    ).toBeLessThan(140);
+    expect(
+      samples.interior.luma,
+      `el interior debe contrastar más que el contorno (interior ${samples.interior.luma.toFixed(1)} vs contorno ${samples.outline.luma.toFixed(1)})`,
+    ).toBeGreaterThan(samples.outline.luma);
+  });
 });

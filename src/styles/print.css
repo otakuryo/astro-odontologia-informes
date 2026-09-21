@@ -173,4 +173,19 @@ html {
     background: var(--paper) !important;
     border-color: var(--ink) !important;
   }
+
+  /* Periodontograma: sólido claro y contorno oscuro; no tematizar el SVG. */
+  .perio-arch__solid {
+    fill: var(--paper);
+    color: var(--paper);
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .perio-arch__outline {
+    fill: var(--ink);
+    color: var(--ink);
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
 }

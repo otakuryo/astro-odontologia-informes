@@ -244,6 +244,7 @@ const glyphs: ToothGlyph[] = layout.columns.flatMap((column) => [
           height={glyph.h}
         />
         <use
+          class="perio-arch__outline"
           href={`#${glyph.outlineId}`}
           x={glyph.x}
           y={glyph.y}
@@ -304,7 +305,13 @@ const glyphs: ToothGlyph[] = layout.columns.flatMap((column) => [
   }
 
   .perio-arch__solid {
+    fill: var(--paper);
     color: var(--paper);
+  }
+
+  .perio-arch__outline {
+    fill: var(--ink);
+    color: var(--ink);
   }
 
   .perio-arch__label {

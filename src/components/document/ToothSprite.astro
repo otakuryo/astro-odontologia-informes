@@ -13,7 +13,7 @@ const symbols = Object.entries(TOOTH_SYMBOLS).flatMap(([id, entry]) => [
       <symbol id={symbol.id} viewBox={symbol.viewBox}>
         <g transform="translate(0,887) scale(0.1,-0.1)">
           {symbol.paths.map((pathD) => (
-            <path d={pathD} fill="currentColor" />
+            <path d={pathD} fill="inherit" />
           ))}
         </g>
       </symbol>

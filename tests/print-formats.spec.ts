@@ -645,6 +645,10 @@ type PerioSpriteMetrics = {
   forbiddenHrefs: string[];
   forbiddenMarkup: string[];
   atlasTransforms: string[];
+  solidUseCount: number;
+  outlineUseCount: number;
+  solidTooDark: string[];
+  outlineTooLight: string[];
 };
 
 function compactFdi(fdi: string): string {
@@ -701,6 +705,47 @@ async function measurePerioSprite(page: Page): Promise<PerioSpriteMetrics | null
 
     const uses = [...format.querySelectorAll('use')];
     const forbiddenHrefs = uses.map(hrefId).filter((id) => id.length > 0 && isForbiddenId(id));
+
+    const parseCssRgb = (value: string) => {
+      const comma = value.match(/rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)/i);
+      if (comma) {
+        return { r: Number(comma[1]), g: Number(comma[2]), b: Number(comma[3]) };
+      }
+      const space = value.match(/rgba?\(\s*([\d.]+)\s+([\d.]+)\s+([\d.]+)/i);
+      if (space) {
+        return { r: Number(space[1]), g: Number(space[2]), b: Number(space[3]) };
+      }
+      return null;
+    };
+    const lumaOf = (color: { r: number; g: number; b: number }) => (color.r + color.g + color.b) / 3;
+    const paintLabel = (useNode: Element, fill: string, value: number) => {
+      const glyph = useNode.closest('[data-row]');
+      const fdi = glyph?.getAttribute('data-fdi') ?? '?';
+      const row = glyph?.getAttribute('data-row') ?? '?';
+      const lumaText = Number.isFinite(value) ? value.toFixed(1) : 'n/d';
+      return `${fdi}:${row}:${hrefId(useNode)} fill=${fill} luma=${lumaText}`;
+    };
+
+    const solidTooDark: string[] = [];
+    const outlineTooLight: string[] = [];
+    let solidUseCount = 0;
+    let outlineUseCount = 0;
+    for (const useNode of uses) {
+      const fill = getComputedStyle(useNode).fill;
+      const parsed = parseCssRgb(fill);
+      const value = parsed ? lumaOf(parsed) : Number.NaN;
+      if (useNode.classList.contains('perio-arch__solid')) {
+        solidUseCount += 1;
+        if (!(value > 230)) {
+          solidTooDark.push(paintLabel(useNode, fill, value));
+        }
+      } else if (useNode.classList.contains('perio-arch__outline')) {
+        outlineUseCount += 1;
+        if (!(value < 140)) {
+          outlineTooLight.push(paintLabel(useNode, fill, value));
+        }
+      }
+    }
 
     const markup = format.innerHTML.replaceAll(/\s+/g, '');
     const forbiddenMarkup: string[] = [];
@@ -795,6 +840,10 @@ async function measurePerioSprite(page: Page): Promise<PerioSpriteMetrics | null
       forbiddenHrefs,
       forbiddenMarkup,
       atlasTransforms,
+      solidUseCount,
+      outlineUseCount,
+      solidTooDark,
+      outlineTooLight,
     };
   });
 }
@@ -885,6 +934,16 @@ async function assertPerioSpriteContract(page: Page, paper: string) {
     sprite.solidIds.slice().sort(),
     `cada contorno tiene -solid en ${paper}`,
   ).toEqual(sprite.outlineIds.map((id) => `${id}-solid`).sort());
+  expect(sprite.solidUseCount, `un <use> sólido por glifo visible en ${paper}`).toBe(96);
+  expect(sprite.outlineUseCount, `un <use> de contorno por glifo visible en ${paper}`).toBe(96);
+  expect(
+    sprite.solidTooDark,
+    `el <use> sólido resuelve a papel claro (luminancia > 230) en ${paper}`,
+  ).toEqual([]);
+  expect(
+    sprite.outlineTooLight,
+    `el <use> de contorno resuelve a tinta oscura (luminancia < 140) en ${paper}`,
+  ).toEqual([]);
 
   expect(sprite.forbiddenSymbolIds, `sin IDs legacy/M3 en symbols ${paper}`).toEqual([]);
   expect(sprite.forbiddenHrefs, `sin href legacy/M3 en ${paper}`).toEqual([]);
@@ -1155,6 +1214,18 @@ test.describe('Documentos de formato', () => {
       await expect(page.locator('[data-testid="perio-arch"]')).toHaveCount(2);
       await assertPerioSpriteContract(page, paper.id);
     }
+  });
+
+  test('ODO-F05 periodontograma: el sólido resuelve a papel claro y el contorno a tinta oscura en pantalla y en print', async ({
+    page,
+  }) => {
+    await page.goto('/formatos/periodontograma/');
+    await expect(page.locator('[data-testid="perio-arch"]')).toHaveCount(2);
+
+    await assertPerioSpriteContract(page, 'pantalla');
+
+    await page.emulateMedia({ media: 'print' });
+    await assertPerioSpriteContract(page, 'print');
   });
 
   test('ODO-F04 dispone el diagrama dental (pasillo, homólogos, labels)', async ({

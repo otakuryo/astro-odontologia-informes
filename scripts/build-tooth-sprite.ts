@@ -2,7 +2,7 @@ import { atlasToUserSpace, splitSubpaths, subpathBBox } from '../src/lib/tooth-s
 
 const TOLERANCE_PX = 2;
 
-type SpriteBox = {
+export type SpriteBox = {
   id: string;
   x: number;
   y: number;
@@ -21,14 +21,22 @@ export type ToothSymbol = {
   solid: string[];
 };
 
+export type AtlasAssignment = {
+  symbols: Record<string, ToothSymbol>;
+  assigned: number;
+  omitted: number;
+  empty: string[];
+  ambiguous: number;
+};
+
+const EXPECTED_SYMBOL_COUNT = 64;
+
 const root = `${import.meta.dir}/..`;
-const svgPath = `${root}/raw/pagina-periortograma/icons-001.svg`;
-const jsonPath = `${root}/raw/pagina-periortograma/periodontograma-sprite-coordinates.json`;
-const m3SvgPath = `${root}/raw/pagina-periortograma/icons-002.svg`;
-const m3JsonPath = `${root}/raw/pagina-periortograma/icons-002-coordinates.json`;
+const svgPath = `${root}/raw/pagina-periortograma/icons-003-permanent.svg`;
+const jsonPath = `${root}/raw/pagina-periortograma/icons-003-permanent-coordinates.json`;
 const outPath = `${root}/src/lib/tooth-sprite/symbols.generated.ts`;
 
-function extractPathD(svg: string): string[] {
+export function extractPathD(svg: string): string[] {
   const paths: string[] = [];
   const re = /<path\b[^>]*\bd="([^"]*)"/g;
   let match: RegExpExecArray | null;
@@ -85,28 +93,19 @@ function snippet(d: string): string {
   return compact.length > 80 ? `${compact.slice(0, 80)}…` : compact;
 }
 
-async function readAtlas(svgFile: string, jsonFile: string): Promise<{ paths: string[]; boxes: SpriteBox[] }> {
-  if (!(await Bun.file(svgFile).exists()) || !(await Bun.file(jsonFile).exists())) {
-    throw new Error(`falta el atlas ${svgFile} o ${jsonFile}`);
-  }
-
-  const svg = await Bun.file(svgFile).text();
-  const coords = (await Bun.file(jsonFile).json()) as SpriteCoordinates;
-  return { paths: extractPathD(svg), boxes: coords.elements };
-}
-
-async function main(): Promise<void> {
-  const primary = await readAtlas(svgPath, jsonPath);
-  const m3 = await readAtlas(m3SvgPath, m3JsonPath);
-  const paths = [...primary.paths, ...m3.paths];
-  const boxes = [...primary.boxes, ...m3.boxes];
-
+export function assignAtlas(
+  paths: string[],
+  boxes: SpriteBox[],
+  indexOffset = 0,
+  log = true,
+): AtlasAssignment {
   const assigned = new Map<string, string[]>();
   for (const box of boxes) {
     assigned.set(box.id, []);
   }
 
   let omitted = 0;
+  let ambiguous = 0;
 
   for (const [index, raw] of paths.entries()) {
     const userBox = atlasToUserSpace(subpathBBox(raw));
@@ -114,11 +113,16 @@ async function main(): Promise<void> {
 
     if (hits.length !== 1) {
       omitted += 1;
+      if (hits.length > 1) {
+        ambiguous += 1;
+      }
       const reason =
         hits.length === 0
           ? 'no cae en ninguna caja'
           : `cae en ${hits.length} cajas (${hits.map((box) => box.id).join(', ')})`;
-      console.error(`path omitido [${index}]: ${reason} — ${snippet(raw)}`);
+      if (log) {
+        console.error(`path omitido [${index + indexOffset}]: ${reason} — ${snippet(raw)}`);
+      }
       continue;
     }
 
@@ -146,15 +150,46 @@ async function main(): Promise<void> {
     };
   }
 
-  if (empty.length > 0) {
-    console.error(`cajas sin paths: ${empty.join(', ')}`);
-    process.exitCode = 1;
+  return { symbols, assigned: paths.length - omitted, omitted, empty, ambiguous };
+}
+
+async function readAtlas(svgFile: string, jsonFile: string): Promise<{ paths: string[]; boxes: SpriteBox[] }> {
+  if (!(await Bun.file(svgFile).exists()) || !(await Bun.file(jsonFile).exists())) {
+    throw new Error(`falta el atlas ${svgFile} o ${jsonFile}`);
   }
 
-  await Bun.write(outPath, emitSymbols(symbols));
+  const svg = await Bun.file(svgFile).text();
+  const coords = (await Bun.file(jsonFile).json()) as SpriteCoordinates;
+  return { paths: extractPathD(svg), boxes: coords.elements };
+}
+
+async function main(): Promise<void> {
+  const atlas = await readAtlas(svgPath, jsonPath);
+  const result = assignAtlas(atlas.paths, atlas.boxes);
+  const ids = Object.keys(result.symbols);
+
+  if (result.empty.length > 0) {
+    console.error(`cajas sin paths: ${result.empty.join(', ')}`);
+    process.exitCode = 1;
+    return;
+  }
+
+  if (result.ambiguous > 0) {
+    console.error(`asignación ambigua: ${result.ambiguous} paths caen en varias cajas`);
+    process.exitCode = 1;
+    return;
+  }
+
+  if (ids.length !== EXPECTED_SYMBOL_COUNT) {
+    console.error(`se esperaban ${EXPECTED_SYMBOL_COUNT} símbolos, hay ${ids.length}`);
+    process.exitCode = 1;
+    return;
+  }
+
+  await Bun.write(outPath, emitSymbols(result.symbols));
 
   console.log(
-    `${Object.keys(symbols).length} símbolos, ${paths.length - omitted} paths asignados, ${omitted} omitidos → ${outPath}`,
+    `${ids.length} símbolos, ${result.assigned} paths asignados, ${result.omitted} omitidos → ${outPath}`,
   );
 }
 

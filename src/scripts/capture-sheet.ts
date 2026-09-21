@@ -107,6 +107,12 @@ function snapshotInline(el: Element): RestoreFn {
  * sí se ven porque el fill por defecto del SVG es negro. Inlinamos pintura calculada
  * para que el clon conserve odontograma y leyenda.
  *
+ * No horneamos fill/stroke en `<symbol>`, `<defs>` ni sus descendientes: esas
+ * definiciones se reutilizan desde varios `<use>` con pinturas distintas (sólido
+ * `--paper`, contorno `--ink`). Rasterizar el color calculado del sprite oculto
+ * fija una sola pintura en el clon y el periodontograma sale en negativo. Los
+ * `<use>` visibles sí se inlinean; snapshotInline restaura.
+ *
  * En `background: 'transparent'` solo el papel de `.sheet` se vacía; paneles,
  * casillas y SVG se inlinean igual que en el modo opaco.
  */
@@ -125,6 +131,10 @@ function prepareSheetForCapture(root: HTMLElement, options?: CaptureSheetOptions
 
     svg.querySelectorAll('*').forEach((el) => {
       if (el.namespaceURI !== SVG_NS) {
+        return;
+      }
+
+      if (el.closest('defs, symbol')) {
         return;
       }
 
